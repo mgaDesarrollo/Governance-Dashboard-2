@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "postgresql"
+url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+SUPER_ADMIN
+ADMIN
+CORE_CONTRIBUTOR
+}
+
+// Nuevo enum para el estado de disponibilidad del usuario
+enum UserAvailabilityStatus {
+AVAILABLE
+BUSY
+VERY_BUSY
+}
+
+enum ProposalStatus {
+IN_REVIEW
+APPROVED
+REJECTED
+EXPIRED
+}
+
+enum VoteType {
+POSITIVE
+NEGATIVE
+ABSTAIN
+}
+
+model User {
+id            String    @id
+name          String
+email         String?
+image         String?
+role          UserRole  @default(CORE_CONTRIBUTOR)
+createdAt     DateTime  @default(now())
+updatedAt     DateTime  @updatedAt
+
+// Campos existentes
+walletAddress String?   @db.Text
+status        UserAvailabilityStatus? @default(AVAILABLE)
+reputation    Int       @default(0)      // Puntuación de reputación
+fullname      String?   @db.VarChar(255) // Nombre completo opcional
+
+// Nuevos campos solicitados
+skills        String?   @db.Text // Usamos Text para mayor flexibilidad que Varchar(255)
+country       String?   @db.VarChar(255)
+languages     String?   @db.Text // Usamos Text para mayor flexibilidad
+
+// Relaciones
+proposals           Proposal[]
+votes               Vote[]
+comments            Comment[]
+professionalProfile ProfessionalProfile?
+socialLinks         SocialLinks?
+workgroups          Workgroup[] @relation("UserWorkgroups") // Relación muchos a muchos con Workgroup
+}
+
+// Nueva tabla para el perfil profesional
+model ProfessionalProfile {
+id         String   @id @default(cuid())
+userId     String   @unique
+tagline    String?  @db.VarChar(255)
+bio        String?  @db.Text
+experience String?  @db.Text
+linkCv     String?  @db.VarChar(2048)
+createdAt  DateTime @default(now())
+updatedAt  DateTime @updatedAt
+
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+@@index([userId])
+}
+
+// Nueva tabla para los enlaces sociales
+model SocialLinks {
+id        String   @id @default(cuid())
+userId    String   @unique
+facebook  String?  @db.VarChar(2048)
+linkedin  String?  @db.VarChar(2048)
+github    String?  @db.VarChar(2048)
+x         String?  @db.VarChar(2048) // Para Twitter/X
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+@@index([userId])
+}
+
+// Nueva tabla Workgroup
+model Workgroup {
+id          String     @id @default(cuid())
+name        String     @unique @db.VarChar(255)
+description String?    @db.Text
+createdAt   DateTime   @default(now())
+updatedAt   DateTime   @updatedAt
+
+users       User[]     @relation("UserWorkgroups") // Relación muchos a muchos con User
+proposals   Proposal[] // Un workgroup puede tener muchas propuestas
+}
+
+model Proposal {
+id            String         @id @default(cuid())
+title         String
+description   String
+createdAt     DateTime       @default(now())
+expiresAt     DateTime
+status        ProposalStatus @default(IN_REVIEW)
+positiveVotes Int            @default(0)
+negativeVotes Int            @default(0)
+abstainVotes  Int            @default(0)
+
+// Relations
+authorId      String
+author        User           @relation(fields: [authorId], references: [id])
+votes         Vote[]
+comments      Comment[]
+
+// Nueva relación con Workgroup
+workgroupId   String?        // Clave foránea opcional para Workgroup
+workgroup     Workgroup?     @relation(fields: [workgroupId], references: [id])
+
+@@index([authorId])
+@@index([workgroupId])
+}
+
+model Vote {
+id         String   @id @default(cuid())
+type       VoteType
+createdAt  DateTime @default(now())
+updatedAt  DateTime @updatedAt
+
+// Relations
+userId     String
+user       User     @relation(fields: [userId], references: [id])
+proposalId String
+proposal   Proposal @relation(fields: [proposalId], references: [id])
+
+@@unique([userId, proposalId])
+@@index([userId])
+@@index([proposalId])
+}
+
+model Comment {
+id         String   @id @default(cuid())
+content    String
+createdAt  DateTime @default(now())
+updatedAt  DateTime @updatedAt
+
+// Relations
+userId     String
+user       User     @relation(fields: [userId], references: [id])
+proposalId String
+proposal   Proposal @relation(fields: [proposalId], references: [id])
+
+@@unique([userId, proposalId]) // Un usuario solo puede comentar una vez por propuesta
+@@index([userId])
+@@index([proposalId])
+}
