@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState, useRef } from "react" // Añadir useRef
+import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -22,24 +22,36 @@ import {
   PaperclipIcon,
   EyeIcon,
   Loader2Icon,
+  GlobeIcon,
+  LanguagesIcon,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { UserAvailabilityStatus, Workgroup } from "@prisma/client"
-import type { ProfileFormData } from "@/lib/types" // Importar desde lib/types
+import type { ProfileFormData } from "@/lib/types"
+
+interface Country {
+  code: string
+  name: string
+}
+
+interface Language {
+  code: string
+  name: string
+}
 
 const initialFormData: ProfileFormData = {
   fullname: "",
-  image: "", // URL de la imagen
+  image: "",
   walletAddress: "",
   status: "",
   skills: "",
-  country: "",
-  languages: "",
+  country: "", // Guardaremos el nombre del país
+  languages: "", // Guardaremos el nombre del idioma principal
   professionalProfile: {
     tagline: "",
     bio: "",
     experience: "",
-    linkCv: "", // URL del CV
+    linkCv: "",
   },
   socialLinks: {
     facebook: "",
@@ -55,6 +67,8 @@ export default function EditProfilePage() {
   const { data: session, status: sessionStatus, update: updateSession } = useSession()
   const [formData, setFormData] = useState<ProfileFormData>(initialFormData)
   const [allWorkgroups, setAllWorkgroups] = useState<Workgroup[]>([])
+  const [countries, setCountries] = useState<Country[]>([])
+  const [languages, setLanguages] = useState<Language[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +92,12 @@ export default function EditProfilePage() {
     const fetchInitialData = async () => {
       try {
         setIsLoading(true)
-        const [profileRes, workgroupsRes] = await Promise.all([fetch("/api/user-profile"), fetch("/api/workgroups")])
+        const [profileRes, workgroupsRes, countriesRes, languagesRes] = await Promise.all([
+          fetch("/api/user-profile"),
+          fetch("/api/workgroups"),
+          fetch("/api/countries"),
+          fetch("/api/languages"),
+        ])
 
         if (!profileRes.ok) throw new Error("Failed to fetch profile data")
         const profileData = await profileRes.json()
@@ -86,6 +105,14 @@ export default function EditProfilePage() {
         if (!workgroupsRes.ok) throw new Error("Failed to fetch workgroups")
         const workgroupsData = await workgroupsRes.json()
         setAllWorkgroups(workgroupsData)
+
+        if (!countriesRes.ok) throw new Error("Failed to fetch countries")
+        const countriesData = await countriesRes.json()
+        setCountries(countriesData)
+
+        if (!languagesRes.ok) throw new Error("Failed to fetch languages")
+        const languagesData = await languagesRes.json()
+        setLanguages(languagesData)
 
         const currentUserWorkgroupIds = profileData.workgroups?.map((wg: Workgroup) => wg.id) || []
 
@@ -95,8 +122,8 @@ export default function EditProfilePage() {
           walletAddress: profileData.walletAddress || "",
           status: profileData.status || "",
           skills: profileData.skills || "",
-          country: profileData.country || "",
-          languages: profileData.languages || "",
+          country: profileData.country || "", // Campo existente
+          languages: profileData.languages || "", // Campo existente
           professionalProfile: {
             tagline: profileData.professionalProfile?.tagline || "",
             bio: profileData.professionalProfile?.bio || "",
@@ -118,6 +145,7 @@ export default function EditProfilePage() {
         }
       } catch (err: any) {
         setError(err.message || "Could not load initial data.")
+        console.error("Error fetching initial data:", err)
       } finally {
         setIsLoading(false)
       }
@@ -133,7 +161,6 @@ export default function EditProfilePage() {
       const parsedUrl = new URL(url)
       const pathParts = parsedUrl.pathname.split("/")
       const blobFilename = pathParts[pathParts.length - 1]
-      // Intenta extraer el nombre original si sigue el patrón 'timestamp-nombreoriginal.ext'
       const match = blobFilename.match(/^\d+-(.+)$/)
       return match && match[1] ? decodeURIComponent(match[1]) : decodeURIComponent(blobFilename)
     } catch (e) {
@@ -163,6 +190,10 @@ export default function EditProfilePage() {
   const handleSelectChange = (name: string, value: string) => {
     if (name === "status") {
       setFormData((prev) => ({ ...prev, status: value as UserAvailabilityStatus | "" }))
+    } else if (name === "country") {
+      setFormData((prev) => ({ ...prev, country: value }))
+    } else if (name === "languages") {
+      setFormData((prev) => ({ ...prev, languages: value }))
     }
   }
 
@@ -177,26 +208,21 @@ export default function EditProfilePage() {
 
   const handleFileUpload = async (file: File, uploadType: "avatar" | "cv") => {
     if (!file) return
-
     const setIsUploading = uploadType === "avatar" ? setIsUploadingAvatar : setIsUploadingCv
     setIsUploading(true)
     setError(null)
     setSuccessMessage(null)
-
     try {
       const response = await fetch(
         `/api/upload-blob?filename=${encodeURIComponent(file.name)}&uploadType=${uploadType}`,
         { method: "POST", body: file, headers: { "Content-Type": file.type } },
       )
-
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || `Failed to upload ${uploadType}`)
       }
       const blob = await response.json()
-
       if (uploadType === "avatar") {
-        // Opcional: eliminar el blob anterior si existe y es diferente
         if (formData.image && formData.image !== blob.url && formData.image.includes("blob.vercel-storage.com")) {
           await fetch(`/api/upload-blob?url=${encodeURIComponent(formData.image)}`, { method: "DELETE" })
         }
@@ -224,7 +250,6 @@ export default function EditProfilePage() {
       setError(err.message)
     } finally {
       setIsUploading(false)
-      // Limpiar el input de archivo para permitir volver a subir el mismo archivo si es necesario
       if (uploadType === "avatar" && avatarFileRef.current) avatarFileRef.current.value = ""
       if (uploadType === "cv" && cvFileRef.current) cvFileRef.current.value = ""
     }
@@ -235,26 +260,24 @@ export default function EditProfilePage() {
     setIsSubmitting(true)
     setError(null)
     setSuccessMessage(null)
-
     try {
       const response = await fetch("/api/user-profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
-
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to update profile")
       }
       const updatedProfile = await response.json()
-
-      if (session?.user?.image !== updatedProfile.image) {
-        await updateSession({ ...session, user: { ...session?.user, image: updatedProfile.image } })
+      if (session?.user?.image !== updatedProfile.image || session?.user?.status !== updatedProfile.status) {
+        await updateSession({
+          ...session,
+          user: { ...session?.user, image: updatedProfile.image, status: updatedProfile.status },
+        })
       }
-
       setSuccessMessage("Profile saved successfully!")
-      // Actualizar formData con los datos del servidor para consistencia
       const currentUserWorkgroupIds = updatedProfile.workgroups?.map((wg: Workgroup) => wg.id) || []
       setFormData({
         fullname: updatedProfile.fullname || "",
@@ -433,26 +456,52 @@ export default function EditProfilePage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Selector de País */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
+                  <Label htmlFor="country" className="flex items-center">
+                    <GlobeIcon className="mr-2 h-4 w-4 text-slate-400" /> Country
+                  </Label>
+                  <Select
                     name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className="bg-slate-700 border-slate-600"
-                  />
+                    value={formData.country} // Guardamos el nombre del país
+                    onValueChange={(value) => handleSelectChange("country", value)}
+                  >
+                    <SelectTrigger className="bg-slate-700 border-slate-600">
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600 text-slate-50 max-h-60">
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.name}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {/* Selector de Idioma */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="languages">Languages</Label>
-                  <Input
-                    id="languages"
+                  <Label htmlFor="languages" className="flex items-center">
+                    <LanguagesIcon className="mr-2 h-4 w-4 text-slate-400" /> Main Language
+                  </Label>
+                  <Select
                     name="languages"
-                    value={formData.languages}
-                    onChange={handleChange}
-                    placeholder="e.g., English, Spanish"
-                    className="bg-slate-700 border-slate-600"
-                  />
+                    value={formData.languages} // Guardamos el nombre del idioma
+                    onValueChange={(value) => handleSelectChange("languages", value)}
+                  >
+                    <SelectTrigger className="bg-slate-700 border-slate-600">
+                      <SelectValue placeholder="Select your main language" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600 text-slate-50 max-h-60">
+                      {languages.map((lang) => (
+                        <SelectItem key={lang.code} value={lang.name}>
+                          {lang.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500">You can list more languages in your bio or skills.</p>
                 </div>
               </div>
               <div className="space-y-1.5 mt-4">
@@ -468,6 +517,7 @@ export default function EditProfilePage() {
               </div>
             </section>
 
+            {/* Workgroups Section (sin cambios) */}
             <section>
               <h3 className="text-lg font-semibold text-purple-300 mb-4 border-b border-slate-700 pb-2 flex items-center">
                 <BriefcaseIcon className="mr-2 h-5 w-5" /> Workgroups
@@ -493,6 +543,7 @@ export default function EditProfilePage() {
               )}
             </section>
 
+            {/* Professional Profile Section (sin cambios) */}
             <section>
               <h3 className="text-lg font-semibold text-purple-300 mb-4 border-b border-slate-700 pb-2">
                 Professional Profile
@@ -587,6 +638,7 @@ export default function EditProfilePage() {
               </div>
             </section>
 
+            {/* Social Links Section (sin cambios) */}
             <section>
               <h3 className="text-lg font-semibold text-purple-300 mb-4 border-b border-slate-700 pb-2">
                 Social Links
