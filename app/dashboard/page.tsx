@@ -33,6 +33,9 @@ import {
   ActivityIcon,
   UsersIcon,
   HomeIcon,
+  BarChart3Icon,
+  BellIcon,
+  HelpCircleIcon,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
@@ -69,6 +72,12 @@ const getMenuItems = (userRole: UserRole) => {
       icon: TimerIcon,
       description: "Update status of expired proposals",
     },
+    {
+      title: "Analytics",
+      url: "/dashboard/analytics",
+      icon: BarChart3Icon,
+      description: "View governance statistics",
+    },
   ]
 
   const superAdminItems = [
@@ -87,6 +96,21 @@ const getMenuItems = (userRole: UserRole) => {
       icon: SettingsIcon,
       description: "Update your profile information",
     },
+    {
+      title: "Notifications",
+      url: "/dashboard/notifications",
+      icon: BellIcon,
+      description: "Manage your notifications",
+    },
+  ]
+
+  const supportItems = [
+    {
+      title: "Help & Support",
+      url: "/dashboard/help",
+      icon: HelpCircleIcon,
+      description: "Get help and documentation",
+    },
   ]
 
   // Construir el menú basado en permisos
@@ -103,6 +127,7 @@ const getMenuItems = (userRole: UserRole) => {
   return {
     main: menuItems,
     settings: settingsItems,
+    support: supportItems,
   }
 }
 
@@ -263,6 +288,28 @@ export default function DashboardPage() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.settings.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={currentPath === item.url}
+                        className="text-slate-300 hover:text-slate-100 hover:bg-slate-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                      >
+                        <a href={item.url} className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-slate-400 font-medium">Support</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.support.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
