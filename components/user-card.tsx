@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import Image from "next/image"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +16,7 @@ import {
   TwitterIcon,
   ActivityIcon,
   SparklesIcon,
+  EyeIcon,
 } from "lucide-react"
 import type { UserAvailabilityStatus, Workgroup } from "@prisma/client"
 
@@ -38,6 +41,7 @@ interface UserCardProps {
       x?: string | null
     } | null
   }
+  onViewProfile?: (userId: string) => void
 }
 
 const getStatusBadgeInfo = (status?: UserAvailabilityStatus | null) => {
@@ -76,7 +80,7 @@ const SkillBadge: React.FC<{ skill: string }> = ({ skill }) => (
   </Badge>
 )
 
-export function UserCard({ user }: UserCardProps) {
+export function UserCard({ user, onViewProfile }: UserCardProps) {
   const displayName = user.fullname || user.name
   const statusInfo = getStatusBadgeInfo(user.status)
   const skillsArray =
@@ -181,6 +185,17 @@ export function UserCard({ user }: UserCardProps) {
       <CardFooter className="p-4 border-t border-slate-700/50 mt-auto">
         <div className="flex items-center justify-between w-full">
           <div className="flex space-x-2">
+            {onViewProfile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onViewProfile(user.id)}
+                className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 text-xs"
+              >
+                <EyeIcon className="mr-1 h-3 w-3" />
+                View Profile
+              </Button>
+            )}
             {user.socialLinks?.linkedin && (
               <Button
                 variant="ghost"
@@ -227,7 +242,7 @@ export function UserCard({ user }: UserCardProps) {
             >
               <a href={user.professionalProfile.linkCv} target="_blank" rel="noopener noreferrer">
                 <DownloadIcon className="mr-1.5 h-4 w-4" />
-                View CV
+                resume
               </a>
             </Button>
           )}

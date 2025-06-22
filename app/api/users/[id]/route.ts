@@ -3,6 +3,70 @@ import { getServerSession } from "next-auth/next"
 import { prisma } from "@/lib/prisma"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
+// Obtener información completa de un usuario
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = params.id
+
+    // Obtener información completa del usuario
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true, // Discord username
+        fullname: true,
+        image: true,
+        email: true,
+        walletAddress: true,
+        country: true,
+        languages: true,
+        status: true,
+        skills: true,
+        role: true,
+        createdAt: true,
+        professionalProfile: {
+          select: {
+            tagline: true,
+            bio: true,
+            experience: true,
+            linkCv: true,
+          },
+        },
+        socialLinks: {
+          select: {
+            facebook: true,
+            linkedin: true,
+            github: true,
+            x: true,
+          },
+        },
+        workgroups: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+      },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    return NextResponse.json(user)
+  } catch (error) {
+    console.error("Error fetching user profile:", error)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+  }
+}
+
 // Actualizar el rol de un usuario
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {

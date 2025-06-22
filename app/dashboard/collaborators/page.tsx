@@ -4,10 +4,11 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { UserCard } from "@/components/user-card" // Asegúrate que la ruta sea correcta
+import { UserCard } from "@/components/user-card"
 import { ArrowLeftIcon, UsersIcon, Loader2Icon, SearchIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import type { UserAvailabilityStatus, Workgroup } from "@prisma/client" // Para los tipos de UserCardProps
+import { UserProfileDialog } from "@/components/user-profile-dialog"
+import type { UserAvailabilityStatus, Workgroup } from "@prisma/client"
 
 // Definir el tipo para los usuarios que se obtienen del API
 type PublicProfileUser = {
@@ -38,6 +39,8 @@ export default function CollaboratorsPage() {
   const [filteredUsers, setFilteredUsers] = useState<PublicProfileUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
 
   useEffect(() => {
     if (sessionStatus === "loading") return
@@ -58,7 +61,6 @@ export default function CollaboratorsPage() {
         setFilteredUsers(data)
       } catch (error) {
         console.error("Error fetching collaborators:", error)
-        // Podrías mostrar un mensaje de error al usuario aquí
       } finally {
         setIsLoading(false)
       }
@@ -82,6 +84,11 @@ export default function CollaboratorsPage() {
     })
     setFilteredUsers(filteredData)
   }, [searchTerm, users])
+
+  const handleViewProfile = (userId: string) => {
+    setSelectedUserId(userId)
+    setIsProfileDialogOpen(true)
+  }
 
   if (isLoading || sessionStatus === "loading") {
     return (
@@ -121,7 +128,7 @@ export default function CollaboratorsPage() {
       {filteredUsers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredUsers.map((user) => (
-            <UserCard key={user.id} user={user} />
+            <UserCard key={user.id} user={user} onViewProfile={handleViewProfile} />
           ))}
         </div>
       ) : (
@@ -132,6 +139,8 @@ export default function CollaboratorsPage() {
           </p>
         </div>
       )}
+
+      <UserProfileDialog userId={selectedUserId} open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen} />
     </div>
   )
 }
