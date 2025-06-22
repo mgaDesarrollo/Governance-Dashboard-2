@@ -6,25 +6,115 @@ import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import {
   LayoutDashboardIcon,
   LogOutIcon,
   UserCircle2Icon,
-  ShieldCheckIcon,
   UserCogIcon,
   AlertTriangleIcon,
   FileTextIcon,
   TimerIcon,
   SettingsIcon,
   ActivityIcon,
+  UsersIcon,
+  HomeIcon,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import type { UserRole, UserAvailabilityStatus } from "@/lib/types" // Importar UserAvailabilityStatus
+import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+
+// Definir los elementos del menú con permisos
+const getMenuItems = (userRole: UserRole) => {
+  const baseItems = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: HomeIcon,
+      description: "Overview and main dashboard",
+    },
+    {
+      title: "Proposals",
+      url: "/dashboard/proposals",
+      icon: FileTextIcon,
+      description: "View and vote on community proposals",
+    },
+    {
+      title: "Collaborators",
+      url: "/dashboard/collaborators",
+      icon: UsersIcon,
+      description: "Browse profiles of community members",
+    },
+  ]
+
+  const adminItems = [
+    {
+      title: "Check Expired Proposals",
+      url: "/dashboard/admin/check-expired-proposals",
+      icon: TimerIcon,
+      description: "Update status of expired proposals",
+    },
+  ]
+
+  const superAdminItems = [
+    {
+      title: "Manage Users",
+      url: "/dashboard/user-management",
+      icon: UserCogIcon,
+      description: "Add, remove, or change user roles",
+    },
+  ]
+
+  const settingsItems = [
+    {
+      title: "Edit Profile",
+      url: "/dashboard/profile/edit",
+      icon: SettingsIcon,
+      description: "Update your profile information",
+    },
+  ]
+
+  // Construir el menú basado en permisos
+  let menuItems = [...baseItems]
+
+  if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+    menuItems = [...menuItems, ...adminItems]
+  }
+
+  if (userRole === "SUPER_ADMIN") {
+    menuItems = [...menuItems, ...superAdminItems]
+  }
+
+  return {
+    main: menuItems,
+    settings: settingsItems,
+  }
+}
 
 export default function DashboardPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const [isLoadingPage, setIsLoadingPage] = useState(true)
+  const [currentPath, setCurrentPath] = useState("/dashboard")
+
+  useEffect(() => {
+    setCurrentPath(window.location.pathname)
+  }, [])
 
   useEffect(() => {
     if (status === "loading") {
@@ -76,8 +166,8 @@ export default function DashboardPage() {
 
   const appUser = session.user
   const userRole = appUser.role as UserRole
-  const userStatus = appUser.status as UserAvailabilityStatus | undefined // Puede ser undefined si no está en la sesión
-  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN"
+  const userStatus = appUser.status as UserAvailabilityStatus | undefined
+  const menuItems = getMenuItems(userRole)
 
   const getStatusBadgeInfo = (status?: UserAvailabilityStatus) => {
     switch (status) {
@@ -107,157 +197,173 @@ export default function DashboardPage() {
         }
     }
   }
+
   const statusInfo = getStatusBadgeInfo(userStatus)
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50">
-      <header className="bg-slate-800/50 backdrop-blur-md shadow-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <LayoutDashboardIcon className="h-7 w-7 text-purple-400" />
-            <h1 className="text-xl font-semibold">Governance Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm">
+    <SidebarProvider>
+      <div className="min-h-screen bg-slate-900 text-slate-50 flex">
+        <Sidebar className="border-slate-700">
+          <SidebarHeader className="border-b border-slate-700">
+            <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-700/50">
+              <LayoutDashboardIcon className="h-8 w-8 text-purple-400" />
+              <div className="flex flex-col">
+                <h1 className="text-lg font-semibold text-slate-100">Governance</h1>
+                <p className="text-xs text-slate-400">Dashboard</p>
+              </div>
+            </div>
+
+            {/* User information moved here */}
+            <div className="flex items-center gap-2 p-2 text-sm">
               <UserCircle2Icon className="h-6 w-6 text-slate-400 flex-shrink-0" />
-              <div className="flex flex-col items-start">
-                <span className="font-medium text-slate-100">{appUser.name || "User"}</span>
-                <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="font-medium text-slate-100 truncate text-sm">{appUser.name || "User"}</span>
+                <div className="flex items-center gap-1 mt-0.5">
                   <Badge
                     variant="outline"
-                    className="text-xs px-1.5 py-0.5 border-purple-500/50 bg-purple-600/20 text-purple-300 capitalize flex items-center"
+                    className="text-xs px-1 py-0 border-purple-500/50 bg-purple-600/20 text-purple-300 capitalize"
                   >
-                    <ShieldCheckIcon className="mr-1 h-3 w-3" />
                     {userRole?.replace("_", " ") || "N/A"}
                   </Badge>
                   {userStatus && (
-                    <Badge
-                      variant="outline"
-                      className={`text-xs px-1.5 py-0.5 capitalize flex items-center ${statusInfo.className}`}
-                    >
-                      {statusInfo.icon}
+                    <Badge variant="outline" className={`text-xs px-1 py-0 capitalize ${statusInfo.className}`}>
                       {statusInfo.text}
                     </Badge>
                   )}
                 </div>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/dashboard/profile/edit")}
-              className="font-semibold text-purple-300 border-purple-500/70 hover:bg-purple-500/20 hover:text-purple-200 hover:border-purple-400 transition-all duration-150 ease-in-out shadow-sm hover:shadow-md hover:shadow-purple-500/30"
-              title="Edit Your Profile"
-            >
-              <SettingsIcon className="mr-1.5 h-4 w-4" />
-              Edit Profile
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-slate-400 hover:text-purple-400 hover:bg-slate-700"
-              title="Logout"
-            >
-              <LogOutIcon className="h-5 w-5" />
-              <span className="sr-only">Logout</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+          </SidebarHeader>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ... (resto del contenido del main sin cambios) ... */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {userRole === "SUPER_ADMIN" && (
-            <Button
-              onClick={() => router.push("/dashboard/user-management")}
-              className="bg-green-600 hover:bg-green-700 text-white h-auto py-3"
-            >
-              <UserCogIcon className="mr-2 h-5 w-5" />
-              <div className="text-left">
-                <div className="font-medium">Manage Users</div>
-                <div className="text-xs opacity-90">Add, remove, or change user roles</div>
-              </div>
-            </Button>
-          )}
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-slate-400 font-medium">Navigation</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.main.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={currentPath === item.url}
+                        className="text-slate-300 hover:text-slate-100 hover:bg-slate-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300 data-[active=true]:border-purple-500/50"
+                      >
+                        <a href={item.url} className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
 
-          <Button
-            onClick={() => router.push("/dashboard/proposals")}
-            className="bg-purple-600 hover:bg-purple-700 text-white h-auto py-3"
-          >
-            <FileTextIcon className="mr-2 h-5 w-5" />
-            <div className="text-left">
-              <div className="font-medium">Proposals</div>
-              <div className="text-xs opacity-90">View and vote on community proposals</div>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-slate-400 font-medium">Settings</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.settings.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={currentPath === item.url}
+                        className="text-slate-300 hover:text-slate-100 hover:bg-slate-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                      >
+                        <a href={item.url} className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter className="border-t border-slate-700">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 w-full justify-start"
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+          <SidebarRail />
+        </Sidebar>
+
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-700 px-4 bg-slate-800/50 backdrop-blur-md">
+            <SidebarTrigger className="text-slate-400 hover:text-slate-100" />
+            <Separator orientation="vertical" className="mr-2 h-4 bg-slate-600" />
+            <div className="flex items-center gap-2">
+              <HomeIcon className="h-5 w-5 text-purple-400" />
+              <h1 className="text-lg font-semibold">Dashboard</h1>
             </div>
-          </Button>
+          </header>
 
-          {isAdmin && (
-            <Button
-              onClick={() => router.push("/dashboard/admin/check-expired-proposals")}
-              className="bg-slate-600 hover:bg-slate-700 text-white h-auto py-3"
-            >
-              <TimerIcon className="mr-2 h-5 w-5" />
-              <div className="text-left">
-                <div className="font-medium">Check Expired Proposals</div>
-                <div className="text-xs opacity-90">Update status of expired proposals</div>
-              </div>
-            </Button>
-          )}
-        </div>
-
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-2xl">Welcome, {appUser.name || "User"}!</CardTitle>
-            <CardDescription className="text-slate-400">
-              You are logged in as a{" "}
-              <span className="font-semibold text-purple-400 capitalize">{userRole?.replace("_", " ") || "N/A"}</span>.
-              Your current status is:{" "}
-              <span className={`font-semibold ${statusInfo.className.split(" ")[1]}`}>{statusInfo.text}</span>.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-300">
-              This is your personalized dashboard for the SingularityNET Ambassador Program. Here you can participate in
-              governance by voting on proposals and contributing to community decisions.
-            </p>
-            {userRole === "ADMIN" && (
-              <div className="mt-6 p-4 bg-purple-600/10 border border-purple-500/30 rounded-lg">
-                <h3 className="text-lg font-semibold text-purple-300">Admin Panel Access</h3>
-                <p className="text-slate-400 text-sm">
-                  As an administrator, you can create new proposals and manage existing ones. You also have the
-                  authority to approve or reject proposals after the voting period.
-                </p>
-              </div>
-            )}
-            {userRole === "CORE_CONTRIBUTOR" && (
-              <div className="mt-6 p-4 bg-sky-600/10 border border-sky-500/30 rounded-lg">
-                <h3 className="text-lg font-semibold text-sky-300">Core Contributor Privileges</h3>
-                <p className="text-slate-400 text-sm">
-                  As a core contributor, you can participate in voting, provide feedback, and evaluate proposals. Your
-                  input is valuable to the governance process.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="bg-slate-800/70 border-slate-700 hover:border-purple-600/50 transition-colors">
+          <main className="flex-1 p-6">
+            <Card className="bg-slate-800 border-slate-700 mb-6">
               <CardHeader>
-                <CardTitle className="text-lg text-slate-200">Upcoming Feature {i + 1}</CardTitle>
+                <CardTitle className="text-2xl">Welcome, {appUser.name || "User"}!</CardTitle>
+                <CardDescription className="text-slate-400">
+                  You are logged in as a{" "}
+                  <span className="font-semibold text-purple-400 capitalize">
+                    {userRole?.replace("_", " ") || "N/A"}
+                  </span>
+                  . Your current status is:{" "}
+                  <span className={`font-semibold ${statusInfo.className.split(" ")[1]}`}>{statusInfo.text}</span>.
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-400">
-                  Details about this feature will be available soon. Stay tuned for updates on proposal management,
-                  voting systems, and community feedback tools.
+                <p className="text-slate-300 mb-4">
+                  This is your personalized dashboard for the SingularityNET Ambassador Program. Here you can
+                  participate in governance by voting on proposals and contributing to community decisions.
                 </p>
+                {userRole === "ADMIN" && (
+                  <div className="mt-6 p-4 bg-purple-600/10 border border-purple-500/30 rounded-lg">
+                    <h3 className="text-lg font-semibold text-purple-300">Admin Panel Access</h3>
+                    <p className="text-slate-400 text-sm">
+                      As an administrator, you can create new proposals and manage existing ones. You also have the
+                      authority to approve or reject proposals after the voting period.
+                    </p>
+                  </div>
+                )}
+                {userRole === "CORE_CONTRIBUTOR" && (
+                  <div className="mt-6 p-4 bg-sky-600/10 border border-sky-500/30 rounded-lg">
+                    <h3 className="text-lg font-semibold text-sky-300">Core Contributor Privileges</h3>
+                    <p className="text-slate-400 text-sm">
+                      As a core contributor, you can participate in voting, provide feedback, and evaluate proposals.
+                      Your input is valuable to the governance process.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
-        </div>
-      </main>
-    </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="bg-slate-800/70 border-slate-700 hover:border-purple-600/50 transition-colors">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-slate-200">Upcoming Feature {i + 1}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-slate-400">
+                      Details about this feature will be available soon. Stay tuned for updates on proposal management,
+                      voting systems, and community feedback tools.
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }

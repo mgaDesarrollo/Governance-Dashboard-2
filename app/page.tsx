@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert" // For displaying errors
 import { BotIcon, LogInIcon, AlertTriangleIcon } from "lucide-react"
+import Image from "next/image" // ¡Importa el componente Image de Next.js!
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,6 +42,13 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
       <Card className="w-full max-w-md bg-slate-800 border-slate-700 text-slate-50">
         <CardHeader className="text-center">
+        <Image
+            src="/Logo.png" // Ruta relativa a la carpeta `public`
+            alt="SingularityNET Logo"
+            width={200} // El ancho de tu imagen es 640, probemos con 200px
+            height={40} // El alto de tu imagen es 128, manteniendo la proporción (200 / (640/128) = 40)
+            className="mx-auto mb-4 object-contain" // Centra la imagen y añade margen inferior
+          />
           <div className="mx-auto bg-slate-700 p-3 rounded-full w-fit mb-4">
             <BotIcon className="h-12 w-12 text-purple-400" />
           </div>
