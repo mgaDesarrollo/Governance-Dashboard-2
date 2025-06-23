@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 // Get a specific proposal with votes and comments
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const proposalId = params.id
+    const { id: proposalId } = await params
 
     const proposal = await prisma.proposal.findUnique({
       where: { id: proposalId },
@@ -73,8 +73,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// Update a proposal (status change)
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+// Update a proposal (status change or edit content)
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -82,20 +82,57 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Only ADMIN and SUPER_ADMIN can update proposals
-    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
+    const { id: proposalId } = await params
+    const body = await request.json()
 
-    const proposalId = params.id
-    const { status } = await request.json()
-
-    const updatedProposal = await prisma.proposal.update({
+    // Find the proposal first
+    const proposal = await prisma.proposal.findUnique({
       where: { id: proposalId },
-      data: { status },
+      select: { authorId: true, status: true },
     })
 
-    return NextResponse.json(updatedProposal)
+    if (!proposal) {
+      return NextResponse.json({ error: "Proposal not found" }, { status: 404 })
+    }
+
+    // Check if this is a status update (admin only) or content edit (author only)
+    if (body.status) {
+      // Status update - only ADMIN and SUPER_ADMIN can update status
+      if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+
+      const updatedProposal = await prisma.proposal.update({
+        where: { id: proposalId },
+        data: { status: body.status },
+      })
+
+      return NextResponse.json(updatedProposal)
+    } else {
+      // Content edit - only the author can edit content
+      if (proposal.authorId !== session.user.id) {
+        return NextResponse.json({ error: "Only the author can edit this proposal" }, { status: 403 })
+      }
+
+      // Only allow editing if proposal is still IN_REVIEW
+      if (proposal.status !== "IN_REVIEW") {
+        return NextResponse.json({ error: "Cannot edit proposal that is not in review" }, { status: 400 })
+      }
+
+      const { title, description, expiresAt } = body
+
+      const updatedProposal = await prisma.proposal.update({
+        where: { id: proposalId },
+        data: {
+          title,
+          description,
+          expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+          updatedAt: new Date(),
+        },
+      })
+
+      return NextResponse.json(updatedProposal)
+    }
   } catch (error) {
     console.error("Error updating proposal:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
@@ -103,7 +140,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // Delete a proposal
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -116,7 +153,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const proposalId = params.id
+    const { id: proposalId } = await params
 
     // Delete related votes and comments first
     await prisma.vote.deleteMany({ where: { proposalId } })

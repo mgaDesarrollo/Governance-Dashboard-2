@@ -51,6 +51,7 @@ export interface Proposal {
   title: string
   description: string
   createdAt: string
+  updatedAt: string // ✅ Campo agregado
   expiresAt: string
   status: ProposalStatusType
   positiveVotes: number

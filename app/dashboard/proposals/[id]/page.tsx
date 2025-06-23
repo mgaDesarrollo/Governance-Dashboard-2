@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { use } from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -11,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { EditProposalDialog } from "@/components/edit-proposal-dialog"
 import {
   ArrowLeftIcon,
   ThumbsUpIcon,
@@ -25,6 +27,7 @@ import {
   MessageSquareIcon,
   CheckIcon,
   TimerIcon,
+  EditIcon,
 } from "lucide-react"
 import type { Proposal, ProposalStatusType, VoteTypeEnum } from "@/lib/types"
 
@@ -51,7 +54,8 @@ function renderTextWithLinks(text: string) {
   })
 }
 
-export default function ProposalDetailPage({ params }: { params: { id: string } }) {
+export default function ProposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: proposalId } = use(params)
   const router = useRouter()
   const { data: session, status } = useSession()
   const [proposal, setProposal] = useState<Proposal | null>(null)
@@ -61,11 +65,12 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
   const [isSubmittingVote, setIsSubmittingVote] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmittingStatus, setIsSubmittingStatus] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const fetchProposal = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/proposals/${params.id}`)
+      const response = await fetch(`/api/proposals/${proposalId}`)
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -93,7 +98,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
     }
 
     fetchProposal()
-  }, [status, router, params.id])
+  }, [status, router, proposalId])
 
   const handleVote = async (voteType: VoteTypeEnum) => {
     if (!proposal || isSubmittingVote) return
@@ -207,6 +212,11 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
     }
   }
 
+  const handleEditSuccess = (updatedProposal: Proposal) => {
+    setProposal(updatedProposal)
+    setIsEditDialogOpen(false)
+  }
+
   const getStatusBadge = (status: ProposalStatusType) => {
     switch (status) {
       case "IN_REVIEW":
@@ -239,8 +249,10 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
   }
 
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN"
+  const isAuthor = proposal?.author?.id === session?.user?.id
   const isExpired = proposal ? isPast(new Date(proposal.expiresAt)) : false
   const canVote = proposal?.status === "IN_REVIEW" && !isExpired
+  const canEdit = isAuthor && proposal?.status === "IN_REVIEW" && !isExpired
 
   if (isLoading || status === "loading") {
     return (
@@ -299,10 +311,23 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                   <CardTitle className="text-2xl text-slate-100">{proposal.title}</CardTitle>
                   <CardDescription className="flex items-center gap-1 text-slate-400 mt-2">
                     <UserIcon className="h-4 w-4" />
-                    {proposal.author.name}
+                    {proposal.author?.name || "Unknown Author"}
                   </CardDescription>
                 </div>
-                {getStatusBadge(proposal.status)}
+                <div className="flex items-center gap-2">
+                  {canEdit && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditDialogOpen(true)}
+                      className="bg-slate-700 border-slate-600 hover:bg-slate-600 text-slate-300 hover:text-slate-100"
+                    >
+                      <EditIcon className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+                  )}
+                  {getStatusBadge(proposal.status)}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -311,6 +336,13 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                   <ClockIcon className="h-4 w-4" />
                   <span>Created {formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true })}</span>
                 </div>
+                {proposal.updatedAt &&
+                  new Date(proposal.updatedAt).getTime() !== new Date(proposal.createdAt).getTime() && (
+                    <div className="flex items-center gap-1">
+                      <EditIcon className="h-4 w-4" />
+                      <span>Last edited {formatDistanceToNow(new Date(proposal.updatedAt), { addSuffix: true })}</span>
+                    </div>
+                  )}
                 <div className="flex items-center gap-1">
                   <ClockIcon className="h-4 w-4" />
                   <span>
@@ -528,6 +560,13 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
           )}
         </div>
       </div>
+
+      <EditProposalDialog
+        proposal={proposal}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   )
 }
