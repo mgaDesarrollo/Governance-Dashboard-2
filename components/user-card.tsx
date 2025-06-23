@@ -183,71 +183,79 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
       </CardContent>
 
       <CardFooter className="p-4 border-t border-slate-700/50 mt-auto">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex space-x-2">
-            {onViewProfile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onViewProfile(user.id)}
-                className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 text-xs"
-              >
-                <EyeIcon className="mr-1 h-3 w-3" />
-                View Profile
-              </Button>
-            )}
-            {user.socialLinks?.linkedin && (
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
-              >
-                <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn">
-                  <LinkedinIcon className="h-4 w-4" />
-                </a>
-              </Button>
-            )}
-            {user.socialLinks?.github && (
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
-              >
-                <a href={user.socialLinks.github} target="_blank" rel="noopener noreferrer" title="GitHub">
-                  <GithubIcon className="h-4 w-4" />
-                </a>
-              </Button>
-            )}
-            {user.socialLinks?.x && (
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
-              >
-                <a href={user.socialLinks.x} target="_blank" rel="noopener noreferrer" title="X (Twitter)">
-                  <TwitterIcon className="h-4 w-4" />
-                </a>
-              </Button>
-            )}
+        {/* Primera fila: View Profile y enlaces sociales */}
+        <div className="w-full space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-1">
+              {onViewProfile && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onViewProfile(user.id)}
+                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 text-xs"
+                >
+                  <EyeIcon className="mr-1 h-3 w-3" />
+                  View Profile
+                </Button>
+              )}
+              {user.socialLinks?.linkedin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
+                >
+                  <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                    <LinkedinIcon className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+              {user.socialLinks?.github && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
+                >
+                  <a href={user.socialLinks.github} target="_blank" rel="noopener noreferrer" title="GitHub">
+                    <GithubIcon className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+              {user.socialLinks?.x && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
+                >
+                  <a href={user.socialLinks.x} target="_blank" rel="noopener noreferrer" title="X (Twitter)">
+                    <TwitterIcon className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* Segunda fila: Botón de CV (ancho completo si existe) */}
           {user.professionalProfile?.linkCv && (
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="bg-purple-600/20 border-purple-500/40 text-purple-300 hover:bg-purple-600/30 hover:text-purple-200 hover:border-purple-500/60"
-            >
-              <a href={user.professionalProfile.linkCv} target="_blank" rel="noopener noreferrer">
-                <DownloadIcon className="mr-1.5 h-4 w-4" />
-                resume
-              </a>
-            </Button>
+            <div className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="w-full bg-purple-600/20 border-purple-500/40 text-purple-300 hover:bg-purple-600/30 hover:text-purple-200 hover:border-purple-500/60"
+              >
+                <a href={user.professionalProfile.linkCv} target="_blank" rel="noopener noreferrer">
+                  <DownloadIcon className="mr-1.5 h-4 w-4" />
+                  Download Resume
+                </a>
+              </Button>
+            </div>
           )}
         </div>
       </CardFooter>
     </Card>
   )
 }
+
