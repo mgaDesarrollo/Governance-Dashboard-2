@@ -28,6 +28,29 @@ import {
 } from "lucide-react"
 import type { Proposal, ProposalStatusType, VoteTypeEnum } from "@/lib/types"
 
+// Función simple para convertir URLs en enlaces
+function renderTextWithLinks(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const parts = text.split(urlRegex)
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 hover:underline break-all"
+        >
+          {part}
+        </a>
+      )
+    }
+    return part
+  })
+}
+
 export default function ProposalDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { data: session, status } = useSession()
@@ -299,7 +322,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
               </div>
 
               <div className="prose prose-invert max-w-none">
-                <p className="text-slate-300 whitespace-pre-line">{proposal.description}</p>
+                <div className="text-slate-300 whitespace-pre-line">{renderTextWithLinks(proposal.description)}</div>
               </div>
             </CardContent>
           </Card>
@@ -364,7 +387,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                           </p>
                         </div>
                       </div>
-                      <p className="text-slate-300">{comment.content}</p>
+                      <div className="text-slate-300 whitespace-pre-line">{renderTextWithLinks(comment.content)}</div>
                     </div>
                   ))}
                 </div>
