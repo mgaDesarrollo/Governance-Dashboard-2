@@ -41,6 +41,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import Image from "next/image"
 
 // Definir los elementos del menú con permisos
 const getMenuItems = (userRole: UserRole) => {
@@ -348,6 +349,19 @@ export default function DashboardPage() {
           <header className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-700 px-4 bg-slate-800/50 backdrop-blur-md">
             <SidebarTrigger className="text-slate-400 hover:text-slate-100" />
             <Separator orientation="vertical" className="mr-2 h-4 bg-slate-600" />
+
+            {/* Logo centrado */}
+            <div className="flex-1 flex justify-center">
+              <Image
+                src="/logo.png"
+                alt="SingularityNET Logo"
+                width={120}
+                height={40}
+                className="object-contain"
+                priority
+              />
+            </div>
+
             <div className="flex items-center gap-2">
               <HomeIcon className="h-5 w-5 text-purple-400" />
               <h1 className="text-lg font-semibold">Dashboard</h1>

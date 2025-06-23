@@ -52,7 +52,7 @@ export default function LoginPage() {
           <div className="mx-auto bg-slate-700 p-3 rounded-full w-fit mb-4">
             <BotIcon className="h-12 w-12 text-purple-400" />
           </div>
-          <CardTitle className="text-2xl font-bold">SingularityNET</CardTitle>
+          <CardTitle className="text-2xl font-bold">Gobernance</CardTitle>
           <CardDescription className="text-slate-400">Ambassador Program Governance Dashboard</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
