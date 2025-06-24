@@ -43,7 +43,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md bg-slate-800 border-slate-700 text-slate-50">
         <CardHeader className="text-center">
         <Image
-            src="/Logo.png" // Ruta relativa a la carpeta `public`
+            src="/logo.png" // Ruta relativa a la carpeta `public`
             alt="SingularityNET Logo"
             width={200} // El ancho de tu imagen es 640, probemos con 200px
             height={40} // El alto de tu imagen es 128, manteniendo la proporción (200 / (640/128) = 40)
