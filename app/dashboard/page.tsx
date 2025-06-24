@@ -234,7 +234,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-700/50">
               <LayoutDashboardIcon className="h-8 w-8 text-purple-400" />
               <div className="flex flex-col">
-                <h1 className="text-lg font-semibold text-slate-100">Governance</h1>
+                <h1 className="text-lg font-semibold text-slate-100">Gobernance</h1>
                 <p className="text-xs text-slate-400">Dashboard</p>
               </div>
             </div>
