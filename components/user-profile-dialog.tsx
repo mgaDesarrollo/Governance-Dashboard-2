@@ -101,15 +101,21 @@ export function UserProfileDialog({ userId, open, onOpenChange }: UserProfileDia
           setUser(userData)
         } catch (error) {
           console.error("Error fetching user profile:", error)
+          setUser(null) // Reset user state on error
         } finally {
           setIsLoading(false)
         }
       }
 
       fetchUserProfile()
+    } else {
+      // Reset state when dialog closes
+      setUser(null)
+      setIsLoading(false)
     }
   }, [userId, open])
 
+  if (!open) return null
   if (!user && !isLoading) return null
 
   const displayName = user?.fullname || user?.name || "Unknown User"
@@ -121,7 +127,7 @@ export function UserProfileDialog({ userId, open, onOpenChange }: UserProfileDia
       .filter((s) => s) || []
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} key={userId}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700 text-slate-50">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-slate-100">Complete User Profile</DialogTitle>

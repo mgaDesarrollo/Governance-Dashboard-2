@@ -68,7 +68,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // Actualizar el rol de un usuario
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -76,35 +76,51 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (session.user.role !== "SUPER_ADMIN") {
+    const { id: userId } = await params
+    const body = await request.json()
+    const { role, status } = body
+
+    // Si se está actualizando el rol, verificar permisos de SUPER_ADMIN
+    if (role && session.user.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const userId = params.id
-    const { role } = await request.json()
-
     // Verificar que no se está intentando cambiar el rol de un SUPER_ADMIN
-    const userToUpdate = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    if (role) {
+      const userToUpdate = await prisma.user.findUnique({
+        where: { id: userId },
+      })
 
-    if (!userToUpdate) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      if (!userToUpdate) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 })
+      }
+
+      if (userToUpdate.role === "SUPER_ADMIN") {
+        return NextResponse.json({ error: "Cannot change the role of a Super Admin" }, { status: 403 })
+      }
     }
 
-    if (userToUpdate.role === "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Cannot change the role of a Super Admin" }, { status: 403 })
-    }
+    // Preparar los datos a actualizar
+    const updateData: any = {}
+    if (role) updateData.role = role
+    if (status !== undefined) updateData.status = status
 
-    // Actualizar el rol del usuario
+    // Actualizar el usuario
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { role },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        status: true,
+        image: true,
+      },
     })
 
     return NextResponse.json(updatedUser)
   } catch (error) {
-    console.error("Error updating user role:", error)
+    console.error("Error updating user:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

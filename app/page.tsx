@@ -43,7 +43,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md bg-slate-800 border-slate-700 text-slate-50">
         <CardHeader className="text-center">
         <Image
-            src="/logo.png" // Ruta relativa a la carpeta `public`
+            src="/Logo.png" // Ruta relativa a la carpeta `public`
             alt="SingularityNET Logo"
             width={200} // El ancho de tu imagen es 640, probemos con 200px
             height={40} // El alto de tu imagen es 128, manteniendo la proporción (200 / (640/128) = 40)
@@ -52,7 +52,7 @@ export default function LoginPage() {
           <div className="mx-auto bg-slate-700 p-3 rounded-full w-fit mb-4">
             <BotIcon className="h-12 w-12 text-purple-400" />
           </div>
-          <CardTitle className="text-2xl font-bold">Gobernance</CardTitle>
+          <CardTitle className="text-2xl font-bold">Governance</CardTitle>
           <CardDescription className="text-slate-400">Ambassador Program Governance Dashboard</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
