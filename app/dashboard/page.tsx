@@ -24,7 +24,6 @@ import {
 import {
   LayoutDashboardIcon,
   LogOutIcon,
-  UserCircle2Icon,
   UserCogIcon,
   AlertTriangleIcon,
   FileTextIcon,
@@ -42,6 +41,12 @@ import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RecentActivity } from "@/components/recent-activity"
+import { QuickActions } from "@/components/quick-actions"
+import { DashboardMetrics } from "@/components/dashboard-metrics"
+import { DashboardCalendar } from "@/components/dashboard-calendar"
+import { DashboardCharts } from "@/components/dashboard-charts"
 
 // Definir los elementos del menú con permisos
 const getMenuItems = (userRole: UserRole) => {
@@ -239,9 +244,14 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* User information moved here */}
-            <div className="flex items-center gap-2 p-2 text-sm">
-              <UserCircle2Icon className="h-6 w-6 text-slate-400 flex-shrink-0" />
+            {/* User information with profile image */}
+            <div className="flex items-center gap-3 p-3 text-sm bg-slate-800/50 rounded-lg mx-2">
+              <Avatar className="h-8 w-8 border-2 border-purple-500/30">
+                <AvatarImage src={appUser.image || undefined} alt={appUser.name || "User"} />
+                <AvatarFallback className="bg-purple-600/20 text-purple-300 text-xs font-semibold">
+                  {appUser.name?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="font-medium text-slate-100 truncate text-sm">{appUser.name || "User"}</span>
                 <div className="flex items-center gap-1 mt-0.5">
@@ -368,8 +378,9 @@ export default function DashboardPage() {
             </div>
           </header>
 
-          <main className="flex-1 p-6">
-            <Card className="bg-slate-800 border-slate-700 mb-6">
+          <main className="flex-1 p-6 space-y-8">
+            {/* Welcome Card */}
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-2xl">Welcome, {appUser.name || "User"}!</CardTitle>
                 <CardDescription className="text-slate-400">
@@ -406,6 +417,21 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Dashboard Metrics */}
+            <DashboardMetrics />
+
+            {/* Quick Actions and Recent Activity Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <QuickActions userRole={userRole} />
+              <RecentActivity />
+            </div>
+
+            {/* Calendar */}
+            <DashboardCalendar />
+
+            {/* Charts and Analytics */}
+            <DashboardCharts />
           </main>
         </SidebarInset>
       </div>
