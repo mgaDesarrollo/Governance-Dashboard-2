@@ -132,3 +132,4 @@ export function EditUserStatusDialog({
     </Dialog>
   )
 }
+// This component allows editing a user's availability status with a dialog.

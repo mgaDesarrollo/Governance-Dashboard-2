@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Sidebar,
   SidebarContent,
@@ -380,43 +380,112 @@ export default function DashboardPage() {
 
           <main className="flex-1 p-6 space-y-8">
             {/* Welcome Card */}
-            <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-2xl">Welcome, {appUser.name || "User"}!</CardTitle>
-                <CardDescription className="text-slate-400">
-                  You are logged in as a{" "}
-                  <span className="font-semibold text-purple-400 capitalize">
-                    {userRole?.replace("_", " ") || "N/A"}
-                  </span>
-                  . Your current status is:{" "}
-                  <span className={`font-semibold ${statusInfo.className.split(" ")[1]}`}>{statusInfo.text}</span>.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-300 mb-4">
-                  This is your personalized dashboard for the SingularityNET Ambassador Program. Here you can
-                  participate in governance by voting on proposals and contributing to community decisions.
-                </p>
+            {/* Welcome Card - Compact and Modern */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Welcome Section */}
+              <div className="lg:col-span-2">
+                <Card className="bg-gradient-to-br from-slate-800 to-slate-800/80 border-slate-700 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent" />
+                  <CardContent className="p-6 relative">
+                    <div className="flex items-center gap-4 mb-4">
+                      <Avatar className="h-12 w-12 border-2 border-purple-500/30">
+                        <AvatarImage src={appUser.image || undefined} alt={appUser.name || "User"} />
+                        <AvatarFallback className="bg-purple-600/20 text-purple-300 text-lg font-semibold">
+                          {appUser.name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h1 className="text-2xl font-bold text-slate-100">Welcome back, {appUser.name || "User"}!</h1>
+                        <p className="text-slate-400 text-sm">Ready to participate in governance decisions</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Badge
+                        variant="outline"
+                        className="px-3 py-1 border-purple-500/50 bg-purple-600/20 text-purple-300 capitalize font-medium"
+                      >
+                        <UserCogIcon className="w-3 h-3 mr-1" />
+                        {userRole?.replace("_", " ") || "N/A"}
+                      </Badge>
+                      {userStatus && (
+                        <Badge variant="outline" className={`px-3 py-1 capitalize font-medium ${statusInfo.className}`}>
+                          {statusInfo.icon}
+                          {statusInfo.text}
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Role-specific Info Card */}
+              <div className="lg:col-span-1">
                 {userRole === "ADMIN" && (
-                  <div className="mt-6 p-4 bg-purple-600/10 border border-purple-500/30 rounded-lg">
-                    <h3 className="text-lg font-semibold text-purple-300">Admin Panel Access</h3>
-                    <p className="text-slate-400 text-sm">
-                      As an administrator, you can create new proposals and manage existing ones. You also have the
-                      authority to approve or reject proposals after the voting period.
-                    </p>
-                  </div>
+                  <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-purple-500/30 h-full">
+                    <CardContent className="p-6 flex flex-col justify-center h-full">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-purple-600/20 rounded-lg">
+                          <UserCogIcon className="h-5 w-5 text-purple-300" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-purple-300">Admin Access</h3>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        Create and manage proposals with full administrative privileges.
+                      </p>
+                    </CardContent>
+                  </Card>
                 )}
+
                 {userRole === "CORE_CONTRIBUTOR" && (
-                  <div className="mt-6 p-4 bg-sky-600/10 border border-sky-500/30 rounded-lg">
-                    <h3 className="text-lg font-semibold text-sky-300">Core Contributor Privileges</h3>
-                    <p className="text-slate-400 text-sm">
-                      As a core contributor, you can participate in voting, provide feedback, and evaluate proposals.
-                      Your input is valuable to the governance process.
-                    </p>
-                  </div>
+                  <Card className="bg-gradient-to-br from-sky-900/30 to-sky-800/20 border-sky-500/30 h-full">
+                    <CardContent className="p-6 flex flex-col justify-center h-full">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-sky-600/20 rounded-lg">
+                          <UsersIcon className="h-5 w-5 text-sky-300" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-sky-300">Core Contributor</h3>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        Vote on proposals and contribute to governance decisions.
+                      </p>
+                    </CardContent>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
+
+                {userRole === "SUPER_ADMIN" && (
+                  <Card className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/30 h-full">
+                    <CardContent className="p-6 flex flex-col justify-center h-full">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-orange-600/20 rounded-lg">
+                          <SettingsIcon className="h-5 w-5 text-orange-300" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-orange-300">Super Admin</h3>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        Full system access with user management capabilities.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {!["ADMIN", "CORE_CONTRIBUTOR", "SUPER_ADMIN"].includes(userRole) && (
+                  <Card className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 border-slate-600/50 h-full">
+                    <CardContent className="p-6 flex flex-col justify-center h-full">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-slate-600/20 rounded-lg">
+                          <ActivityIcon className="h-5 w-5 text-slate-300" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-300">Community Member</h3>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        Participate in community discussions and stay informed.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
 
             {/* Dashboard Metrics */}
             <DashboardMetrics />
@@ -438,3 +507,4 @@ export default function DashboardPage() {
     </SidebarProvider>
   )
 }
+    
