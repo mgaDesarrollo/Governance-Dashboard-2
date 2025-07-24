@@ -69,6 +69,12 @@ const getMenuItems = (userRole: UserRole) => {
       icon: UsersIcon,
       description: "Browse profiles of community members",
     },
+    {
+      title: "WorkGroups & Guilds",
+      url: "/dashboard/workgroups",
+      icon: ActivityIcon,
+      description: "Panel de control para grupos de trabajo y gremios",
+    },
   ]
 
   const adminItems = [

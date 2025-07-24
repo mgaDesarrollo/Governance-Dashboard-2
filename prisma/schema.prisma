@@ -63,6 +63,7 @@ comments            Comment[]
 professionalProfile ProfessionalProfile?
 socialLinks         SocialLinks?
 workgroups          Workgroup[] @relation("UserWorkgroups") // Relación muchos a muchos con Workgroup
+workGroups          WorkGroupMember[]
 }
 
 // Nueva tabla para el perfil profesional
@@ -167,4 +168,46 @@ proposal   Proposal @relation(fields: [proposalId], references: [id])
 @@unique([userId, proposalId]) // Un usuario solo puede comentar una vez por propuesta
 @@index([userId])
 @@index([proposalId])
+}
+
+model WorkGroup {
+  id                 String   @id @default(uuid())
+  name               String   @unique
+  type               String
+  dateOfCreation     DateTime
+  status             String
+  missionStatement   String
+  goalsAndFocus      String[] // Array de strings (PostgreSQL recomendado)
+  totalMembers       String
+  roles              String[] // Array de strings
+  memberDirectoryLink String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  members WorkGroupMember[]
+  joinRequests       WorkGroupJoinRequest[]
+}
+
+model WorkGroupMember {
+  id          String   @id @default(uuid())
+  userId      String
+  workGroupId String
+  role        String   // Ej: "member", "admin", etc.
+  joinedAt    DateTime @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+  workGroup   WorkGroup @relation(fields: [workGroupId], references: [id])
+}
+
+model WorkGroupJoinRequest {
+  id           String   @id @default(uuid())
+  userId       String   // ID del usuario que solicita (ajusta según tu modelo de usuario)
+  workGroupId  String
+  status       String   // "pending", "approved", "rejected"
+  message      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workGroup    WorkGroup @relation(fields: [workGroupId], references: [id])
+  // user        User      @relation(fields: [userId], references: [id]) // Si tienes modelo User
 }

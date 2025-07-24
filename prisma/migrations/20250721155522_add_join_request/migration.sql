@@ -75,6 +75,7 @@ CREATE TABLE "Proposal" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "status" "ProposalStatus" NOT NULL DEFAULT 'IN_REVIEW',
     "positiveVotes" INTEGER NOT NULL DEFAULT 0,
@@ -108,6 +109,37 @@ CREATE TABLE "Comment" (
     "proposalId" TEXT NOT NULL,
 
     CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WorkGroup" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "dateOfCreation" TIMESTAMP(3) NOT NULL,
+    "status" TEXT NOT NULL,
+    "missionStatement" TEXT NOT NULL,
+    "goalsAndFocus" TEXT[],
+    "totalMembers" TEXT NOT NULL,
+    "roles" TEXT[],
+    "memberDirectoryLink" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WorkGroup_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WorkGroupJoinRequest" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "workGroupId" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "message" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WorkGroupJoinRequest_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -158,6 +190,9 @@ CREATE INDEX "Comment_proposalId_idx" ON "Comment"("proposalId");
 CREATE UNIQUE INDEX "Comment_userId_proposalId_key" ON "Comment"("userId", "proposalId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "WorkGroup_name_key" ON "WorkGroup"("name");
+
+-- CreateIndex
 CREATE INDEX "_UserWorkgroups_B_index" ON "_UserWorkgroups"("B");
 
 -- AddForeignKey
@@ -183,6 +218,9 @@ ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_proposalId_fkey" FOREIGN KEY ("proposalId") REFERENCES "Proposal"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkGroupJoinRequest" ADD CONSTRAINT "WorkGroupJoinRequest_workGroupId_fkey" FOREIGN KEY ("workGroupId") REFERENCES "WorkGroup"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_UserWorkgroups" ADD CONSTRAINT "_UserWorkgroups_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

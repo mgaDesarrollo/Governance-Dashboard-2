@@ -112,3 +112,103 @@ export interface ProfileFormData {
   }
   selectedWorkgroupIds: string[]
 }
+
+// Tipos para WorkGroups & Guilds
+export type AnchorContact = {
+  name: string;
+  role: string;
+  handle: string;
+};
+
+export type Deliverable = {
+  title: string;
+  status: string;
+  timeline: string;
+  description: string;
+};
+
+export type ProposalSubmission = {
+  title: string;
+  status: string;
+  link: string;
+  votingResults: string;
+};
+
+export type Collaboration = {
+  groupName: string;
+  collaborationType: string;
+  contact: string;
+};
+
+export type OngoingDecision = {
+  title: string;
+  dueDate: string;
+  status: string;
+};
+
+export type PastBudget = {
+  title: string;
+  amount: string;
+  link: string;
+};
+
+export type WorkGroup = {
+  // 1. Basic Identification
+  name: string;
+  type: string;
+  dateOfCreation: string;
+  status: string;
+  anchorContacts: AnchorContact[];
+
+  // 2. Mission & Scope
+  missionStatement: string;
+  goalsAndFocus: string[];
+
+  // 3. Membership & Roles
+  totalMembers: string;
+  roles: string[];
+  memberDirectoryLink: string;
+
+  // 4. Contributions & Deliverables
+  keyDeliverables: Deliverable[];
+  proposalSubmissions: ProposalSubmission[];
+
+  // 5. Activity Log & Meeting Records
+  frequency: string;
+  meetingCalendarLink: string;
+  meetingNotesArchiveLink: string;
+  eventHostingParticipation: string[];
+
+  // 6. Reporting & Evaluation
+  createReportLink: string;
+  lastReportLink: string;
+  selfEvaluation: string;
+  communityFeedback: string;
+  votingMetrics: string;
+
+  // 7. Budget & Resources
+  currentBudgetTier: string;
+  currentBudget: string;
+  utilizationSummary: string;
+  fundingSources: string[];
+  nextProposal: string;
+  budgetProposalLink: string;
+  pastBudgets: PastBudget[];
+
+  // 8. Connections & Dependencies
+  collaborations: Collaboration[];
+  toolsUsed: string[];
+  relatedProposals: string[];
+
+  // 9. Consent & Governance
+  ongoingDecisions: OngoingDecision[];
+  voteNowLink: string;
+  consensusArchiveLink: string;
+  participationMetrics: string;
+
+  // 10. Future Plans & Roadmap
+  nextSteps: string[];
+  milestoneTimelineLink?: string;
+  openCalls: string[];
+  nextCycleProposalIdeas?: string[];
+};
