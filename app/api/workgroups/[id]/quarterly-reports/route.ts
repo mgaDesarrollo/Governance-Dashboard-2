@@ -53,6 +53,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const body = await request.json()
+    console.log("[POST /quarterly-reports] BODY recibido:", body);
+    console.log("[POST /quarterly-reports] Tipo de challenges:", typeof body.challenges, Array.isArray(body.challenges), body.challenges);
     const {
       year,
       quarter,
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(report)
   } catch (error) {
-    console.error("Error creando quarterly report:", error)
-    return NextResponse.json({ error: "Error interno" }, { status: 500 })
+    console.error("Error creando quarterly report:", error, error?.message, error?.stack);
+    return NextResponse.json({ error: "Internal error", details: error?.message }, { status: 500 })
   }
 } 

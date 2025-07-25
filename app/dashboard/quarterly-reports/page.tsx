@@ -148,7 +148,6 @@ export default function QuarterlyReportsPage() {
           detail: form.detail,
           theoryOfChange: form.theoryOfChange,
           challenges: form.challenges.map((c: string) => ({ text: c, completed: false })),
-          participation: form.participation,
           plans: form.plans,
           participants: form.participants,
           budgetItems: form.budgetItems.filter(item => item.name && item.amountUsd > 0),
@@ -643,12 +642,20 @@ export default function QuarterlyReportsPage() {
                   </div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Challenges and Learnings:</span>
                     <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">
-                      {detailModal.report?.challenges?.map((challenge: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2 mb-1">
-                          <input type="checkbox" checked={challenge.completed} disabled className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600" />
-                          <span className={`${challenge.completed ? 'line-through text-slate-500' : ''}`}>{challenge.text}</span>
-                        </div>
-                      ))}
+                      {Array.isArray(detailModal.report?.challenges) && detailModal.report.challenges.map((challenge: any, index: number) => {
+                        if (typeof challenge === 'string') {
+                          return <div key={index}>{challenge}</div>;
+                        } else if (challenge && typeof challenge === 'object') {
+                          return (
+                            <div key={index} className="flex items-center gap-2 mb-1">
+                              <input type="checkbox" checked={!!challenge.completed} disabled className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600" />
+                              <span className={challenge.completed ? 'line-through text-slate-500' : ''}>{challenge.text}</span>
+                            </div>
+                          );
+                        } else {
+                          return null;
+                        }
+                      })}
                     </div>
                   </div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Plans for Next Quarter:</span>

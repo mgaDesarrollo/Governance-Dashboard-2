@@ -391,9 +391,6 @@ export default function DashboardPage() {
           </header>
 
           <main className="min-h-screen bg-slate-900 text-slate-50 p-6">
-            <div className="bg-yellow-200 text-yellow-900 px-4 py-3 rounded mb-6 font-semibold text-center border border-yellow-400">
-              ⚠️ This system is under development. Some sections may not work as expected.
-            </div>
             {/* Welcome Card */}
             {/* Welcome Card - Compact and Modern */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
