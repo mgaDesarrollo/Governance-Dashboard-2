@@ -62,8 +62,11 @@ votes               Vote[]
 comments            Comment[]
 professionalProfile ProfessionalProfile?
 socialLinks         SocialLinks?
-workgroups          Workgroup[] @relation("UserWorkgroups") // Relación muchos a muchos con Workgroup
+workgroups          WorkGroup[] @relation("UserWorkgroups") // Relación muchos a muchos con WorkGroup
 workGroups          WorkGroupMember[]
+createdQuarterlyReports QuarterlyReport[] @relation("CreatedQuarterlyReports")
+quarterlyReportParticipants QuarterlyReportParticipant[]
+quarterlyReportComments QuarterlyReportComment[]
 }
 
 // Nueva tabla para el perfil profesional
@@ -98,17 +101,25 @@ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 @@index([userId])
 }
 
-// Nueva tabla Workgroup
-model Workgroup {
-id          String     @id @default(cuid())
-name        String     @unique @db.VarChar(255)
-description String?    @db.Text
-createdAt   DateTime   @default(now())
-updatedAt   DateTime   @updatedAt
+// Elimina el modelo Workgroup (minúscula) y usa solo WorkGroup (mayúscula)
+// Cambia todas las referencias de Workgroup a WorkGroup
 
-users       User[]     @relation("UserWorkgroups") // Relación muchos a muchos con User
-proposals   Proposal[] // Un workgroup puede tener muchas propuestas
-}
+// Elimina este bloque si existe:
+// model Workgroup {
+//   ...
+// }
+
+// Asegúrate de que todas las relaciones sean con WorkGroup
+// Por ejemplo, en Proposal:
+// workgroupId   String?        // Clave foránea opcional para WorkGroup
+// workgroup     WorkGroup?     @relation(fields: [workgroupId], references: [id])
+
+// En QuarterlyReport:
+// workGroupId   String
+// workGroup     WorkGroup @relation(fields: [workGroupId], references: [id])
+
+// En WorkGroup:
+// quarterlyReports QuarterlyReport[]
 
 model Proposal {
 id            String         @id @default(cuid())
@@ -128,9 +139,9 @@ author        User           @relation(fields: [authorId], references: [id])
 votes         Vote[]
 comments      Comment[]
 
-// Nueva relación con Workgroup
-workgroupId   String?        // Clave foránea opcional para Workgroup
-workgroup     Workgroup?     @relation(fields: [workgroupId], references: [id])
+// Nueva relación con WorkGroup
+workgroupId   String?        // Clave foránea opcional para WorkGroup
+workgroup     WorkGroup?     @relation(fields: [workgroupId], references: [id])
 
 @@index([authorId])
 @@index([workgroupId])
@@ -186,6 +197,9 @@ model WorkGroup {
 
   members WorkGroupMember[]
   joinRequests       WorkGroupJoinRequest[]
+  quarterlyReports   QuarterlyReport[]
+  proposals Proposal[]
+  users User[] @relation("UserWorkgroups")
 }
 
 model WorkGroupMember {
@@ -210,4 +224,55 @@ model WorkGroupJoinRequest {
 
   workGroup    WorkGroup @relation(fields: [workGroupId], references: [id])
   // user        User      @relation(fields: [userId], references: [id]) // Si tienes modelo User
+}
+
+model QuarterlyReport {
+  id            String   @id @default(uuid())
+  workGroupId   String
+  workGroup     WorkGroup @relation(fields: [workGroupId], references: [id])
+  year          Int
+  quarter       String   // "Q1", "Q2", "Q3", "Q4"
+  detail        String   // Breve detalle del reporte
+  theoryOfChange String  // Teoría de cambios / objetivo
+  challenges    String   // Desafíos y aprendizajes
+  participation String   // Participación (usuarios, admins, asistencia, nuevos, colaboraciones)
+  plans         String   // Planes para el próximo trimestre
+  createdById   String   // Usuario que crea el reporte
+  createdBy     User     @relation("CreatedQuarterlyReports", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  participants  QuarterlyReportParticipant[]
+  budgetItems   QuarterlyReportBudgetItem[]
+  comments      QuarterlyReportComment[]
+}
+
+model QuarterlyReportParticipant {
+  id                String   @id @default(uuid())
+  quarterlyReportId String
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
+}
+
+model QuarterlyReportBudgetItem {
+  id                String   @id @default(uuid())
+  quarterlyReportId String
+  name              String
+  description       String
+  amountUsd         Float
+  quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
+}
+
+model QuarterlyReportComment {
+  id                String   @id @default(uuid())
+  quarterlyReportId String
+  userId            String
+  content           String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
+  user              User     @relation(fields: [userId], references: [id])
+
+  @@unique([quarterlyReportId, userId]) // Solo un comentario por usuario por reporte
 }

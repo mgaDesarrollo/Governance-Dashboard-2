@@ -59,17 +59,6 @@ CREATE TABLE "SocialLinks" (
 );
 
 -- CreateTable
-CREATE TABLE "Workgroup" (
-    "id" TEXT NOT NULL,
-    "name" VARCHAR(255) NOT NULL,
-    "description" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Workgroup_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Proposal" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -130,6 +119,17 @@ CREATE TABLE "WorkGroup" (
 );
 
 -- CreateTable
+CREATE TABLE "WorkGroupMember" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "workGroupId" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "WorkGroupMember_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "WorkGroupJoinRequest" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -140,6 +140,56 @@ CREATE TABLE "WorkGroupJoinRequest" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "WorkGroupJoinRequest_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "QuarterlyReport" (
+    "id" TEXT NOT NULL,
+    "workGroupId" TEXT NOT NULL,
+    "year" INTEGER NOT NULL,
+    "quarter" TEXT NOT NULL,
+    "detail" TEXT NOT NULL,
+    "theoryOfChange" TEXT NOT NULL,
+    "challenges" TEXT NOT NULL,
+    "participation" TEXT NOT NULL,
+    "plans" TEXT NOT NULL,
+    "createdById" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "QuarterlyReport_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "QuarterlyReportParticipant" (
+    "id" TEXT NOT NULL,
+    "quarterlyReportId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "QuarterlyReportParticipant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "QuarterlyReportBudgetItem" (
+    "id" TEXT NOT NULL,
+    "quarterlyReportId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "amountUsd" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "QuarterlyReportBudgetItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "QuarterlyReportComment" (
+    "id" TEXT NOT NULL,
+    "quarterlyReportId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "QuarterlyReportComment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -161,9 +211,6 @@ CREATE UNIQUE INDEX "SocialLinks_userId_key" ON "SocialLinks"("userId");
 
 -- CreateIndex
 CREATE INDEX "SocialLinks_userId_idx" ON "SocialLinks"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Workgroup_name_key" ON "Workgroup"("name");
 
 -- CreateIndex
 CREATE INDEX "Proposal_authorId_idx" ON "Proposal"("authorId");
@@ -193,6 +240,9 @@ CREATE UNIQUE INDEX "Comment_userId_proposalId_key" ON "Comment"("userId", "prop
 CREATE UNIQUE INDEX "WorkGroup_name_key" ON "WorkGroup"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "QuarterlyReportComment_quarterlyReportId_userId_key" ON "QuarterlyReportComment"("quarterlyReportId", "userId");
+
+-- CreateIndex
 CREATE INDEX "_UserWorkgroups_B_index" ON "_UserWorkgroups"("B");
 
 -- AddForeignKey
@@ -205,7 +255,7 @@ ALTER TABLE "SocialLinks" ADD CONSTRAINT "SocialLinks_userId_fkey" FOREIGN KEY (
 ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_workgroupId_fkey" FOREIGN KEY ("workgroupId") REFERENCES "Workgroup"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_workgroupId_fkey" FOREIGN KEY ("workgroupId") REFERENCES "WorkGroup"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Vote" ADD CONSTRAINT "Vote_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -220,10 +270,37 @@ ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_proposalId_fkey" FOREIGN KEY ("proposalId") REFERENCES "Proposal"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "WorkGroupMember" ADD CONSTRAINT "WorkGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkGroupMember" ADD CONSTRAINT "WorkGroupMember_workGroupId_fkey" FOREIGN KEY ("workGroupId") REFERENCES "WorkGroup"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "WorkGroupJoinRequest" ADD CONSTRAINT "WorkGroupJoinRequest_workGroupId_fkey" FOREIGN KEY ("workGroupId") REFERENCES "WorkGroup"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReport" ADD CONSTRAINT "QuarterlyReport_workGroupId_fkey" FOREIGN KEY ("workGroupId") REFERENCES "WorkGroup"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReport" ADD CONSTRAINT "QuarterlyReport_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReportParticipant" ADD CONSTRAINT "QuarterlyReportParticipant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReportParticipant" ADD CONSTRAINT "QuarterlyReportParticipant_quarterlyReportId_fkey" FOREIGN KEY ("quarterlyReportId") REFERENCES "QuarterlyReport"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReportBudgetItem" ADD CONSTRAINT "QuarterlyReportBudgetItem_quarterlyReportId_fkey" FOREIGN KEY ("quarterlyReportId") REFERENCES "QuarterlyReport"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReportComment" ADD CONSTRAINT "QuarterlyReportComment_quarterlyReportId_fkey" FOREIGN KEY ("quarterlyReportId") REFERENCES "QuarterlyReport"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuarterlyReportComment" ADD CONSTRAINT "QuarterlyReportComment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_UserWorkgroups" ADD CONSTRAINT "_UserWorkgroups_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_UserWorkgroups" ADD CONSTRAINT "_UserWorkgroups_B_fkey" FOREIGN KEY ("B") REFERENCES "Workgroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_UserWorkgroups" ADD CONSTRAINT "_UserWorkgroups_B_fkey" FOREIGN KEY ("B") REFERENCES "WorkGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;

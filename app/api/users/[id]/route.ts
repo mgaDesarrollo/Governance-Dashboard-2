@@ -49,8 +49,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         workgroups: {
           select: {
             id: true,
-            name: true,
-            description: true,
+            name: true
           },
         },
       },

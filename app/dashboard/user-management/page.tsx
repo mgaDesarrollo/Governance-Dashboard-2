@@ -287,7 +287,7 @@ export default function UserManagementPage() {
                       {getRoleIcon(user.role)}
                       <span className="truncate">{user.name}</span>
                     </TableCell>
-                    <TableCell className="capitalize text-slate-300">{user.role.replace("_", " ")}</TableCell>
+                    <TableCell className="capitalize text-slate-300">{user.role ? user.role.replace("_", " ") : <span className="italic text-slate-500">Sin rol</span>}</TableCell>
                     <TableCell>
                       {user.id !== SUPER_ADMIN_ID_DYNAMIC ? (
                         <Select

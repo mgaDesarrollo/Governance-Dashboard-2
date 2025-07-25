@@ -14,8 +14,7 @@ import FuturePlansRoadmap from './FuturePlansRoadmap';
 
 const tabs = [
   { key: 'general', label: 'General', icon: '📌' },
-  { key: 'entregables', label: 'Entregables & Propuestas', icon: '🗂️' },
-  { key: 'actividad', label: 'Actividad & Reuniones', icon: '📅' },
+  { key: 'actividad', label: 'Actividad & Reportes', icon: '📅' },
   { key: 'presupuesto', label: 'Presupuesto & Recursos', icon: '💰' },
   { key: 'conexiones', label: 'Conexiones & Gobernanza', icon: '🔗' },
   { key: 'futuro', label: 'Futuro & Roadmap', icon: '🧭' },
@@ -35,6 +34,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinMessage, setJoinMessage] = useState("");
   const [joinSuccess, setJoinSuccess] = useState(false);
+  const [editSuccess, setEditSuccess] = useState(false);
+  const [editError, setEditError] = useState("");
 
   // Aquí puedes condicionar la visibilidad del botón según el usuario/rol/estado
   const canRequestJoin = true; // Cambia esto en el futuro según lógica de membresía
@@ -56,18 +57,38 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalWG({
-      ...localWG,
-      name: form.name,
-      type: form.type,
-      dateOfCreation: form.dateOfCreation,
-      status: form.status,
-      missionStatement: form.missionStatement,
-      goalsAndFocus: form.goalsAndFocus.split(',').map(g => g.trim()).filter(Boolean),
-    });
-    setEditOpen(false);
+    setEditError("");
+    setEditSuccess(false);
+    try {
+      const res = await fetch(`/api/workgroups/${(localWG as any).id || ""}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          type: form.type,
+          dateOfCreation: form.dateOfCreation,
+          status: form.status,
+          missionStatement: form.missionStatement,
+          goalsAndFocus: form.goalsAndFocus.split(',').map(g => g.trim()).filter(Boolean),
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setLocalWG(updated);
+        setEditSuccess(true);
+        setTimeout(() => {
+          setEditOpen(false);
+          setEditSuccess(false);
+        }, 1200);
+      } else {
+        const data = await res.json();
+        setEditError(data.error || "Error al guardar cambios");
+      }
+    } catch (err) {
+      setEditError("Error de red o del servidor");
+    }
   };
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -152,79 +173,37 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                 totalMembers={localWG.totalMembers}
                 roles={localWG.roles}
                 memberDirectoryLink={localWG.memberDirectoryLink}
+                workGroupId={(localWG as any).id}
               />
             </div>
           </>
-        )}
-        {activeTab === 'entregables' && (
-          <div className="mb-4">
-            <ContributionsDeliverables
-              keyDeliverables={localWG.keyDeliverables}
-              proposalSubmissions={localWG.proposalSubmissions}
-            />
-          </div>
         )}
         {activeTab === 'actividad' && (
-          <>
-            <div className="mb-4">
-              <ActivityLogMeetings
-                frequency={localWG.frequency}
-                meetingCalendarLink={localWG.meetingCalendarLink}
-                meetingNotesArchiveLink={localWG.meetingNotesArchiveLink}
-                eventHostingParticipation={localWG.eventHostingParticipation}
-              />
-            </div>
-            <div className="border-t border-slate-700 pt-4">
-              <ReportingEvaluation
-                createReportLink={localWG.createReportLink}
-                lastReportLink={localWG.lastReportLink}
-                selfEvaluation={localWG.selfEvaluation}
-                communityFeedback={localWG.communityFeedback}
-                votingMetrics={localWG.votingMetrics}
-              />
-            </div>
-          </>
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">📅</span>
+            <p className="text-lg font-semibold mb-1">Actividad & Reportes</p>
+            <p>Aquí se mostrarán los reportes y la actividad del WorkGroup próximamente.</p>
+          </div>
         )}
         {activeTab === 'presupuesto' && (
-          <div className="mb-4">
-            <BudgetResources
-              currentBudgetTier={localWG.currentBudgetTier}
-              currentBudget={localWG.currentBudget}
-              utilizationSummary={localWG.utilizationSummary}
-              fundingSources={localWG.fundingSources}
-              nextProposal={localWG.nextProposal}
-              budgetProposalLink={localWG.budgetProposalLink}
-              pastBudgets={localWG.pastBudgets}
-            />
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">💰</span>
+            <p className="text-lg font-semibold mb-1">Presupuesto & Recursos</p>
+            <p>Aquí se mostrará la información de presupuesto y recursos del WorkGroup próximamente.</p>
           </div>
         )}
         {activeTab === 'conexiones' && (
-          <>
-            <div className="mb-4">
-              <ConnectionsDependencies
-                collaborations={localWG.collaborations}
-                toolsUsed={localWG.toolsUsed}
-                relatedProposals={localWG.relatedProposals}
-              />
-            </div>
-            <div className="border-t border-slate-700 pt-4">
-              <ConsentGovernance
-                ongoingDecisions={localWG.ongoingDecisions}
-                voteNowLink={localWG.voteNowLink}
-                consensusArchiveLink={localWG.consensusArchiveLink}
-                participationMetrics={localWG.participationMetrics}
-              />
-            </div>
-          </>
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">🔗</span>
+            <p className="text-lg font-semibold mb-1">Conexiones & Gobernanza</p>
+            <p>Aquí se mostrarán las conexiones y la gobernanza del WorkGroup próximamente.</p>
+          </div>
         )}
         {activeTab === 'futuro' && (
-          <div className="mb-4">
-            <FuturePlansRoadmap
-              nextSteps={localWG.nextSteps}
-              milestoneTimelineLink={localWG.milestoneTimelineLink}
-              openCalls={localWG.openCalls}
-              nextCycleProposalIdeas={localWG.nextCycleProposalIdeas}
-            />
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">🧭</span>
+            <p className="text-lg font-semibold mb-1">Futuro & Roadmap</p>
+            <p>Aquí se mostrarán los planes futuros y el roadmap del WorkGroup próximamente.</p>
           </div>
         )}
       </div>
@@ -243,6 +222,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
               ×
             </button>
             <h3 className="text-xl font-bold text-purple-300 mb-2">Editar WorkGroup</h3>
+            {editError && <div className="text-red-400 text-sm">{editError}</div>}
+            {editSuccess && <div className="text-green-400 text-sm">¡Guardado exitoso!</div>}
             <label className="text-slate-300 text-sm font-semibold">Nombre
               <input
                 className="mt-1 w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"

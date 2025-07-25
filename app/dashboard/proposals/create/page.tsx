@@ -55,8 +55,11 @@ export default function CreateProposalPage() {
         throw new Error(errorData.error || "Failed to create proposal")
       }
 
-      const proposal = await response.json()
-      router.push(`/dashboard/proposals/${proposal.id}`)
+      const proposal = await response.json();
+      setTimeout(() => {
+        router.push(`/dashboard/proposals/${proposal.id}`);
+      }, 100);
+      return;
     } catch (err: any) {
       setError(err.message || "An error occurred while creating the proposal")
     } finally {

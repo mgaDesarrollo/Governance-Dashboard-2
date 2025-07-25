@@ -5,14 +5,14 @@ import type {
   ProposalStatus as PrismaProposalStatus,
   VoteType as PrismaVoteType,
   UserAvailabilityStatus as PrismaUserAvailabilityStatus,
-  Workgroup as PrismaWorkgroup, // Añadido para usar el tipo Workgroup
+  WorkGroup as PrismaWorkGroup, // Corregido: usar WorkGroup
 } from "@prisma/client"
 
 export type UserRole = PrismaUserRole
 export type ProposalStatusType = PrismaProposalStatus
 export type VoteTypeEnum = PrismaVoteType
 export type UserAvailabilityStatus = PrismaUserAvailabilityStatus // Exportamos el tipo para usarlo
-export type Workgroup = PrismaWorkgroup // Exportamos el tipo Workgroup
+export type WorkGroupPrisma = PrismaWorkGroup // Exportamos el tipo WorkGroup de Prisma
 
 export interface User {
   id: string
@@ -21,7 +21,7 @@ export interface User {
   email?: string | null
   image?: string | null
   status?: UserAvailabilityStatus | null // Añadido para el status del usuario
-  workgroups?: Workgroup[] // Para los workgroups del usuario
+  workgroups?: WorkGroupPrisma[] // Para los workgroups del usuario
   fullname?: string | null // Añadido para el nombre completo
 }
 
