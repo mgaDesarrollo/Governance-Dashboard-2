@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
+import { XIcon, FileTextIcon, PlusIcon, MinusIcon } from "lucide-react";
 
 export default function QuarterlyReportsPage() {
   const { data: session } = useSession();
@@ -43,6 +44,8 @@ export default function QuarterlyReportsPage() {
   const [members, setMembers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Fetch all reports
   useEffect(() => {
@@ -128,6 +131,8 @@ export default function QuarterlyReportsPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
+    setSuccessMessage(null);
     try {
       const res = await fetch(`/api/workgroups/${form.workgroup}/quarterly-reports`, {
         method: "POST",
@@ -161,11 +166,13 @@ export default function QuarterlyReportsPage() {
         // Refetch reports
         const reportsRes = await fetch("/api/quarterly-reports");
         setReports(await reportsRes.json());
+        setSuccessMessage("Reporte creado exitosamente!");
       } else {
-        alert("Error al crear el reporte");
+        const errorData = await res.json();
+        setError(errorData.message || "Error al crear el reporte");
       }
     } catch (err) {
-      alert("Error al crear el reporte");
+      setError("Error de red al crear el reporte");
     }
     setSubmitting(false);
   };
@@ -173,7 +180,7 @@ export default function QuarterlyReportsPage() {
   const router = useRouter();
 
   return (
-    <div className="p-8">
+    <div className="p-8 min-h-screen bg-slate-900 text-slate-50">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
         <div className="flex flex-wrap gap-4">
           <div>
@@ -183,20 +190,20 @@ export default function QuarterlyReportsPage() {
               value={filters.workgroup}
               onChange={e => setFilters(f => ({ ...f, workgroup: e.target.value }))}
             >
-              <option value="">Todos</option>
+              <option value="">All</option>
               {workgroups.map((wg: any) => (
                 <option key={wg.id} value={wg.id}>{wg.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs mb-1">Año</label>
+            <label className="block text-xs mb-1">Year</label>
             <select
               className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
               value={filters.year}
               onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}
             >
-              <option value="">Todos</option>
+              <option value="">All</option>
               {years.map((y) => (
                 <option key={y} value={y}>{y}</option>
               ))}
@@ -209,7 +216,7 @@ export default function QuarterlyReportsPage() {
               value={filters.quarter}
               onChange={e => setFilters(f => ({ ...f, quarter: e.target.value }))}
             >
-              <option value="">Todos</option>
+              <option value="">All</option>
               <option value="Q1">Q1</option>
               <option value="Q2">Q2</option>
               <option value="Q3">Q3</option>
@@ -218,166 +225,161 @@ export default function QuarterlyReportsPage() {
           </div>
         </div>
         {isAdmin && (
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => setOpen(true)}>
+          <button
+            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded shadow transition-all ml-auto mt-4 md:mt-0"
+            onClick={() => setOpen(true)}
+          >
             Add new report
-          </Button>
+          </button>
         )}
       </div>
-      <h1 className="text-3xl font-bold mb-4">Quarterly Reports</h1>
+      <h1 className="text-3xl font-bold mb-4 text-purple-200">Quarterly Reports</h1>
       {loading ? (
-        <p className="text-slate-400">Cargando reportes...</p>
+        <p className="text-slate-400 text-center py-12">Loading reports...</p>
       ) : filteredReports.length === 0 ? (
-        <p className="text-slate-400">No hay reportes trimestrales para los filtros seleccionados.</p>
+        <div className="flex flex-col items-center justify-center py-24">
+          <FileTextIcon className="w-16 h-16 text-slate-700 mb-4" />
+          <p className="text-slate-400 text-lg">No quarterly reports found for the selected filters.</p>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-slate-800 border border-slate-700 rounded">
-            <thead>
-              <tr className="text-slate-300">
-                <th className="px-3 py-2">Workgroup</th>
-                <th className="px-3 py-2">Año</th>
-                <th className="px-3 py-2">Quarter</th>
-                <th className="px-3 py-2">Detalle</th>
-                <th className="px-3 py-2">Participantes</th>
-                <th className="px-3 py-2">Presupuesto (USD)</th>
+        <div className="overflow-x-auto rounded-lg shadow border border-slate-700 bg-slate-800">
+          <table className="min-w-full divide-y divide-slate-700">
+            <thead className="bg-slate-900">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Workgroup</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Year</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Quarter</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Detail</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Participants</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Budget (USD)</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-700">
               {filteredReports.map((r: any) => (
                 <tr
                   key={r.id}
-                  className="border-t border-slate-700 hover:bg-slate-700/30 cursor-pointer"
+                  className="hover:bg-slate-700/40 cursor-pointer transition-colors"
                   onClick={() => router.push(`/dashboard/quarterly-reports/${r.id}`)}
                 >
-                  <td className="px-3 py-2">{r.workGroup?.name}</td>
-                  <td className="px-3 py-2">{r.year}</td>
-                  <td className="px-3 py-2">{r.quarter}</td>
-                  <td className="px-3 py-2">{r.detail?.slice(0, 40)}{r.detail?.length > 40 ? '...' : ''}</td>
-                  <td className="px-3 py-2">{r.participants.map((p: any) => p.user.name).join(", ")}</td>
-                  <td className="px-3 py-2">{r.budgetItems.reduce((sum: number, item: any) => sum + item.amountUsd, 0)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-100">{r.workGroup?.name}</td>
+                  <td className="px-4 py-3">{r.year}</td>
+                  <td className="px-4 py-3">{r.quarter}</td>
+                  <td className="px-4 py-3">{r.detail?.slice(0, 40)}{r.detail?.length > 40 ? '...' : ''}</td>
+                  <td className="px-4 py-3">{r.participants.map((p: any) => p.user.name).join(", ")}</td>
+                  <td className="px-4 py-3">{r.budgetItems.reduce((sum: number, item: any) => sum + item.amountUsd, 0)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nuevo Quarterly Report</DialogTitle>
-          </DialogHeader>
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setForm({ ...form, workgroup: "", year: new Date().getFullYear(), quarter: "Q1", detail: "", theoryOfChange: "", challenges: "", participation: "", plans: "", participants: [], budgetItems: [{ name: "", description: "", amountUsd: 0 }] }); setError(null); setSuccessMessage(null); } }}>
+        <DialogContent className="bg-slate-900 w-full max-w-3xl mx-auto rounded-lg shadow-lg p-0 border border-slate-700 flex flex-col max-h-screen animate-fade-in">
+          {/* Header fijo */}
+          <div className="flex items-center justify-between border-b border-slate-700 px-8 py-4 sticky top-0 bg-slate-900 z-10">
             <div>
-              <label className="block text-xs mb-1">Workgroup</label>
-              <select
-                name="workgroup"
-                className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100 w-full"
-                value={form.workgroup}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="">Selecciona un workgroup</option>
-                {workgroups.map((wg: any) => (
-                  <option key={wg.id} value={wg.id}>{wg.name}</option>
-                ))}
-              </select>
+              <DialogTitle asChild>
+                <h2 className="text-2xl font-bold text-purple-300 flex items-center gap-2">
+                  <FileTextIcon className="w-7 h-7 text-purple-400" /> New Quarterly Report
+                </h2>
+              </DialogTitle>
+              <DialogDescription className="text-slate-400 mt-1">Fill in the fields to create a new quarterly report.</DialogDescription>
             </div>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="block text-xs mb-1">Año</label>
-                <Input name="year" type="number" value={form.year} onChange={handleFormChange} required min={2000} max={2100} />
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs mb-1">Quarter</label>
-                <select
-                  name="quarter"
-                  className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100 w-full"
-                  value={form.quarter}
-                  onChange={handleFormChange}
-                  required
-                >
-                  <option value="Q1">Q1</option>
-                  <option value="Q2">Q2</option>
-                  <option value="Q3">Q3</option>
-                  <option value="Q4">Q4</option>
+            <button onClick={() => setOpen(false)} className="text-2xl text-slate-400 hover:text-purple-400 font-bold focus:outline-none">×</button>
+          </div>
+          {/* Contenido scrollable */}
+          <div className="flex-1 overflow-y-auto px-8 py-6">
+            <form id="quarterly-report-form" ref={formRef} onSubmit={handleSubmit} className="space-y-5 pb-2">
+              <div>
+                <label className="block text-slate-300 mb-1">Workgroup</label>
+                <select name="workgroup" value={form.workgroup} onChange={handleFormChange} required className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500">
+                  <option value="">Select a workgroup</option>
+                  {workgroups.map((wg: any) => (
+                    <option key={wg.id} value={wg.id}>{wg.name}</option>
+                  ))}
                 </select>
               </div>
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Detalle</label>
-              <Textarea name="detail" value={form.detail} onChange={handleFormChange} required rows={2} />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Teoría de cambio / Objetivo</label>
-              <Textarea name="theoryOfChange" value={form.theoryOfChange} onChange={handleFormChange} required rows={2} />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Desafíos y aprendizajes</label>
-              <Textarea name="challenges" value={form.challenges} onChange={handleFormChange} required rows={2} />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Participación</label>
-              <Textarea name="participation" value={form.participation} onChange={handleFormChange} required rows={2} />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Planes para el próximo trimestre</label>
-              <Textarea name="plans" value={form.plans} onChange={handleFormChange} required rows={2} />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Participantes</label>
-              <select
-                name="participants"
-                multiple
-                className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100 w-full"
-                value={form.participants}
-                onChange={handleParticipantsChange}
-                required
-                size={Math.min(6, members.length)}
-              >
-                {members.map((m: any) => (
-                  <option key={m.id} value={m.id}>{m.name} ({m.role})</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Presupuesto</label>
-              {form.budgetItems.map((item, idx) => (
-                <div key={idx} className="flex gap-2 mb-2 items-center">
-                  <Input
-                    placeholder="Nombre"
-                    value={item.name}
-                    onChange={e => handleBudgetItemChange(idx, "name", e.target.value)}
-                    className="flex-1"
-                    required
-                  />
-                  <Input
-                    placeholder="Descripción"
-                    value={item.description}
-                    onChange={e => handleBudgetItemChange(idx, "description", e.target.value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    placeholder="Monto (USD)"
-                    type="number"
-                    value={item.amountUsd}
-                    onChange={e => handleBudgetItemChange(idx, "amountUsd", e.target.value)}
-                    className="w-32"
-                    min={0}
-                    required
-                  />
-                  {form.budgetItems.length > 1 && (
-                    <Button type="button" variant="destructive" size="sm" onClick={() => removeBudgetItem(idx)}>-</Button>
-                  )}
-                  {idx === form.budgetItems.length - 1 && (
-                    <Button type="button" variant="outline" size="sm" onClick={addBudgetItem}>+</Button>
-                  )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-300 mb-1">Year</label>
+                  <input name="year" type="number" value={form.year} onChange={handleFormChange} required min={2000} max={2100} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="e.g. 2025" />
                 </div>
-              ))}
-            </div>
-            <DialogFooter>
-              <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white" disabled={submitting}>
-                {submitting ? "Creando..." : "Crear Reporte"}
-              </Button>
-            </DialogFooter>
+                <div>
+                  <label className="block text-slate-300 mb-1">Quarter</label>
+                  <select name="quarter" value={form.quarter} onChange={handleFormChange} required className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border">
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Detail</label>
+                <textarea name="detail" value={form.detail} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="Brief summary of the quarter" />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Theory of Change / Objective</label>
+                <textarea name="theoryOfChange" value={form.theoryOfChange} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="What changes and impact are expected?" />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Challenges and Learnings</label>
+                <textarea name="challenges" value={form.challenges} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="What went well/bad and why?" />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Participation</label>
+                <textarea name="participation" value={form.participation} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="Users, admins, meetings, collaborations..." />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Plans for Next Quarter</label>
+                <textarea name="plans" value={form.plans} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="What do you plan to achieve?" />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Participants</label>
+                <select name="participants" multiple value={form.participants} onChange={handleParticipantsChange} required size={Math.min(6, members.length)} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border">
+                  {members.map((m: any) => (
+                    <option key={m.id} value={m.user?.id}>
+                      {m.user?.name} ({m.user?.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1">Budget</label>
+                <div className="space-y-2">
+                  {form.budgetItems.map((item, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <input placeholder="Name" value={item.name} onChange={e => handleBudgetItemChange(idx, "name", e.target.value)} required className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" />
+                      <input placeholder="Description" value={item.description} onChange={e => handleBudgetItemChange(idx, "description", e.target.value)} className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" />
+                      <input placeholder="Amount (USD)" type="number" value={item.amountUsd} onChange={e => handleBudgetItemChange(idx, "amountUsd", e.target.value)} min={0} required className="w-32 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" />
+                      {form.budgetItems.length > 1 && (
+                        <button type="button" onClick={() => removeBudgetItem(idx)} className="bg-red-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Quitar item"><MinusIcon className="w-4 h-4" /></button>
+                      )}
+                      {idx === form.budgetItems.length - 1 && (
+                        <button type="button" onClick={addBudgetItem} className="bg-slate-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Agregar item"><PlusIcon className="w-4 h-4" /></button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-right text-purple-300 font-semibold mt-2">
+                  Total: {form.budgetItems.reduce((sum, item) => sum + Number(item.amountUsd || 0), 0)} USD
+                </div>
+              </div>
+              {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+              {successMessage && <div className="text-green-400 text-sm mt-2">{successMessage}</div>}
+            </form>
+          </div>
+          {/* Botón al final del formulario */}
+          <form id="quarterly-report-form" ref={formRef} onSubmit={handleSubmit} className="space-y-5 pb-2">
+            {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+            {successMessage && <div className="text-green-400 text-sm mt-2">{successMessage}</div>}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-8 rounded shadow transition-all w-full md:w-auto mt-6 mx-auto block"
+            >
+              {submitting ? "Creando..." : "Crear Reporte"}
+            </button>
           </form>
         </DialogContent>
       </Dialog>

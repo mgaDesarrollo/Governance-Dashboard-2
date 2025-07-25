@@ -35,18 +35,20 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "No autenticado" }, { status: 401 })
     }
     const userId = session.user.id
-    const workGroupId = params.id
+    const { id: workGroupId } = await params
+    console.log("userId:", userId, "workGroupId:", workGroupId);
+    const members = await prisma.workGroupMember.findMany({ where: { workGroupId } });
+    console.log("Miembros del grupo:", members);
 
     // Verificar que el usuario sea miembro y admin del workgroup
     const membership = await prisma.workGroupMember.findFirst({
       where: {
         userId,
-        workGroupId,
-        role: "admin"
+        workGroupId
       }
     })
     if (!membership) {
-      return NextResponse.json({ error: "Solo administradores miembros pueden crear reportes" }, { status: 403 })
+      return NextResponse.json({ error: "Solo miembros del workgroup pueden crear reportes" }, { status: 403 })
     }
 
     const body = await request.json()
