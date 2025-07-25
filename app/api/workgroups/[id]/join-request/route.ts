@@ -18,4 +18,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   })
   return NextResponse.json(joinRequest)
+}
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const workGroupId = params.id;
+  const joinRequests = await prisma.workGroupJoinRequest.findMany({
+    where: { workGroupId, status: "pending" },
+    include: { user: true }
+  });
+  return NextResponse.json(joinRequests);
 } 
