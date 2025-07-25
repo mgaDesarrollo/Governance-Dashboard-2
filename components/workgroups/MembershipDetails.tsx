@@ -79,21 +79,24 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
   };
 
   return (
-    <section className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col gap-4">
-      <h3 className="text-xl font-semibold flex items-center gap-2 text-purple-700">👥 Membresía y Roles</h3>
+    <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-purple-700 p-8 mb-6 flex flex-col gap-6">
+      <h3 className="text-2xl font-bold flex items-center gap-3 text-purple-300 mb-2 drop-shadow">
+        <span className="text-3xl">👥</span>
+        Membership & Roles
+      </h3>
       <div>
-        <span className="font-semibold text-slate-700">Miembros actuales:</span>
+        <span className="font-semibold text-purple-200 text-lg">Current Members:</span>
         {membersLoading ? (
-          <span className="ml-2 text-slate-400 text-sm">Cargando...</span>
+          <span className="ml-2 text-slate-400 text-sm">Loading...</span>
         ) : members.length === 0 ? (
-          <span className="ml-2 text-slate-400 text-sm">No hay miembros aún.</span>
+          <span className="ml-2 text-slate-500 text-sm">No members yet.</span>
         ) : (
-          <ul className="mt-1 ml-2 list-disc text-slate-700">
+          <ul className="mt-2 ml-4 list-disc text-slate-100 text-base space-y-1">
             {members.map((m) => (
               <li key={m.id} className="flex gap-2 items-center">
-                <span className="font-medium">{m.user?.name || "Usuario desconocido"}</span>
-                <span className="text-xs text-gray-500">({m.user?.email || "Sin email"})</span>
-                <span className="text-xs text-purple-700 bg-purple-100 rounded px-2 py-0.5 ml-2">{m.role}</span>
+                <span className="font-medium text-purple-100">{m.user?.name || "Unknown user"}</span>
+                <span className="text-xs text-slate-400">({m.user?.email || "No email"})</span>
+                <span className="text-xs text-purple-700 bg-purple-200 rounded px-2 py-0.5 ml-2">{m.role}</span>
               </li>
             ))}
           </ul>
@@ -104,7 +107,7 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
           className="mt-4 bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors w-fit"
           onClick={() => setModalOpen(true)}
         >
-          Agregar usuario
+          Add user
         </button>
       )}
       {modalOpen && (
@@ -117,19 +120,19 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
               className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold"
               type="button"
               onClick={() => setModalOpen(false)}
-              aria-label="Cerrar"
+              aria-label="Close"
             >
               ×
             </button>
-            <h3 className="text-xl font-bold text-purple-300 mb-2">Agregar usuario al WorkGroup</h3>
-            <label className="text-slate-300 text-sm font-semibold">Selecciona un usuario
+            <h3 className="text-xl font-bold text-purple-300 mb-2">Add user to WorkGroup</h3>
+            <label className="text-slate-300 text-sm font-semibold">Select a user
               <select
                 className="mt-1 w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 value={selectedUser}
                 onChange={e => setSelectedUser(e.target.value)}
                 required
               >
-                <option value="">Selecciona un usuario...</option>
+                <option value="">Select a user...</option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
                 ))}
@@ -141,7 +144,7 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
               className="mt-4 bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors"
               disabled={loading || !selectedUser}
             >
-              {success ? "¡Agregado!" : loading ? "Agregando..." : "Agregar"}
+              {success ? "Added!" : loading ? "Adding..." : "Add"}
             </button>
           </form>
         </div>

@@ -135,20 +135,22 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
         </div>
       </div>
       <div className="flex flex-wrap gap-1 mb-4 justify-center">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            className={`px-2 py-1 rounded-t-lg font-semibold text-sm flex items-center gap-1 transition-colors border-b-2 focus:outline-none
-              ${activeTab === tab.key
-                ? 'bg-[#161b22] border-purple-500 text-purple-200 shadow'
-                : 'bg-slate-800 border-transparent text-slate-400 hover:bg-slate-700 hover:text-purple-200'}`}
-            style={{ minWidth: 0 }}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            <span className="text-base">{tab.icon}</span>
-            <span className="truncate max-w-[110px]">{tab.label}</span>
-          </button>
-        ))}
+        <div className="flex gap-2 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-purple-700 px-4 py-2 shadow-lg">
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              className={`px-4 py-2 rounded-lg font-semibold text-base flex items-center gap-2 transition-all duration-200 focus:outline-none
+                ${activeTab === tab.key
+                  ? 'bg-purple-700 text-white shadow-lg scale-105 border border-purple-400'
+                  : 'bg-slate-800 text-purple-200 hover:bg-purple-800 hover:text-white border border-transparent'}`}
+              style={{ minWidth: 0 }}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              <span className="text-xl">{tab.icon}</span>
+              <span className="truncate max-w-[120px]">{tab.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
       <div className="bg-[#161b22] rounded-2xl shadow-2xl p-4 md:p-8 border border-slate-700 max-w-4xl mx-auto min-h-[350px] flex flex-col gap-6">
         {activeTab === 'general' && (
