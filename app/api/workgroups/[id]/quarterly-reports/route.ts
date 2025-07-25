@@ -36,9 +36,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     const userId = session.user.id
     const { id: workGroupId } = await params
-    console.log("userId:", userId, "workGroupId:", workGroupId);
+    console.log("[POST /quarterly-reports] userId:", userId, "workGroupId:", workGroupId);
     const members = await prisma.workGroupMember.findMany({ where: { workGroupId } });
-    console.log("Miembros del grupo:", members);
+    console.log("[POST /quarterly-reports] Miembros del grupo:", members);
 
     // Verificar que el usuario sea miembro y admin del workgroup
     const membership = await prisma.workGroupMember.findFirst({
@@ -47,6 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         workGroupId
       }
     })
+    console.log("[POST /quarterly-reports] Resultado búsqueda membresía:", membership);
     if (!membership) {
       return NextResponse.json({ error: "Solo miembros del workgroup pueden crear reportes" }, { status: 403 })
     }

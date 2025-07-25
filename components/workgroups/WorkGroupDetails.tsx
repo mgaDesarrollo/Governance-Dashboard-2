@@ -11,6 +11,7 @@ import BudgetResources from './BudgetResources';
 import ConnectionsDependencies from './ConnectionsDependencies';
 import ConsentGovernance from './ConsentGovernance';
 import FuturePlansRoadmap from './FuturePlansRoadmap';
+import { useSession } from "next-auth/react";
 
 const tabs = [
   { key: 'general', label: 'General', icon: '📌' },
@@ -39,6 +40,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     if ((localWG as any).id) {
@@ -58,8 +60,10 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId }),
     });
-    // (Opcional: actualizar estado de la solicitud a 'accepted' en backend si existe endpoint)
-    setJoinRequests(reqs => reqs.filter(r => r.id !== requestId));
+    // Refrescar solicitudes pendientes desde el backend
+    fetch(`/api/workgroups/${(localWG as any).id}/join-request`)
+      .then(res => res.json())
+      .then(data => setJoinRequests(data));
     setAcceptingId(null);
   };
 
@@ -120,8 +124,11 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     setJoinSuccess(false);
-    // TODO: Reemplaza por el userId real del usuario autenticado
-    const userId = "mock-user-id";
+    const userId = session?.user?.id;
+    if (!userId) {
+      alert("Debes iniciar sesión para solicitar unirte.");
+      return;
+    }
     const res = await fetch(`/api/workgroups/${(localWG as any).id || ""}/join-request`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -141,6 +148,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
   return (
     <div className="w-full">
+      {/* DEBUG: Mostrar userId de la sesión */}
+      <div className="text-xs text-slate-400 mb-2">Tu userId: <span className="font-mono">{session?.user?.id}</span></div>
       <div className="flex flex-wrap gap-1 mb-4 justify-center">
         <div className="flex gap-2 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl px-4 py-2 shadow-lg">
           {tabs.map(tab => (
@@ -259,67 +268,67 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                 onClick={handleClose}
               >
                 Cancel
-              </button>
-            </div>
+          </button>
+      </div>
           </form>
         ) : (
         // Vista normal
         <>
-          {activeTab === 'general' && (
-            <>
-              <div className="mb-4">
-                <BasicIdentificationCard
-                  name={localWG.name}
-                  type={localWG.type}
-                  dateOfCreation={localWG.dateOfCreation}
-                  status={localWG.status}
-                  anchorContacts={localWG.anchorContacts}
-                />
-              </div>
-              <div className="mb-4 border-t border-slate-700 pt-4">
-                <MissionScopeCard
-                  missionStatement={localWG.missionStatement}
-                  goalsAndFocus={localWG.goalsAndFocus}
-                />
-              </div>
-              <div className="border-t border-slate-700 pt-4">
-                <MembershipDetails
-                  totalMembers={localWG.totalMembers}
-                  roles={localWG.roles}
-                  memberDirectoryLink={localWG.memberDirectoryLink}
-                  workGroupId={(localWG as any).id}
-                />
-              </div>
-            </>
-          )}
-          {activeTab === 'actividad' && (
-            <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
-              <span className="text-2xl mb-2">📅</span>
-              <p className="text-lg font-semibold mb-1">Actividad & Reportes</p>
-              <p>Aquí se mostrarán los reportes y la actividad del WorkGroup próximamente.</p>
+        {activeTab === 'general' && (
+          <>
+            <div className="mb-4">
+              <BasicIdentificationCard
+                name={localWG.name}
+                type={localWG.type}
+                dateOfCreation={localWG.dateOfCreation}
+                status={localWG.status}
+                anchorContacts={localWG.anchorContacts}
+              />
             </div>
-          )}
-          {activeTab === 'presupuesto' && (
-            <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
-              <span className="text-2xl mb-2">💰</span>
-              <p className="text-lg font-semibold mb-1">Presupuesto & Recursos</p>
-              <p>Aquí se mostrará la información de presupuesto y recursos del WorkGroup próximamente.</p>
+            <div className="mb-4 border-t border-slate-700 pt-4">
+              <MissionScopeCard
+                missionStatement={localWG.missionStatement}
+                goalsAndFocus={localWG.goalsAndFocus}
+              />
             </div>
-          )}
-          {activeTab === 'conexiones' && (
-            <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
-              <span className="text-2xl mb-2">🔗</span>
-              <p className="text-lg font-semibold mb-1">Conexiones & Gobernanza</p>
-              <p>Aquí se mostrarán las conexiones y la gobernanza del WorkGroup próximamente.</p>
+            <div className="border-t border-slate-700 pt-4">
+              <MembershipDetails
+                totalMembers={localWG.totalMembers}
+                roles={localWG.roles}
+                memberDirectoryLink={localWG.memberDirectoryLink}
+                workGroupId={(localWG as any).id}
+              />
             </div>
-          )}
-          {activeTab === 'futuro' && (
-            <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
-              <span className="text-2xl mb-2">🧭</span>
-              <p className="text-lg font-semibold mb-1">Futuro & Roadmap</p>
-              <p>Aquí se mostrarán los planes futuros y el roadmap del WorkGroup próximamente.</p>
-            </div>
-          )}
+          </>
+        )}
+        {activeTab === 'actividad' && (
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">📅</span>
+            <p className="text-lg font-semibold mb-1">Actividad & Reportes</p>
+            <p>Aquí se mostrarán los reportes y la actividad del WorkGroup próximamente.</p>
+          </div>
+        )}
+        {activeTab === 'presupuesto' && (
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">💰</span>
+            <p className="text-lg font-semibold mb-1">Presupuesto & Recursos</p>
+            <p>Aquí se mostrará la información de presupuesto y recursos del WorkGroup próximamente.</p>
+          </div>
+        )}
+        {activeTab === 'conexiones' && (
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">🔗</span>
+            <p className="text-lg font-semibold mb-1">Conexiones & Gobernanza</p>
+            <p>Aquí se mostrarán las conexiones y la gobernanza del WorkGroup próximamente.</p>
+          </div>
+        )}
+        {activeTab === 'futuro' && (
+          <div className="mb-4 flex flex-col items-center justify-center min-h-[120px] text-slate-400 text-center">
+            <span className="text-2xl mb-2">🧭</span>
+            <p className="text-lg font-semibold mb-1">Futuro & Roadmap</p>
+            <p>Aquí se mostrarán los planes futuros y el roadmap del WorkGroup próximamente.</p>
+          </div>
+        )}
         </>
         )}
         {/* Sección de solicitudes de ingreso */}
@@ -335,21 +344,22 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     <div>
                       <span className="font-semibold text-purple-200">{req.user?.name}</span>
                       <span className="ml-2 text-slate-400 text-xs">{req.user?.email}</span>
+                      <span className="ml-2 text-slate-500 text-xs">userId: <span className="font-mono">{req.userId}</span></span>
                       {req.message && <span className="ml-4 text-slate-300 italic">"{req.message}"</span>}
-                    </div>
-                    <button
+      </div>
+            <button
                       className="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded shadow text-xs font-semibold disabled:opacity-60"
                       disabled={acceptingId === req.id}
                       onClick={() => handleAcceptRequest(req.id, req.userId)}
                     >
                       {acceptingId === req.id ? "Aceptando..." : "Aceptar"}
-                    </button>
+            </button>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
-        )}
+        </div>
+      )}
       </div>
       {joinOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">

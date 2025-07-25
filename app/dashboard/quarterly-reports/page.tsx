@@ -46,6 +46,7 @@ export default function QuarterlyReportsPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [detailModal, setDetailModal] = useState<{ open: boolean; report: any; editing?: boolean; form?: any } | null>(null);
 
   // Fetch all reports
   useEffect(() => {
@@ -166,21 +167,118 @@ export default function QuarterlyReportsPage() {
         // Refetch reports
         const reportsRes = await fetch("/api/quarterly-reports");
         setReports(await reportsRes.json());
-        setSuccessMessage("Reporte creado exitosamente!");
+        setSuccessMessage("Report created successfully!");
       } else {
-        const errorData = await res.json();
-        setError(errorData.message || "Error al crear el reporte");
+        let errorData = {};
+        try {
+          errorData = await res.json();
+        } catch {}
+        if (res.status === 403) {
+          setError("Only group members can create quarterly reports. Please join or wait to be accepted.");
+        } else {
+          setError((errorData as any).message || (errorData as any).error || "Unknown error creating report");
+        }
+        console.error("Error creating report:", errorData);
       }
     } catch (err) {
-      setError("Error de red al crear el reporte");
+      setError("Network error creating report");
     }
     setSubmitting(false);
   };
 
   const router = useRouter();
 
+  // Handler para editar reporte
+  const handleEditReport = () => {
+    if (!detailModal) return;
+    setDetailModal({
+      ...detailModal,
+      editing: true,
+      form: {
+        detail: detailModal.report?.detail || "",
+        theoryOfChange: detailModal.report?.theoryOfChange || "",
+        challenges: detailModal.report?.challenges || "",
+        participation: detailModal.report?.participation || "",
+        plans: detailModal.report?.plans || "",
+        year: detailModal.report?.year || "",
+        quarter: detailModal.report?.quarter || "Q1",
+        budgetItems: detailModal.report?.budgetItems?.map((item: any) => ({ ...item })) || [],
+      }
+    });
+  };
+
+  const handleEditFormChange = (e: any) => {
+    if (!detailModal) return;
+    const { name, value } = e.target;
+    setDetailModal({
+      ...detailModal,
+      form: { ...detailModal.form, [name]: value }
+    });
+  };
+
+  const handleEditBudgetItemChange = (idx: number, field: string, value: any) => {
+    if (!detailModal) return;
+    const items = [...detailModal.form.budgetItems];
+    items[idx][field] = field === "amountUsd" ? Number(value) : value;
+    setDetailModal({
+      ...detailModal,
+      form: { ...detailModal.form, budgetItems: items }
+    });
+  };
+
+  const handleAddBudgetItemEdit = () => {
+    if (!detailModal) return;
+    setDetailModal({
+      ...detailModal,
+      form: {
+        ...detailModal.form,
+        budgetItems: [...detailModal.form.budgetItems, { name: "", description: "", amountUsd: 0 }]
+      }
+    });
+  };
+  const handleRemoveBudgetItemEdit = (idx: number) => {
+    if (!detailModal) return;
+    setDetailModal({
+      ...detailModal,
+      form: {
+        ...detailModal.form,
+        budgetItems: detailModal.form.budgetItems.filter((_: any, i: number) => i !== idx)
+      }
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!detailModal) return;
+    const reportId = detailModal.report.id;
+    const res = await fetch(`/api/quarterly-reports/${reportId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...detailModal.form,
+        year: Number(detailModal.form.year),
+        budgetItems: detailModal.form.budgetItems.filter((item: any) => item.name && item.amountUsd > 0),
+      })
+    });
+    if (res.ok) {
+      // Refrescar lista de reportes
+      const reportsRes = await fetch("/api/quarterly-reports");
+      setReports(await reportsRes.json());
+      setDetailModal(m => m ? { ...m, editing: false } : null);
+    } else {
+      alert("Error updating report");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setDetailModal(m => m ? { ...m, editing: false } : null);
+  };
+
   return (
     <div className="p-8 min-h-screen bg-slate-900 text-slate-50">
+      {/* DEBUG: Mostrar userId de la sesión y workGroupId seleccionado */}
+      <div className="text-xs text-slate-400 mb-2">
+        Your userId: <span className="font-mono">{session?.user?.id}</span> | Selected workGroupId: <span className="font-mono">{form.workgroup}</span>
+      </div>
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
         <div className="flex flex-wrap gap-4">
           <div>
@@ -249,9 +347,9 @@ export default function QuarterlyReportsPage() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Workgroup</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Year</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Quarter</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Detail</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Participants</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Budget (USD)</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Created At</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700">
@@ -259,14 +357,14 @@ export default function QuarterlyReportsPage() {
                 <tr
                   key={r.id}
                   className="hover:bg-slate-700/40 cursor-pointer transition-colors"
-                  onClick={() => router.push(`/dashboard/quarterly-reports/${r.id}`)}
+                  onClick={() => setDetailModal({ open: true, report: r })}
                 >
                   <td className="px-4 py-3 font-medium text-slate-100">{r.workGroup?.name}</td>
                   <td className="px-4 py-3">{r.year}</td>
                   <td className="px-4 py-3">{r.quarter}</td>
-                  <td className="px-4 py-3">{r.detail?.slice(0, 40)}{r.detail?.length > 40 ? '...' : ''}</td>
-                  <td className="px-4 py-3">{r.participants.map((p: any) => p.user.name).join(", ")}</td>
+                  <td className="px-4 py-3">{r.participants.length}</td>
                   <td className="px-4 py-3">{r.budgetItems.reduce((sum: number, item: any) => sum + item.amountUsd, 0)}</td>
+                  <td className="px-4 py-3">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -353,10 +451,10 @@ export default function QuarterlyReportsPage() {
                       <input placeholder="Description" value={item.description} onChange={e => handleBudgetItemChange(idx, "description", e.target.value)} className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" />
                       <input placeholder="Amount (USD)" type="number" value={item.amountUsd} onChange={e => handleBudgetItemChange(idx, "amountUsd", e.target.value)} min={0} required className="w-32 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" />
                       {form.budgetItems.length > 1 && (
-                        <button type="button" onClick={() => removeBudgetItem(idx)} className="bg-red-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Quitar item"><MinusIcon className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => removeBudgetItem(idx)} className="bg-red-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Remove item"><MinusIcon className="w-4 h-4" /></button>
                       )}
                       {idx === form.budgetItems.length - 1 && (
-                        <button type="button" onClick={addBudgetItem} className="bg-slate-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Agregar item"><PlusIcon className="w-4 h-4" /></button>
+                        <button type="button" onClick={addBudgetItem} className="bg-slate-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Add item"><PlusIcon className="w-4 h-4" /></button>
                       )}
                     </div>
                   ))}
@@ -367,22 +465,138 @@ export default function QuarterlyReportsPage() {
               </div>
               {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
               {successMessage && <div className="text-green-400 text-sm mt-2">{successMessage}</div>}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-8 rounded shadow transition-all w-full md:w-auto mt-6 mx-auto block"
+              >
+                {submitting ? "Creating..." : "Create Report"}
+              </button>
             </form>
           </div>
-          {/* Botón al final del formulario */}
-          <form id="quarterly-report-form" ref={formRef} onSubmit={handleSubmit} className="space-y-5 pb-2">
-            {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
-            {successMessage && <div className="text-green-400 text-sm mt-2">{successMessage}</div>}
-            <button
-              type="submit"
-              disabled={submitting}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-8 rounded shadow transition-all w-full md:w-auto mt-6 mx-auto block"
-            >
-              {submitting ? "Creando..." : "Crear Reporte"}
-            </button>
-          </form>
         </DialogContent>
       </Dialog>
+      {/* Modal para ver toda la información del reporte */}
+      {detailModal?.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative border border-purple-700 flex flex-col gap-4">
+            <button
+              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold"
+              onClick={() => setDetailModal(null)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="text-2xl font-bold text-purple-300 mb-4">Quarterly Report Details</h3>
+            {/* Si está en modo edición, mostrar formulario editable */}
+            {detailModal.editing ? (
+              <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleSaveEdit(); }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-200">
+                  <div>
+                    <label className="font-semibold text-purple-200">Year:</label>
+                    <input name="year" type="number" value={detailModal.form.year} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-purple-200">Quarter:</label>
+                    <select name="quarter" value={detailModal.form.quarter} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100">
+                      <option value="Q1">Q1</option>
+                      <option value="Q2">Q2</option>
+                      <option value="Q3">Q3</option>
+                      <option value="Q4">Q4</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-semibold text-purple-200">Detail:</label>
+                    <textarea name="detail" value={detailModal.form.detail} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-semibold text-purple-200">Theory of Change / Objective:</label>
+                    <textarea name="theoryOfChange" value={detailModal.form.theoryOfChange} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-semibold text-purple-200">Challenges and Learnings:</label>
+                    <textarea name="challenges" value={detailModal.form.challenges} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-semibold text-purple-200">Participation:</label>
+                    <textarea name="participation" value={detailModal.form.participation} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-semibold text-purple-200">Plans for Next Quarter:</label>
+                    <textarea name="plans" value={detailModal.form.plans} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="font-semibold text-purple-200">Budget Items:</label>
+                    <div className="space-y-2">
+                      {detailModal.form.budgetItems.map((item: any, idx: number) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <input placeholder="Name" value={item.name} onChange={e => handleEditBudgetItemChange(idx, "name", e.target.value)} className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" />
+                          <input placeholder="Description" value={item.description} onChange={e => handleEditBudgetItemChange(idx, "description", e.target.value)} className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" />
+                          <input placeholder="Amount (USD)" type="number" value={item.amountUsd} onChange={e => handleEditBudgetItemChange(idx, "amountUsd", e.target.value)} min={0} className="w-32 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" />
+                          {detailModal.form.budgetItems.length > 1 && (
+                            <button type="button" onClick={() => handleRemoveBudgetItemEdit(idx)} className="bg-red-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Remove item"><MinusIcon className="w-4 h-4" /></button>
+                          )}
+                          {idx === detailModal.form.budgetItems.length - 1 && (
+                            <button type="button" onClick={handleAddBudgetItemEdit} className="bg-slate-700 text-white rounded px-2 py-1 ml-1 flex items-center" title="Add item"><PlusIcon className="w-4 h-4" /></button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-4 mt-4">
+                  <button type="submit" className="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors">Save changes</button>
+                  <button type="button" className="bg-slate-700 hover:bg-slate-800 text-slate-200 font-semibold px-4 py-2 rounded-lg shadow transition-colors" onClick={handleCancelEdit}>Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-200">
+                  <div><span className="font-semibold text-purple-200">Workgroup:</span> {detailModal.report?.workGroup?.name}</div>
+                  <div><span className="font-semibold text-purple-200">Year:</span> {detailModal.report?.year}</div>
+                  <div><span className="font-semibold text-purple-200">Quarter:</span> {detailModal.report?.quarter}</div>
+                  <div><span className="font-semibold text-purple-200">Created at:</span> {detailModal.report?.createdAt ? new Date(detailModal.report?.createdAt).toLocaleString() : "-"}</div>
+                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Detail:</span>
+                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.detail}</div>
+                  </div>
+                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Theory of Change / Objective:</span>
+                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.theoryOfChange}</div>
+                  </div>
+                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Challenges and Learnings:</span>
+                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.challenges}</div>
+                  </div>
+                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Participation:</span>
+                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.participation}</div>
+                  </div>
+                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Plans for Next Quarter:</span>
+                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.plans}</div>
+                  </div>
+                  <div><span className="font-semibold text-purple-200">Participants:</span> {detailModal.report?.participants?.length}</div>
+                  <div><span className="font-semibold text-purple-200">Budget (USD):</span> {detailModal.report?.budgetItems?.reduce((sum: number, item: any) => sum + item.amountUsd, 0)}</div>
+                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Budget Items:</span>
+                    <ul className="list-disc ml-6 mt-1">
+                      {detailModal.report?.budgetItems?.map((item: any, idx: number) => (
+                        <li key={idx} className="mb-1">
+                          <span className="font-semibold">{item.name}</span>: {item.description} <span className="text-purple-300">(${item.amountUsd})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                {/* Botón Edit solo si el usuario es el creador */}
+                {session?.user?.id && detailModal.report?.createdById === session.user.id && (
+                  <button
+                    className="mt-6 bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors"
+                    onClick={handleEditReport}
+                  >
+                    Edit
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
