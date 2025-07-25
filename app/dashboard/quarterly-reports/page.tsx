@@ -10,6 +10,10 @@ import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { XIcon, FileTextIcon, PlusIcon, MinusIcon } from "lucide-react";
 
+// Tipos para challenges
+type Challenge = string;
+type ChallengeEdit = { text: string; completed: boolean };
+
 export default function QuarterlyReportsPage() {
   const { data: session } = useSession();
   const [reports, setReports] = useState([]);
@@ -24,7 +28,7 @@ export default function QuarterlyReportsPage() {
     quarter: string;
     detail: string;
     theoryOfChange: string;
-    challenges: string;
+    challenges: string[];
     participation: string;
     plans: string;
     participants: string[];
@@ -35,7 +39,7 @@ export default function QuarterlyReportsPage() {
     quarter: "Q1",
     detail: "",
     theoryOfChange: "",
-    challenges: "",
+    challenges: [],
     participation: "",
     plans: "",
     participants: [],
@@ -143,7 +147,7 @@ export default function QuarterlyReportsPage() {
           quarter: form.quarter,
           detail: form.detail,
           theoryOfChange: form.theoryOfChange,
-          challenges: form.challenges,
+          challenges: form.challenges.map((c: string) => ({ text: c, completed: false })),
           participation: form.participation,
           plans: form.plans,
           participants: form.participants,
@@ -158,7 +162,7 @@ export default function QuarterlyReportsPage() {
           quarter: "Q1",
           detail: "",
           theoryOfChange: "",
-          challenges: "",
+          challenges: [],
           participation: "",
           plans: "",
           participants: [],
@@ -197,12 +201,12 @@ export default function QuarterlyReportsPage() {
       form: {
         detail: detailModal.report?.detail || "",
         theoryOfChange: detailModal.report?.theoryOfChange || "",
-        challenges: detailModal.report?.challenges || "",
-        participation: detailModal.report?.participation || "",
+        challenges: detailModal.report?.challenges?.map((c: any) => ({ text: c, completed: false })) || [],
         plans: detailModal.report?.plans || "",
         year: detailModal.report?.year || "",
         quarter: detailModal.report?.quarter || "Q1",
         budgetItems: detailModal.report?.budgetItems?.map((item: any) => ({ ...item })) || [],
+        participants: detailModal.report?.participants?.map((p: any) => p.user?.id) || [],
       }
     });
   };
@@ -257,6 +261,7 @@ export default function QuarterlyReportsPage() {
         ...detailModal.form,
         year: Number(detailModal.form.year),
         budgetItems: detailModal.form.budgetItems.filter((item: any) => item.name && item.amountUsd > 0),
+        participants: detailModal.form.participants,
       })
     });
     if (res.ok) {
@@ -371,7 +376,7 @@ export default function QuarterlyReportsPage() {
           </table>
         </div>
       )}
-      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setForm({ ...form, workgroup: "", year: new Date().getFullYear(), quarter: "Q1", detail: "", theoryOfChange: "", challenges: "", participation: "", plans: "", participants: [], budgetItems: [{ name: "", description: "", amountUsd: 0 }] }); setError(null); setSuccessMessage(null); } }}>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setForm({ ...form, workgroup: "", year: new Date().getFullYear(), quarter: "Q1", detail: "", theoryOfChange: "", challenges: [], participation: "", plans: "", participants: [], budgetItems: [{ name: "", description: "", amountUsd: 0 }] }); setError(null); setSuccessMessage(null); } }}>
         <DialogContent className="bg-slate-900 w-full max-w-3xl mx-auto rounded-lg shadow-lg p-0 border border-slate-700 flex flex-col max-h-screen animate-fade-in">
           {/* Header fijo */}
           <div className="flex items-center justify-between border-b border-slate-700 px-8 py-4 sticky top-0 bg-slate-900 z-10">
@@ -422,11 +427,42 @@ export default function QuarterlyReportsPage() {
               </div>
               <div>
                 <label className="block text-slate-300 mb-1">Challenges and Learnings</label>
-                <textarea name="challenges" value={form.challenges} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="What went well/bad and why?" />
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-1">Participation</label>
-                <textarea name="participation" value={form.participation} onChange={handleFormChange} required rows={2} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border" placeholder="Users, admins, meetings, collaborations..." />
+                <div className="space-y-2">
+                  {form.challenges.map((challenge, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={challenge}
+                        onChange={(e) => {
+                          const newChallenges = [...form.challenges];
+                          newChallenges[index] = e.target.value;
+                          setForm(f => ({ ...f, challenges: newChallenges }));
+                        }}
+                        className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border"
+                        placeholder="e.g., Increased user engagement"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newChallenges = form.challenges.filter((_: Challenge, i: number) => i !== index);
+                          setForm(f => ({ ...f, challenges: newChallenges }));
+                        }}
+                        className="bg-red-700 text-white rounded px-2 py-1 flex items-center"
+                        title="Remove challenge"
+                      >
+                        <MinusIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, challenges: [...f.challenges, ""] }))}
+                  className="bg-slate-700 text-white rounded px-2 py-1 flex items-center mt-2"
+                  title="Add challenge"
+                >
+                  <PlusIcon className="w-4 h-4 mr-1" /> Add Challenge
+                </button>
               </div>
               <div>
                 <label className="block text-slate-300 mb-1">Plans for Next Quarter</label>
@@ -515,13 +551,46 @@ export default function QuarterlyReportsPage() {
                   </div>
                   <div className="md:col-span-2">
                     <label className="font-semibold text-purple-200">Challenges and Learnings:</label>
-                    <textarea name="challenges" value={detailModal.form.challenges} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
+                    <div className="space-y-2">
+                      {detailModal.form.challenges.map((challenge: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={challenge.text}
+                            onChange={(e) => {
+                              const newChallenges = [...detailModal.form.challenges];
+                              newChallenges[index] = { ...newChallenges[index], text: e.target.value };
+                              setDetailModal({ ...detailModal, form: { ...detailModal.form, challenges: newChallenges } });
+                            }}
+                            className="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100"
+                            placeholder="e.g., Increased user engagement"
+                          />
+                          <input
+                            type="checkbox"
+                            checked={challenge.completed}
+                            onChange={(e) => {
+                              const newChallenges = [...detailModal.form.challenges];
+                              newChallenges[index] = { ...newChallenges[index], completed: e.target.checked };
+                              setDetailModal({ ...detailModal, form: { ...detailModal.form, challenges: newChallenges } });
+                            }}
+                            className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newChallenges = detailModal.form.challenges.filter((_: ChallengeEdit, i: number) => i !== index);
+                              setDetailModal({ ...detailModal, form: { ...detailModal.form, challenges: newChallenges } });
+                            }}
+                            className="bg-red-700 text-white rounded px-2 py-1 flex items-center"
+                            title="Remove challenge"
+                          >
+                            <MinusIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="font-semibold text-purple-200">Participation:</label>
-                    <textarea name="participation" value={detailModal.form.participation} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
-                  </div>
-                  <div className="md:col-span-2">
+                  <div>
                     <label className="font-semibold text-purple-200">Plans for Next Quarter:</label>
                     <textarea name="plans" value={detailModal.form.plans} onChange={handleEditFormChange} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100" rows={2} />
                   </div>
@@ -543,6 +612,16 @@ export default function QuarterlyReportsPage() {
                       ))}
                     </div>
                   </div>
+                  <div>
+                    <label className="font-semibold text-purple-200">Participants:</label>
+                    <select name="participants" multiple value={detailModal.form.participants} onChange={handleEditFormChange} size={Math.min(6, members.length)} className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-slate-100 focus:ring-2 focus:ring-purple-500 box-border">
+                      {members.map((m: any) => (
+                        <option key={m.id} value={m.user?.id}>
+                          {m.user?.name} ({m.user?.email})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="flex gap-4 mt-4">
                   <button type="submit" className="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors">Save changes</button>
@@ -563,10 +642,14 @@ export default function QuarterlyReportsPage() {
                     <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.theoryOfChange}</div>
                   </div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Challenges and Learnings:</span>
-                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.challenges}</div>
-                  </div>
-                  <div className="md:col-span-2"><span className="font-semibold text-purple-200">Participation:</span>
-                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.participation}</div>
+                    <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">
+                      {detailModal.report?.challenges?.map((challenge: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 mb-1">
+                          <input type="checkbox" checked={challenge.completed} disabled className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600" />
+                          <span className={`${challenge.completed ? 'line-through text-slate-500' : ''}`}>{challenge.text}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Plans for Next Quarter:</span>
                     <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.plans}</div>

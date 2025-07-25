@@ -67,7 +67,7 @@ workGroups          WorkGroupMember[]
 createdQuarterlyReports QuarterlyReport[] @relation("CreatedQuarterlyReports")
 quarterlyReportParticipants QuarterlyReportParticipant[]
 quarterlyReportComments QuarterlyReportComment[]
-  joinRequests        WorkGroupJoinRequest[]
+joinRequests        WorkGroupJoinRequest[]
 
 }
 
@@ -237,8 +237,7 @@ model QuarterlyReport {
   quarter       String   // "Q1", "Q2", "Q3", "Q4"
   detail        String   // Breve detalle del reporte
   theoryOfChange String  // Teoría de cambios / objetivo
-  challenges    String   // Desafíos y aprendizajes
-  participation String   // Participación (usuarios, admins, asistencia, nuevos, colaboraciones)
+  challenges    Json     // Desafíos y aprendizajes: array de objetos { text, completed }
   plans         String   // Planes para el próximo trimestre
   createdById   String   // Usuario que crea el reporte
   createdBy     User     @relation("CreatedQuarterlyReports", fields: [createdById], references: [id])
