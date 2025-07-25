@@ -91,8 +91,8 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
           <ul className="mt-1 ml-2 list-disc text-slate-700">
             {members.map((m) => (
               <li key={m.id} className="flex gap-2 items-center">
-                <span className="font-medium">{m.user.name}</span>
-                <span className="text-xs text-gray-500">({m.user.email})</span>
+                <span className="font-medium">{m.user?.name || "Usuario desconocido"}</span>
+                <span className="text-xs text-gray-500">({m.user?.email || "Sin email"})</span>
                 <span className="text-xs text-purple-700 bg-purple-100 rounded px-2 py-0.5 ml-2">{m.role}</span>
               </li>
             ))}

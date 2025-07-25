@@ -4,9 +4,12 @@ import WorkGroupsList from "@/components/workgroups/WorkGroupsList";
 import WorkGroupDetails from "@/components/workgroups/WorkGroupDetails";
 import type { WorkGroup } from "@/lib/types";
 
+// Tipo extendido para aceptar 'members'
+type WorkGroupWithMembers = WorkGroup & { members?: any[] };
+
 export default function WorkGroupsPage() {
-  const [workGroups, setWorkGroups] = useState<WorkGroup[] | undefined>(undefined);
-  const [selected, setSelected] = useState<WorkGroup | null>(null);
+  const [workGroups, setWorkGroups] = useState<WorkGroupWithMembers[] | undefined>(undefined);
+  const [selected, setSelected] = useState<WorkGroupWithMembers | null>(null);
 
   useEffect(() => {
     fetch("/api/workgroups")
@@ -33,7 +36,7 @@ export default function WorkGroupsPage() {
             >
               ×
             </button>
-            <WorkGroupDetails workGroup={selected} />
+            <WorkGroupDetails workGroup={selected as any} />
           </div>
         </div>
       )}

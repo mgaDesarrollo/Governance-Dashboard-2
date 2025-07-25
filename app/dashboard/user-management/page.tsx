@@ -116,8 +116,8 @@ export default function UserManagementPage() {
         throw new Error("Failed to update user role")
       }
 
-      // Actualizar la lista de usuarios localmente
-      setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)))
+      // Refetch de usuarios tras actualizar el rol
+      await fetchUsers()
     } catch (error) {
       console.error("Error updating user role:", error)
       alert("Failed to update user role. Please try again.")

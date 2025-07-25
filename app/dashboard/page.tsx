@@ -75,6 +75,12 @@ const getMenuItems = (userRole: UserRole) => {
       icon: ActivityIcon,
       description: "Panel de control para grupos de trabajo y gremios",
     },
+    {
+      title: "Quarterly Reports",
+      url: "/dashboard/quarterly-reports",
+      icon: BarChart3Icon,
+      description: "Reportes trimestrales y presupuestos",
+    },
   ]
 
   const adminItems = [

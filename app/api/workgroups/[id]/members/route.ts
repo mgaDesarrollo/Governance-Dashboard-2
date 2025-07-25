@@ -1,21 +1,26 @@
-import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
-const prisma = new PrismaClient()
-
-export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const { params } = await Promise.resolve(context);
-  const workGroupId = params.id;
-  const members = await prisma.workGroupMember.findMany({
-    where: { workGroupId },
-    include: {
-      user: {
-        select: { id: true, name: true, email: true }
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const workGroupId = params.id
+    const members = await prisma.workGroupMember.findMany({
+      where: { workGroupId },
+      select: {
+        id: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
-    }
-  });
-  return NextResponse.json(members);
+    })
+    return NextResponse.json(members)
+  } catch (error) {
+    console.error("Error listando miembros del workgroup:", error)
+    return NextResponse.json({ error: "Error interno" }, { status: 500 })
+  }
 } 
