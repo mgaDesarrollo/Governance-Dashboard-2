@@ -16,10 +16,10 @@ const statusColors: Record<string, string> = {
 
 const WorkGroupsList: React.FC<Props> = ({ workGroups, onSelect }) => {
   if (!workGroups) {
-    return <div className="text-center text-slate-400 py-12">Cargando grupos...</div>;
+    return <div className="text-center text-slate-400 py-12">Loading groups...</div>;
   }
   if (workGroups.length === 0) {
-    return <div className="text-center text-slate-400 py-12">No hay grupos registrados.</div>;
+    return <div className="text-center text-slate-400 py-12">No groups registered.</div>;
   }
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 w-full">
@@ -41,7 +41,7 @@ const WorkGroupsList: React.FC<Props> = ({ workGroups, onSelect }) => {
             className="mt-auto text-purple-400 hover:text-white hover:bg-purple-700/20 border border-purple-700 rounded-lg px-3 py-1 text-sm font-medium transition-colors duration-150 self-end"
             onClick={() => onSelect && onSelect(wg)}
           >
-            Ver detalles
+            View details
           </button>
         </div>
       ))}

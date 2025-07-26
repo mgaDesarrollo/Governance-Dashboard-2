@@ -72,9 +72,9 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
       try {
         data = await res.json();
       } catch {
-        data = { error: "Error desconocido" };
+        data = { error: "Unknown error" };
       }
-      setError((data as any).error || "Error al agregar usuario");
+      setError((data as any).error || "Error adding user");
     }
   };
 

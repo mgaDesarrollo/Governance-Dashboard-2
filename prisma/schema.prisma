@@ -243,10 +243,14 @@ model QuarterlyReport {
   createdBy     User     @relation("CreatedQuarterlyReports", fields: [createdById], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  consensusStatus ConsensusStatus @default(PENDING) // Nuevo campo para el estado de consenso
 
   participants  QuarterlyReportParticipant[]
   budgetItems   QuarterlyReportBudgetItem[]
   comments      QuarterlyReportComment[]
+  consensusVotes ConsensusVote[] // Relación con votos de consenso
+  consensusComments ConsensusComment[] // Relación con comentarios de consenso
+  votingRounds VotingRound[] // Relación con rondas de votación
 }
 
 model QuarterlyReportParticipant {
@@ -277,4 +281,102 @@ model QuarterlyReportComment {
   user              User     @relation(fields: [userId], references: [id])
 
   @@unique([quarterlyReportId, userId]) // Solo un comentario por usuario por reporte
+}
+
+// Nuevos enums para el sistema de consenso
+enum ConsensusStatus {
+  PENDING
+  IN_CONSENSUS
+  CONSENSED
+}
+
+enum ConsensusVoteType {
+  A_FAVOR
+  EN_CONTRA
+  OBJETAR
+  ABSTENERSE
+}
+
+enum ObjectionStatus {
+  PENDIENTE
+  VALIDA
+  INVALIDA
+}
+
+enum VotingRoundStatus {
+  ACTIVA
+  CERRADA
+  CONSENSADA
+}
+
+// Nuevos modelos para el sistema de consenso
+model ConsensusVote {
+  id        String            @id @default(uuid())
+  userId    String
+  reportId  String
+  voteType  ConsensusVoteType
+  comment   String            // Justificación obligatoria
+  roundId   String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id])
+  report    QuarterlyReport   @relation(fields: [reportId], references: [id])
+  round     VotingRound      @relation(fields: [roundId], references: [id])
+  objection Objection?
+
+  @@unique([userId, roundId]) // Un usuario solo puede votar una vez por ronda
+  @@index([reportId])
+  @@index([roundId])
+}
+
+model ConsensusComment {
+  id              String   @id @default(uuid())
+  userId          String
+  reportId        String
+  parentCommentId String?  // Para respuestas anidadas
+  content         String
+  likes           String[] // Array de userIds que dieron like
+  dislikes        String[] // Array de userIds que dieron dislike
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id])
+  report          QuarterlyReport @relation(fields: [reportId], references: [id])
+  parentComment   ConsensusComment? @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         ConsensusComment[] @relation("CommentReplies")
+
+  @@index([reportId])
+  @@index([parentCommentId])
+}
+
+model Objection {
+  id           String          @id @default(uuid())
+  voteId       String          @unique // Una objeción por voto
+  status       ObjectionStatus @default(PENDIENTE)
+  resolvedById String?         // El admin que la resolvió
+  resolvedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  vote         ConsensusVote   @relation(fields: [voteId], references: [id])
+  resolvedBy   User?           @relation(fields: [resolvedById], references: [id])
+
+  @@index([status])
+}
+
+model VotingRound {
+  id          String            @id @default(uuid())
+  reportId    String
+  roundNumber Int
+  status      VotingRoundStatus @default(ACTIVA)
+  startedAt   DateTime          @default(now())
+  endedAt     DateTime?
+
+  report      QuarterlyReport   @relation(fields: [reportId], references: [id])
+  votes       ConsensusVote[]
+
+  @@unique([reportId, roundNumber]) // Una ronda por número por reporte
+  @@index([reportId])
+  @@index([status])
 }

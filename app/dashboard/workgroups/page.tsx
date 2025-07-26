@@ -21,9 +21,9 @@ export default function WorkGroupsPage() {
     <main className="min-h-screen bg-slate-900 text-slate-50 p-6">
       {!selected && (
         <>
-          <h1 className="text-3xl font-bold mb-6 text-purple-400">Grupos de trabajo y gremios</h1>
+          <h1 className="text-3xl font-bold mb-6 text-purple-400">Workgroups and Guilds</h1>
           <p className="mb-8 text-slate-400 max-w-2xl">
-            Panel de control para grupos de trabajo y gremios. Explora los grupos activos, su estado y accede a sus detalles.
+            Control panel for workgroups and guilds. Explore active groups, their status and access their details.
           </p>
         </>
       )}

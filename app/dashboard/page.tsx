@@ -73,13 +73,13 @@ const getMenuItems = (userRole: UserRole) => {
       title: "WorkGroups & Guilds",
       url: "/dashboard/workgroups",
       icon: ActivityIcon,
-      description: "Panel de control para grupos de trabajo y gremios",
+      description: "Control panel for workgroups and guilds",
     },
     {
       title: "Quarterly Reports",
       url: "/dashboard/quarterly-reports",
       icon: BarChart3Icon,
-      description: "Reportes trimestrales y presupuestos",
+      description: "Quarterly reports and budgets",
     },
   ]
 

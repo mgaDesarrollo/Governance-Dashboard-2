@@ -4,13 +4,19 @@ import { prisma } from "@/lib/prisma"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 // GET: Listar quarterly reports de un workgroup
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const workGroupId = params.id
-    // Listar los quarterly reports del workgroup, incluyendo participantes, presupuesto y comentarios
+    const { id } = params;
+    
     const reports = await prisma.quarterlyReport.findMany({
-      where: { workGroupId },
+      where: {
+        workGroupId: id
+      },
       include: {
+        workGroup: { select: { id: true, name: true } },
         participants: { include: { user: true } },
         budgetItems: true,
         comments: { include: { user: true } }
@@ -19,11 +25,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         { year: "desc" },
         { quarter: "desc" }
       ]
-    })
-    return NextResponse.json(reports)
+    });
+    
+    return NextResponse.json(reports);
   } catch (error) {
-    console.error("Error listando quarterly reports:", error)
-    return NextResponse.json({ error: "Error interno" }, { status: 500 })
+    console.error("Error obteniendo reportes del workgroup:", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
 
