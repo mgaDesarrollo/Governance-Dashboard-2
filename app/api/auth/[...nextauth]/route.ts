@@ -1,7 +1,7 @@
 import NextAuth, { type NextAuthOptions } from "next-auth"
 import DiscordProvider from "next-auth/providers/discord"
 import { prisma } from "@/lib/prisma"
-import type { UserRole, UserAvailabilityStatus } from "@prisma/client" // Importar UserAvailabilityStatus
+import type { UserRole, UserAvailabilityStatus } from "@prisma/client"
 
 interface DiscordProfile {
   id: string
@@ -21,18 +21,29 @@ if (!process.env.NEXT_PUBLIC_SUPER_ADMIN_DISCORD_ID) {
   missingEnvVars.push("NEXT_PUBLIC_SUPER_ADMIN_DISCORD_ID (Critical for Super Admin role)")
 }
 
-if (!process.env.NEXTAUTH_URL) {
-  console.warn(
-    "[NextAuth Setup] WARNING: NEXTAUTH_URL is not explicitly set. NextAuth.js will try to infer it. If OAuth redirects fail, ensure this is set to your application's public URL (e.g., http://localhost:3000 or https://your-app.v0.dev).",
-  )
+// Improved NEXTAUTH_URL handling
+const getNextAuthUrl = () => {
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL
+  }
+  
+  // Auto-detect for Vercel
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Default for development
+  return "http://localhost:3000"
 }
+
+const nextAuthUrl = getNextAuthUrl()
+console.log(`[NextAuth] Using NEXTAUTH_URL: ${nextAuthUrl}`)
 
 if (missingEnvVars.some((v) => !v.includes("Warning"))) {
   const errorMsg = `[NextAuth Setup] FATAL ERROR: Missing critical environment variables: ${missingEnvVars.join(
     ", ",
   )}. Please check your .env.local or Vercel environment variable settings.`
   console.error(errorMsg)
-  // Consider throwing an error or exiting if critical vars are missing for production
 }
 
 export const authOptions: NextAuthOptions = {
@@ -40,12 +51,34 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
-      authorization: { params: { scope: "identify email guilds" } },
+      authorization: { 
+        params: { 
+          scope: "identify email guilds" 
+        } 
+      },
     }),
   ],
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // Enable debug mode to see detailed logs
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log("[NextAuth SignIn] Attempting sign in:", { 
+        userId: user?.id, 
+        provider: account?.provider,
+        hasProfile: !!profile 
+      })
+      return true
+    },
     async jwt({ token, account, profile, user }) {
+      console.log("[NextAuth JWT] Processing token:", { 
+        hasAccount: !!account, 
+        hasProfile: !!profile,
+        tokenUserId: token.sub 
+      })
+      
       if (account && profile) {
         const discordProfile = profile as DiscordProfile
         const superAdminDiscordId = process.env.NEXT_PUBLIC_SUPER_ADMIN_DISCORD_ID
@@ -57,7 +90,7 @@ export const authOptions: NextAuthOptions = {
 
           if (!dbUser) {
             const defaultRole: UserRole = discordProfile.id === superAdminDiscordId ? "SUPER_ADMIN" : "CORE_CONTRIBUTOR"
-            const defaultStatus: UserAvailabilityStatus = "AVAILABLE" // Default status para nuevos usuarios
+            const defaultStatus: UserAvailabilityStatus = "AVAILABLE"
 
             dbUser = await prisma.user.create({
               data: {
@@ -70,8 +103,7 @@ export const authOptions: NextAuthOptions = {
                     ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
                     : null),
                 role: defaultRole,
-                status: defaultStatus, // Guardar status por defecto
-                // fullname se puede dejar vacío o pedirlo después
+                status: defaultStatus,
               },
             })
             console.log(
@@ -98,7 +130,6 @@ export const authOptions: NextAuthOptions = {
               updateData.role = "SUPER_ADMIN"
               needsUpdate = true
             }
-            // Si el status no está definido en la BD, ponerlo como AVAILABLE
             if (!dbUser.status) {
               updateData.status = "AVAILABLE"
               needsUpdate = true
@@ -118,7 +149,7 @@ export const authOptions: NextAuthOptions = {
           token.name = dbUser.name
           token.email = dbUser.email
           token.picture = dbUser.image
-          token.status = dbUser.status // Añadir status al token
+          token.status = dbUser.status
         } catch (error: any) {
           console.error("❌❌❌ [NextAuth JWT] CRITICAL ERROR processing user in DB ❌❌❌", error)
           return { ...token, error: "DatabaseProcessingError" }
@@ -127,13 +158,19 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
+      console.log("[NextAuth Session] Creating session:", { 
+        hasToken: !!token, 
+        hasDbUserId: !!token.dbUserId,
+        hasError: !!token.error 
+      })
+      
       if (token.dbUserId && session.user) {
         session.user.id = token.dbUserId as string
         session.user.role = token.role as UserRole
         if (token.name) session.user.name = token.name as string
         if (token.email) session.user.email = token.email as string
         if (token.picture) session.user.image = token.picture as string
-        if (token.status) session.user.status = token.status as UserAvailabilityStatus // Añadir status a la sesión
+        if (token.status) session.user.status = token.status as UserAvailabilityStatus
       }
       if (token.error) {
         ;(session as any).error = token.error
