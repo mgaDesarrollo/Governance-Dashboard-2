@@ -43,7 +43,27 @@ export default function QuarterlyReportDetailPage() {
       </div>
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-1">Desafíos y aprendizajes</h2>
-        <p className="text-slate-200 whitespace-pre-line">{report.challenges}</p>
+        <div className="text-slate-200">
+          {Array.isArray(report.challenges)
+            ? report.challenges.map((challenge: any, index: number) => {
+                if (typeof challenge === 'string') {
+                  return <div key={index} className="mb-1">{challenge}</div>;
+                } else if (challenge && typeof challenge === 'object' && 'text' in challenge) {
+                  return (
+                    <div key={index} className="flex items-center gap-2 mb-1">
+                      <input type="checkbox" checked={!!challenge.completed} disabled className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600" />
+                      <span className={challenge.completed ? 'line-through text-slate-500' : ''}>{challenge.text}</span>
+                    </div>
+                  );
+                } else {
+                  return null;
+                }
+              })
+            : report.challenges
+              ? <div>{typeof report.challenges === 'object' ? JSON.stringify(report.challenges) : String(report.challenges)}</div>
+              : <div className="text-slate-500 italic">No challenges</div>
+          }
+        </div>
       </div>
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-1">Participación</h2>

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
-import { XIcon, FileTextIcon, PlusIcon, MinusIcon } from "lucide-react";
+import { XIcon, FileTextIcon, PlusIcon, MinusIcon, CalendarIcon, UsersIcon, CurrencyIcon, CheckCircleIcon, ClockIcon, BuildingIcon } from "lucide-react";
 
 // Tipos para challenges
 type Challenge = string;
@@ -194,13 +194,34 @@ export default function QuarterlyReportsPage() {
   // Handler para editar reporte
   const handleEditReport = () => {
     if (!detailModal) return;
+    let challenges = detailModal.report?.challenges;
+    if (Array.isArray(challenges)) {
+      // Si es array de strings, transformar
+      if (challenges.length === 0 || typeof challenges[0] === 'string') {
+        challenges = challenges.map((c: any) => ({ text: c, completed: false }));
+      } else {
+        // Si es array de objetos, asegurar que text sea string
+        challenges = challenges.map((c: any) => ({
+          text: typeof c.text === 'string' 
+            ? c.text 
+            : typeof c.text === 'object' 
+              ? JSON.stringify(c.text) 
+              : String(c.text),
+          completed: !!c.completed
+        }));
+      }
+    } else if (typeof challenges === 'string') {
+      challenges = [{ text: challenges, completed: false }];
+    } else if (!challenges) {
+      challenges = [];
+    }
     setDetailModal({
       ...detailModal,
       editing: true,
       form: {
         detail: detailModal.report?.detail || "",
         theoryOfChange: detailModal.report?.theoryOfChange || "",
-        challenges: detailModal.report?.challenges?.map((c: any) => ({ text: c, completed: false })) || [],
+        challenges: challenges,
         plans: detailModal.report?.plans || "",
         year: detailModal.report?.year || "",
         quarter: detailModal.report?.quarter || "Q1",
@@ -292,7 +313,7 @@ export default function QuarterlyReportsPage() {
               value={filters.workgroup}
               onChange={e => setFilters(f => ({ ...f, workgroup: e.target.value }))}
             >
-              <option value="">All</option>
+              <option value="">All workgroups</option>
               {workgroups.map((wg: any) => (
                 <option key={wg.id} value={wg.id}>{wg.name}</option>
               ))}
@@ -305,9 +326,9 @@ export default function QuarterlyReportsPage() {
               value={filters.year}
               onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}
             >
-              <option value="">All</option>
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
+              <option value="">All years</option>
+              {years.map((year: number) => (
+                <option key={year} value={year}>{year}</option>
               ))}
             </select>
           </div>
@@ -318,7 +339,7 @@ export default function QuarterlyReportsPage() {
               value={filters.quarter}
               onChange={e => setFilters(f => ({ ...f, quarter: e.target.value }))}
             >
-              <option value="">All</option>
+              <option value="">All quarters</option>
               <option value="Q1">Q1</option>
               <option value="Q2">Q2</option>
               <option value="Q3">Q3</option>
@@ -326,16 +347,15 @@ export default function QuarterlyReportsPage() {
             </select>
           </div>
         </div>
-        {isAdmin && (
-          <button
-            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded shadow transition-all ml-auto mt-4 md:mt-0"
-            onClick={() => setOpen(true)}
-          >
-            Add new report
-          </button>
-        )}
+        <button onClick={() => setOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded shadow transition-all flex items-center gap-2">
+          <PlusIcon className="w-5 h-5" />
+          Create Report
+        </button>
       </div>
-      <h1 className="text-3xl font-bold mb-4 text-purple-200">Quarterly Reports</h1>
+      <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
+        <FileTextIcon className="w-8 h-8 text-purple-400" />
+        Quarterly Reports
+      </h1>
       {loading ? (
         <p className="text-slate-400 text-center py-12">Loading reports...</p>
       ) : filteredReports.length === 0 ? (
@@ -345,15 +365,45 @@ export default function QuarterlyReportsPage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg shadow border border-slate-700 bg-slate-800">
-          <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-900">
+          <table className="min-w-full bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+            <thead className="bg-slate-700">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Workgroup</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Year</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Quarter</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Participants</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Budget (USD)</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Created At</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1">
+                    <BuildingIcon className="w-3 h-3" />
+                    <span>Workgroup</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    <span>Year</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    <span>Quarter</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1">
+                    <UsersIcon className="w-3 h-3" />
+                    <span>Participants</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1">
+                    <CurrencyIcon className="w-3 h-3" />
+                    <span>Budget (USD)</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1">
+                    <ClockIcon className="w-3 h-3" />
+                    <span>Created At</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700">
@@ -361,7 +411,36 @@ export default function QuarterlyReportsPage() {
                 <tr
                   key={r.id}
                   className="hover:bg-slate-700/40 cursor-pointer transition-colors"
-                  onClick={() => setDetailModal({ open: true, report: r })}
+                  onClick={() => {
+                    let challenges = r.challenges;
+                    console.log('Original challenges:', challenges, typeof challenges, Array.isArray(challenges));
+                    if (Array.isArray(challenges)) {
+                      // Si es array de strings, transformar
+                      if (challenges.length === 0 || typeof challenges[0] === 'string') {
+                        challenges = challenges.map((c: any) => ({ text: c, completed: false }));
+                        console.log('Transformed string array to objects:', challenges);
+                      } else {
+                        // Si es array de objetos, asegurar que text sea string
+                        challenges = challenges.map((c: any) => ({
+                          text: typeof c.text === 'string' 
+                            ? c.text 
+                            : typeof c.text === 'object' 
+                              ? JSON.stringify(c.text) 
+                              : String(c.text),
+                          completed: !!c.completed
+                        }));
+                        console.log('Transformed object array with proper text:', challenges);
+                      }
+                    } else if (typeof challenges === 'string') {
+                      challenges = [{ text: challenges, completed: false }];
+                      console.log('Transformed string to object:', challenges);
+                    } else if (!challenges) {
+                      challenges = [];
+                      console.log('Set empty array for null/undefined challenges');
+                    }
+                    console.log('Final challenges for modal:', challenges);
+                    setDetailModal({ open: true, report: { ...r, challenges } });
+                  }}
                 >
                   <td className="px-4 py-3 font-medium text-slate-100">{r.workGroup?.name}</td>
                   <td className="px-4 py-3">{r.year}</td>
@@ -513,19 +592,21 @@ export default function QuarterlyReportsPage() {
       </Dialog>
       {/* Modal para ver toda la información del reporte */}
       {detailModal?.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative border border-purple-700 flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] relative border border-purple-700 flex flex-col">
             <button
-              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold"
+              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold z-10"
               onClick={() => setDetailModal(null)}
               aria-label="Close"
             >
               ×
             </button>
-            <h3 className="text-2xl font-bold text-purple-300 mb-4">Quarterly Report Details</h3>
+            <div className="p-6 border-b border-slate-700">
+              <h3 className="text-2xl font-bold text-purple-300">Quarterly Report Details</h3>
+            </div>
             {/* Si está en modo edición, mostrar formulario editable */}
             {detailModal.editing ? (
-              <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleSaveEdit(); }}>
+              <form className="flex-1 overflow-y-auto p-6 space-y-4" onSubmit={e => { e.preventDefault(); handleSaveEdit(); }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-200">
                   <div>
                     <label className="font-semibold text-purple-200">Year:</label>
@@ -555,7 +636,11 @@ export default function QuarterlyReportsPage() {
                         <div key={index} className="flex items-center gap-2">
                           <input
                             type="text"
-                            value={challenge.text}
+                            value={typeof challenge.text === 'string' 
+                              ? challenge.text 
+                              : typeof challenge.text === 'object' 
+                                ? JSON.stringify(challenge.text) 
+                                : String(challenge.text)}
                             onChange={(e) => {
                               const newChallenges = [...detailModal.form.challenges];
                               newChallenges[index] = { ...newChallenges[index], text: e.target.value };
@@ -622,18 +707,18 @@ export default function QuarterlyReportsPage() {
                     </select>
                   </div>
                 </div>
-                <div className="flex gap-4 mt-4">
+                <div className="flex gap-4 mt-6 pt-4 border-t border-slate-700">
                   <button type="submit" className="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors">Save changes</button>
                   <button type="button" className="bg-slate-700 hover:bg-slate-800 text-slate-200 font-semibold px-4 py-2 rounded-lg shadow transition-colors" onClick={handleCancelEdit}>Cancel</button>
                 </div>
               </form>
             ) : (
-              <>
+              <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-200">
-                  <div><span className="font-semibold text-purple-200">Workgroup:</span> {detailModal.report?.workGroup?.name}</div>
-                  <div><span className="font-semibold text-purple-200">Year:</span> {detailModal.report?.year}</div>
-                  <div><span className="font-semibold text-purple-200">Quarter:</span> {detailModal.report?.quarter}</div>
-                  <div><span className="font-semibold text-purple-200">Created at:</span> {detailModal.report?.createdAt ? new Date(detailModal.report?.createdAt).toLocaleString() : "-"}</div>
+                  <div className="flex items-center gap-2"><BuildingIcon className="w-4 h-4 text-purple-400" /><span className="font-semibold text-purple-200">Workgroup:</span> {detailModal.report?.workGroup?.name}</div>
+                  <div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-purple-400" /><span className="font-semibold text-purple-200">Year:</span> {detailModal.report?.year}</div>
+                  <div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 text-purple-400" /><span className="font-semibold text-purple-200">Quarter:</span> {detailModal.report?.quarter}</div>
+                  <div className="flex items-center gap-2"><ClockIcon className="w-4 h-4 text-purple-400" /><span className="font-semibold text-purple-200">Created at:</span> {detailModal.report?.createdAt ? new Date(detailModal.report?.createdAt).toLocaleString() : "-"}</div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Detail:</span>
                     <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.detail}</div>
                   </div>
@@ -642,27 +727,47 @@ export default function QuarterlyReportsPage() {
                   </div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Challenges and Learnings:</span>
                     <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">
-                      {Array.isArray(detailModal.report?.challenges) && detailModal.report.challenges.map((challenge: any, index: number) => {
-                        if (typeof challenge === 'string') {
-                          return <div key={index}>{challenge}</div>;
-                        } else if (challenge && typeof challenge === 'object') {
-                          return (
-                            <div key={index} className="flex items-center gap-2 mb-1">
-                              <input type="checkbox" checked={!!challenge.completed} disabled className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600" />
-                              <span className={challenge.completed ? 'line-through text-slate-500' : ''}>{challenge.text}</span>
-                            </div>
-                          );
+                      {(() => {
+                        const challenges = detailModal.report?.challenges;
+                        console.log('Challenges debug:', challenges, typeof challenges, Array.isArray(challenges));
+                        
+                        if (Array.isArray(challenges)) {
+                          return challenges.map((challenge: any, index: number) => {
+                            console.log('Challenge item:', challenge, typeof challenge);
+                            if (typeof challenge === 'string') {
+                              return <div key={index}>{challenge}</div>;
+                            } else if (challenge && typeof challenge === 'object' && 'text' in challenge) {
+                              // Si challenge.text es un objeto, extraer el texto
+                              const textValue = typeof challenge.text === 'string' 
+                                ? challenge.text 
+                                : typeof challenge.text === 'object' 
+                                  ? JSON.stringify(challenge.text) 
+                                  : String(challenge.text);
+                              return (
+                                <div key={index} className="flex items-center gap-2 mb-1">
+                                  <input type="checkbox" checked={!!challenge.completed} disabled className="w-4 h-4 text-purple-500 focus:ring-purple-500 border-slate-600" />
+                                  <span className={challenge.completed ? 'line-through text-slate-500' : ''}>{textValue}</span>
+                                </div>
+                              );
+                            } else {
+                              console.log('Invalid challenge item:', challenge);
+                              return <div key={index} className="text-red-400">Invalid challenge format</div>;
+                            }
+                          });
+                        } else if (challenges) {
+                          console.log('Non-array challenges:', challenges);
+                          return <div>{typeof challenges === 'object' ? JSON.stringify(challenges) : String(challenges)}</div>;
                         } else {
-                          return null;
+                          return <div className="text-slate-500 italic">No challenges</div>;
                         }
-                      })}
+                      })()}
                     </div>
                   </div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Plans for Next Quarter:</span>
                     <div className="bg-slate-800 rounded-lg px-4 py-2 mt-1 border border-slate-700 whitespace-pre-line">{detailModal.report?.plans}</div>
                   </div>
-                  <div><span className="font-semibold text-purple-200">Participants:</span> {detailModal.report?.participants?.length}</div>
-                  <div><span className="font-semibold text-purple-200">Budget (USD):</span> {detailModal.report?.budgetItems?.reduce((sum: number, item: any) => sum + item.amountUsd, 0)}</div>
+                  <div className="flex items-center gap-2"><UsersIcon className="w-4 h-4 text-purple-400" /><span className="font-semibold text-purple-200">Participants:</span> {detailModal.report?.participants?.length}</div>
+                  <div className="flex items-center gap-2"><CurrencyIcon className="w-4 h-4 text-purple-400" /><span className="font-semibold text-purple-200">Budget (USD):</span> {detailModal.report?.budgetItems?.reduce((sum: number, item: any) => sum + item.amountUsd, 0)}</div>
                   <div className="md:col-span-2"><span className="font-semibold text-purple-200">Budget Items:</span>
                     <ul className="list-disc ml-6 mt-1">
                       {detailModal.report?.budgetItems?.map((item: any, idx: number) => (
@@ -675,14 +780,16 @@ export default function QuarterlyReportsPage() {
                 </div>
                 {/* Botón Edit solo si el usuario es el creador */}
                 {session?.user?.id && detailModal.report?.createdById === session.user.id && (
-                  <button
-                    className="mt-6 bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors"
-                    onClick={handleEditReport}
-                  >
-                    Edit
-                  </button>
+                  <div className="mt-6 pt-4 border-t border-slate-700">
+                    <button
+                      className="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors"
+                      onClick={handleEditReport}
+                    >
+                      Edit
+                    </button>
+                  </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         </div>
