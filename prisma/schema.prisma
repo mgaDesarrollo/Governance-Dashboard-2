@@ -67,7 +67,10 @@ workGroups          WorkGroupMember[]
 createdQuarterlyReports QuarterlyReport[] @relation("CreatedQuarterlyReports")
 quarterlyReportParticipants QuarterlyReportParticipant[]
 quarterlyReportComments QuarterlyReportComment[]
-joinRequests        WorkGroupJoinRequest[]
+  joinRequests        WorkGroupJoinRequest[]
+  consensusVotes      ConsensusVote[] // Relación con votos de consenso
+  consensusComments   ConsensusComment[] // Relación con comentarios de consenso
+  resolvedObjections  Objection[] // Relación con objeciones resueltas por este usuario
 
 }
 

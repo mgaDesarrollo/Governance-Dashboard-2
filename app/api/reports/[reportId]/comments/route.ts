@@ -7,6 +7,7 @@ export async function GET(
 ) {
   try {
     const { reportId } = params;
+    console.log("API: Fetching comments for report:", reportId);
 
     // Verificar que el reporte existe
     const report = await prisma.quarterlyReport.findUnique({
@@ -14,10 +15,11 @@ export async function GET(
     });
 
     if (!report) {
+      console.log("API: Report not found");
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    // Obtener todos los comentarios del reporte (solo comentarios principales, no respuestas)
+    // Obtener todos los comentarios del reporte usando ConsensusComment
     const comments = await prisma.consensusComment.findMany({
       where: {
         reportId,
@@ -28,7 +30,8 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            image: true
           }
         },
         replies: {
@@ -37,7 +40,8 @@ export async function GET(
               select: {
                 id: true,
                 name: true,
-                email: true
+                email: true,
+                image: true
               }
             }
           },
@@ -46,6 +50,9 @@ export async function GET(
       },
       orderBy: { createdAt: "desc" }
     });
+
+    console.log("API: Found comments:", comments.length);
+    console.log("API: Comments structure:", JSON.stringify(comments, null, 2));
 
     return NextResponse.json(comments);
   } catch (error) {

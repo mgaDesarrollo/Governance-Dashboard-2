@@ -81,6 +81,12 @@ const getMenuItems = (userRole: UserRole) => {
       icon: BarChart3Icon,
       description: "Quarterly reports and budgets",
     },
+    {
+      title: "Consensus",
+      url: "/dashboard/consensus",
+      icon: FileTextIcon,
+      description: "Vote and comment on quarterly reports",
+    },
   ]
 
   const adminItems = [
@@ -380,6 +386,7 @@ export default function DashboardPage() {
                 width={120}
                 height={40}
                 className="object-contain"
+                style={{ height: "auto" }}
                 priority
               />
             </div>

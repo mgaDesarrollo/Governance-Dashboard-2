@@ -3,6 +3,101 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    console.log("API: Starting GET request for quarterly report");
+    console.log("API: Report ID:", params.id);
+    
+    const session = await getServerSession(authOptions);
+    console.log("API: Session:", session ? "Found" : "Not found");
+    
+    if (!session || !session.user) {
+      console.log("API: Authentication failed");
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const reportId = params.id;
+    console.log("API: Looking for report with ID:", reportId);
+
+    const report = await prisma.quarterlyReport.findUnique({
+      where: { id: reportId },
+      include: {
+        workGroup: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        },
+        budgetItems: true,
+        votingRounds: {
+          where: { status: "ACTIVA" },
+          take: 1,
+          include: {
+            votes: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          },
+          orderBy: { createdAt: "desc" }
+        }
+      }
+    });
+
+    console.log("API: Report found:", report ? "Yes" : "No");
+
+    if (!report) {
+      console.log("API: Report not found, returning 404");
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+    }
+
+    console.log("API: Successfully returning report");
+    return NextResponse.json(report);
+  } catch (error) {
+    console.error("API: Error fetching quarterly report:", error);
+    console.error("API: Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions);

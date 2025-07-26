@@ -41,7 +41,8 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            image: true
           }
         },
         objection: {
@@ -49,7 +50,8 @@ export async function GET(
             resolvedBy: {
               select: {
                 id: true,
-                name: true
+                name: true,
+                image: true
               }
             }
           }

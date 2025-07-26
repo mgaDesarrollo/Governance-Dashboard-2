@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,7 +67,8 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            image: true
           }
         },
         parentComment: {
@@ -75,7 +76,8 @@ export async function POST(request: NextRequest) {
             user: {
               select: {
                 id: true,
-                name: true
+                name: true,
+                image: true
               }
             }
           }

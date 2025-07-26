@@ -24,16 +24,16 @@ export async function POST(
       return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
 
-    // Verificar que el usuario no haya dado like ya
-    if (comment.likes.includes(session.user.id)) {
-      return NextResponse.json({ error: "Already liked" }, { status: 400 });
+    // Verificar que el usuario no haya dado dislike ya
+    if (comment.dislikes.includes(session.user.id)) {
+      return NextResponse.json({ error: "Already disliked" }, { status: 400 });
     }
 
-    // Remover dislike si existe
-    const updatedDislikes = comment.dislikes.filter(id => id !== session.user.id);
+    // Remover like si existe
+    const updatedLikes = comment.likes.filter(id => id !== session.user.id);
     
-    // Agregar like
-    const updatedLikes = [...comment.likes, session.user.id];
+    // Agregar dislike
+    const updatedDislikes = [...comment.dislikes, session.user.id];
 
     // Actualizar el comentario
     const updatedComment = await prisma.consensusComment.update({
@@ -55,7 +55,7 @@ export async function POST(
 
     return NextResponse.json(updatedComment);
   } catch (error) {
-    console.error("Error liking comment:", error);
+    console.error("Error disliking comment:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 } 
