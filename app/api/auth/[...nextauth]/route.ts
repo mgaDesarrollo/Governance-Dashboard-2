@@ -59,9 +59,39 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   debug: true, // Enable debug mode to see detailed logs
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
+  // Remove custom pages to use default NextAuth pages
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
@@ -84,6 +114,12 @@ export const authOptions: NextAuthOptions = {
         const superAdminDiscordId = process.env.NEXT_PUBLIC_SUPER_ADMIN_DISCORD_ID
 
         try {
+          // Check if DATABASE_URL is properly configured
+          if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('postgresql://')) {
+            console.error("[NextAuth JWT] DATABASE_URL is not properly configured:", process.env.DATABASE_URL)
+            return { ...token, error: "DatabaseConfigurationError" }
+          }
+
           let dbUser = await prisma.user.findUnique({
             where: { id: discordProfile.id },
           })
@@ -123,7 +159,7 @@ export const authOptions: NextAuthOptions = {
                 ? `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`
                 : null)
             if (dbUser.image !== newImage) {
-              updateData.image = newImage
+              updateData.image = newImage || undefined
               needsUpdate = true
             }
             if (dbUser.id === superAdminDiscordId && dbUser.role !== "SUPER_ADMIN") {
@@ -148,7 +184,7 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role
           token.name = dbUser.name
           token.email = dbUser.email
-          token.picture = dbUser.image
+          token.picture = dbUser.image || undefined
           token.status = dbUser.status
         } catch (error: any) {
           console.error("❌❌❌ [NextAuth JWT] CRITICAL ERROR processing user in DB ❌❌❌", error)
@@ -184,9 +220,6 @@ export const authOptions: NextAuthOptions = {
     },
     async signOut(message) {
       console.log("[NextAuth Event] signOut session:", message.session?.user?.name)
-    },
-    async error(message) {
-      console.error("[NextAuth Event] ERROR:", message)
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
