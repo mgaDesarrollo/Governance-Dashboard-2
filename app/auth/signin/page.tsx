@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeftIcon, AlertCircleIcon, RefreshCwIcon } from "lucide-react"
 import Link from "next/link"
 
-// Custom Discord Icon Component
+// Custom Discord Icon Component - Fixed import issue
 const DiscordIcon = ({ className }: { className?: string }) => (
   <svg 
     className={className} 
