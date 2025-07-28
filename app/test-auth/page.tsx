@@ -11,9 +11,37 @@ import {
   ShieldIcon,
   MailIcon
 } from "lucide-react"
+import { useEffect, useState } from "react"
+
+interface DebugInfo {
+  NEXTAUTH_URL: string
+  DISCORD_CLIENT_ID: string
+  DATABASE_URL: string
+  NODE_ENV: string
+  DISCORD_CLIENT_SECRET: string
+  NEXTAUTH_SECRET: string
+}
 
 export default function TestAuthPage() {
   const { data: session, status } = useSession()
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
+  const [loadingDebug, setLoadingDebug] = useState(true)
+
+  useEffect(() => {
+    const fetchDebugInfo = async () => {
+      try {
+        const response = await fetch('/api/debug-env')
+        const data = await response.json()
+        setDebugInfo(data)
+      } catch (error) {
+        console.error('Error fetching debug info:', error)
+      } finally {
+        setLoadingDebug(false)
+      }
+    }
+
+    fetchDebugInfo()
+  }, [])
 
   const handleSignIn = () => {
     signIn("discord", { callbackUrl: "/dashboard" })
@@ -140,18 +168,68 @@ export default function TestAuthPage() {
             <CardTitle className="text-slate-200">Información de Debug</CardTitle>
           </CardHeader>
           <CardContent>
+            {loadingDebug ? (
+              <div className="text-slate-400">Cargando información de debug...</div>
+            ) : debugInfo ? (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">NEXTAUTH_URL:</span>
+                  <span className="text-slate-200">{debugInfo.NEXTAUTH_URL}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">DISCORD_CLIENT_ID:</span>
+                  <span className="text-slate-200">{debugInfo.DISCORD_CLIENT_ID}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">DATABASE_URL:</span>
+                  <span className="text-slate-200">{debugInfo.DATABASE_URL}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">NODE_ENV:</span>
+                  <span className="text-slate-200">{debugInfo.NODE_ENV}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">DISCORD_CLIENT_SECRET:</span>
+                  <span className="text-slate-200">{debugInfo.DISCORD_CLIENT_SECRET}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">NEXTAUTH_SECRET:</span>
+                  <span className="text-slate-200">{debugInfo.NEXTAUTH_SECRET}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Puerto del servidor:</span>
+                  <span className="text-slate-200">3002</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-red-400">Error al cargar información de debug</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-slate-200">URLs de Discord OAuth</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-400">NEXTAUTH_URL:</span>
-                <span className="text-slate-200">{process.env.NEXTAUTH_URL || "No configurado"}</span>
+                <span className="text-slate-400">URL de Autorización:</span>
+                <span className="text-slate-200 text-xs break-all">
+                  https://discord.com/api/oauth2/authorize?client_id=1372614140572729445&scope=identify%20email%20guilds&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3002%2Fapi%2Fauth%2Fcallback%2Fdiscord
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">DISCORD_CLIENT_ID:</span>
-                <span className="text-slate-200">{process.env.DISCORD_CLIENT_ID ? "Configurado" : "No configurado"}</span>
+                <span className="text-slate-400">URL de Callback:</span>
+                <span className="text-slate-200 text-xs">
+                  http://localhost:3002/api/auth/callback/discord
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">DATABASE_URL:</span>
-                <span className="text-slate-200">{process.env.DATABASE_URL ? "Configurado" : "No configurado"}</span>
+                <span className="text-slate-400">Portal de Discord:</span>
+                <span className="text-slate-200 text-xs">
+                  https://discord.com/developers/applications/1372614140572729445/oauth2/general
+                </span>
               </div>
             </div>
           </CardContent>
