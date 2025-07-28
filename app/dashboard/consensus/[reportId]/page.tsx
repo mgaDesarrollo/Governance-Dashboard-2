@@ -418,18 +418,18 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6">
+      <div className="min-h-screen bg-slate-900 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded w-1/4 mb-6"></div>
+            <div className="h-8 bg-slate-700 rounded w-1/4 mb-6"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <div className="h-64 bg-slate-200 rounded"></div>
-                <div className="h-32 bg-slate-200 rounded"></div>
+                <div className="h-64 bg-slate-700 rounded"></div>
+                <div className="h-32 bg-slate-700 rounded"></div>
               </div>
               <div className="space-y-6">
-                <div className="h-48 bg-slate-200 rounded"></div>
-                <div className="h-32 bg-slate-200 rounded"></div>
+                <div className="h-48 bg-slate-700 rounded"></div>
+                <div className="h-32 bg-slate-700 rounded"></div>
               </div>
             </div>
           </div>
@@ -440,7 +440,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
   if (error || !report) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6">
+      <div className="min-h-screen bg-slate-900 p-6">
         <div className="max-w-7xl mx-auto">
           <Alert variant="destructive">
             <AlertCircleIcon className="h-4 w-4" />
@@ -460,7 +460,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -470,10 +470,10 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
               Volver
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="text-2xl font-bold text-slate-200">
                 Consenso del Reporte
               </h1>
-              <p className="text-slate-600">
+              <p className="text-slate-400">
                 {report.workGroup.name} - {report.year} Q{report.quarter}
               </p>
             </div>
@@ -515,42 +515,42 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center space-x-2">
-                        <BuildingIcon className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm font-medium">Workgroup:</span>
-                        <span className="text-sm">{report.workGroup.name}</span>
+                        <BuildingIcon className="w-4 h-4 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-300">Workgroup:</span>
+                        <span className="text-sm text-slate-400">{report.workGroup.name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <CalendarIcon className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm font-medium">Período:</span>
-                        <span className="text-sm">{report.year} Q{report.quarter}</span>
+                        <CalendarIcon className="w-4 h-4 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-300">Período:</span>
+                        <span className="text-sm text-slate-400">{report.year} Q{report.quarter}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <UserIcon className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm font-medium">Creado por:</span>
-                        <span className="text-sm">{report.createdBy.name}</span>
+                        <UserIcon className="w-4 h-4 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-300">Creado por:</span>
+                        <span className="text-sm text-slate-400">{report.createdBy.name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <UsersIcon className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm font-medium">Participantes:</span>
-                        <span className="text-sm">{report.participants.length}</span>
+                        <UsersIcon className="w-4 h-4 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-300">Participantes:</span>
+                        <span className="text-sm text-slate-400">{report.participants.length}</span>
                       </div>
                     </div>
                     
                     <Separator />
                     
                     <div>
-                      <h4 className="font-medium mb-2">Detalle</h4>
-                      <p className="text-sm text-slate-600">{report.detail}</p>
+                      <h4 className="font-medium mb-2 text-slate-200">Detalle</h4>
+                      <p className="text-sm text-slate-400">{report.detail}</p>
                     </div>
                     
                     <div>
-                      <h4 className="font-medium mb-2">Teoría del Cambio</h4>
-                      <p className="text-sm text-slate-600">{report.theoryOfChange}</p>
+                      <h4 className="font-medium mb-2 text-slate-200">Teoría del Cambio</h4>
+                      <p className="text-sm text-slate-400">{report.theoryOfChange}</p>
                     </div>
                     
                     <div>
-                      <h4 className="font-medium mb-2">Planes Futuros</h4>
-                      <p className="text-sm text-slate-600">{report.plans}</p>
+                      <h4 className="font-medium mb-2 text-slate-200">Planes Futuros</h4>
+                      <p className="text-sm text-slate-400">{report.plans}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -567,19 +567,19 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                     <CardContent>
                       <div className="space-y-3">
                         {report.budgetItems.map((item) => (
-                          <div key={item.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                          <div key={item.id} className="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
                             <div>
-                              <p className="font-medium">{item.name}</p>
-                              <p className="text-sm text-slate-600">{item.description}</p>
+                              <p className="font-medium text-slate-200">{item.name}</p>
+                              <p className="text-sm text-slate-400">{item.description}</p>
                             </div>
-                            <span className="font-medium text-green-600">
+                            <span className="font-medium text-green-400">
                               ${item.amountUsd.toLocaleString()}
                             </span>
                           </div>
                         ))}
-                        <div className="flex justify-between items-center pt-3 border-t">
-                          <span className="font-medium">Total</span>
-                          <span className="font-bold text-green-600">
+                        <div className="flex justify-between items-center pt-3 border-t border-slate-700">
+                          <span className="font-medium text-slate-200">Total</span>
+                          <span className="font-bold text-green-400">
                             ${report.budgetItems.reduce((sum, item) => sum + item.amountUsd, 0).toLocaleString()}
                           </span>
                         </div>
@@ -601,26 +601,26 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{voteStats.aFavor}</div>
-                        <div className="text-sm text-green-600">A Favor</div>
+                      <div className="text-center p-3 bg-green-900/20 rounded-lg border border-green-800">
+                        <div className="text-2xl font-bold text-green-400">{voteStats.aFavor}</div>
+                        <div className="text-sm text-green-400">A Favor</div>
                       </div>
-                      <div className="text-center p-3 bg-red-50 rounded-lg">
-                        <div className="text-2xl font-bold text-red-600">{voteStats.enContra}</div>
-                        <div className="text-sm text-red-600">En Contra</div>
+                      <div className="text-center p-3 bg-red-900/20 rounded-lg border border-red-800">
+                        <div className="text-2xl font-bold text-red-400">{voteStats.enContra}</div>
+                        <div className="text-sm text-red-400">En Contra</div>
                       </div>
-                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                        <div className="text-2xl font-bold text-yellow-600">{voteStats.objetar}</div>
-                        <div className="text-sm text-yellow-600">Objetar</div>
+                      <div className="text-center p-3 bg-yellow-900/20 rounded-lg border border-yellow-800">
+                        <div className="text-2xl font-bold text-yellow-400">{voteStats.objetar}</div>
+                        <div className="text-sm text-yellow-400">Objetar</div>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-600">{voteStats.abstenerse}</div>
-                        <div className="text-sm text-gray-600">Abstenerse</div>
+                      <div className="text-center p-3 bg-slate-800 rounded-lg border border-slate-700">
+                        <div className="text-2xl font-bold text-slate-400">{voteStats.abstenerse}</div>
+                        <div className="text-sm text-slate-400">Abstenerse</div>
                       </div>
                     </div>
-                    <div className="text-center pt-3 border-t">
-                      <div className="text-lg font-bold">{voteStats.total}</div>
-                      <div className="text-sm text-slate-600">Total de Votos</div>
+                    <div className="text-center pt-3 border-t border-slate-700">
+                      <div className="text-lg font-bold text-slate-200">{voteStats.total}</div>
+                      <div className="text-sm text-slate-400">Total de Votos</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -729,21 +729,21 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
               </CardHeader>
               <CardContent>
                 {votes.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    <VoteIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                  <div className="text-center py-8 text-slate-400">
+                    <VoteIcon className="w-12 h-12 mx-auto mb-4 text-slate-600" />
                     <p>No hay votos registrados aún</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {votes.map((vote) => (
-                      <div key={vote.id} className="flex items-start space-x-3 p-4 bg-slate-50 rounded-lg">
+                      <div key={vote.id} className="flex items-start space-x-3 p-4 bg-slate-800 rounded-lg border border-slate-700">
                         <Avatar className="w-8 h-8">
                           <AvatarImage src={vote.user.image || undefined} />
                           <AvatarFallback>{vote.user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <span className="font-medium">{vote.user.name}</span>
+                            <span className="font-medium text-slate-200">{vote.user.name}</span>
                             {getVoteTypeIcon(vote.voteType)}
                             <Badge variant="outline">{getVoteTypeLabel(vote.voteType)}</Badge>
                             {vote.objection && getObjectionStatusBadge(vote.objection.status)}
@@ -751,7 +751,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                               {formatDate(vote.createdAt)}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-600">{vote.comment}</p>
+                          <p className="text-sm text-slate-400">{vote.comment}</p>
                         </div>
                       </div>
                     ))}
@@ -777,7 +777,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                     placeholder="Escribe un comentario..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[100px]"
+                    className="min-h-[100px] bg-slate-800 border-slate-700 text-slate-200"
                   />
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500">
@@ -796,8 +796,8 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
                 {/* Comments List */}
                 {comments.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    <MessageSquareIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                  <div className="text-center py-8 text-slate-400">
+                    <MessageSquareIcon className="w-12 h-12 mx-auto mb-4 text-slate-600" />
                     <p>No hay comentarios aún</p>
                   </div>
                 ) : (
@@ -832,21 +832,21 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {pendingObjections.length === 0 ? (
-                      <div className="text-center py-4 text-slate-500">
+                      <div className="text-center py-4 text-slate-400">
                         <CheckCircleIcon className="w-8 h-8 mx-auto mb-2 text-green-500" />
                         <p>No hay objeciones pendientes</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {pendingObjections.map((vote) => (
-                          <div key={vote.id} className="p-3 border rounded-lg">
+                          <div key={vote.id} className="p-3 border border-slate-700 rounded-lg bg-slate-800">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium">{vote.user.name}</span>
+                              <span className="font-medium text-slate-200">{vote.user.name}</span>
                               <span className="text-xs text-slate-500">
                                 {formatDate(vote.createdAt)}
                               </span>
                             </div>
-                            <p className="text-sm text-slate-600 mb-3">{vote.comment}</p>
+                            <p className="text-sm text-slate-400 mb-3">{vote.comment}</p>
                             <div className="flex space-x-2">
                               <Button
                                 size="sm"
@@ -917,7 +917,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
                     <Separator />
 
-                    <div className="text-sm text-slate-600 space-y-2">
+                    <div className="text-sm text-slate-400 space-y-2">
                       <p><strong>Notas:</strong></p>
                       <ul className="list-disc list-inside space-y-1">
                         <li>Solo se puede marcar como "Consensuado" si no hay objeciones válidas</li>
