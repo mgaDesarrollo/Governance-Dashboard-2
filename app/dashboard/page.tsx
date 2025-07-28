@@ -100,104 +100,71 @@ const getMenuItems = (userRole: UserRole) => {
       title: "Analytics",
       url: "/dashboard/analytics",
       icon: BarChart3Icon,
-      description: "View governance statistics",
+      description: "View detailed analytics and reports",
     },
-  ]
-
-  const superAdminItems = [
     {
-      title: "Manage Users",
+      title: "User Management",
       url: "/dashboard/user-management",
       icon: UserCogIcon,
-      description: "Add, remove, or change user roles",
-    },
-  ]
-
-  const settingsItems = [
-    {
-      title: "Edit Profile",
-      url: "/dashboard/profile/edit",
-      icon: SettingsIcon,
-      description: "Update your profile information",
-    },
-    {
-      title: "Notifications",
-      url: "/dashboard/notifications",
-      icon: BellIcon,
-      description: "Manage your notifications",
+      description: "Manage user accounts and permissions",
     },
   ]
 
   const supportItems = [
     {
-      title: "Help & Support",
+      title: "Help",
       url: "/dashboard/help",
       icon: HelpCircleIcon,
       description: "Get help and documentation",
     },
+    {
+      title: "Profile",
+      url: "/dashboard/profile",
+      icon: UserCogIcon,
+      description: "Edit your profile and settings",
+    },
   ]
 
-  // Construir el menú basado en permisos
-  let menuItems = [...baseItems]
-
-  if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-    menuItems = [...menuItems, ...adminItems]
-  }
-
-  if (userRole === "SUPER_ADMIN") {
-    menuItems = [...menuItems, ...superAdminItems]
-  }
+  // Filtrar elementos según el rol del usuario
+  const mainItems = baseItems
+  const settingsItems = userRole === "ADMIN" || userRole === "SUPER_ADMIN" ? adminItems : []
+  const supportItemsFiltered = supportItems
 
   return {
-    main: menuItems,
+    main: mainItems,
     settings: settingsItems,
-    support: supportItems,
+    support: supportItemsFiltered,
   }
 }
 
 export default function DashboardPage() {
-  const router = useRouter()
   const { data: session, status } = useSession()
-  const [isLoadingPage, setIsLoadingPage] = useState(true)
-  const [currentPath, setCurrentPath] = useState("/dashboard")
+  const router = useRouter()
+  const [currentPath, setCurrentPath] = useState("")
 
   useEffect(() => {
     setCurrentPath(window.location.pathname)
   }, [])
 
-  useEffect(() => {
-    if (status === "loading") {
-      setIsLoadingPage(true)
-      return
-    }
-    if (status === "unauthenticated") {
-      router.replace("/")
-      return
-    }
-    if (status === "authenticated") {
-      setIsLoadingPage(false)
-    }
-  }, [session, status, router])
-
-  if (isLoadingPage || status === "loading") {
+  if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
       </div>
     )
   }
 
-  if (status === "unauthenticated" || !session?.user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
-        <p className="text-white">Redirecting...</p>
-      </div>
-    )
+  if (status === "unauthenticated") {
+    router.push("/api/auth/signin")
+    return null
   }
 
-  if ((session as any)?.error) {
+  if (!session?.user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4">
         <Alert variant="destructive" className="max-w-md bg-red-900/30 border-red-700 text-red-300">
           <AlertTriangleIcon className="h-5 w-5 text-red-400" />
           <AlertTitle>Authentication Error</AlertTitle>
@@ -241,8 +208,8 @@ export default function DashboardPage() {
       default:
         return {
           text: "Unknown",
-          className: "bg-slate-500/20 text-slate-300 border-slate-500/30",
-          icon: <ActivityIcon className="mr-1 h-3 w-3 text-slate-400" />,
+          className: "bg-gray-500/20 text-gray-300 border-gray-500/30",
+          icon: <ActivityIcon className="mr-1 h-3 w-3 text-gray-400" />,
         }
     }
   }
@@ -251,19 +218,19 @@ export default function DashboardPage() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-slate-900 text-slate-50 flex">
-        <Sidebar className="border-slate-700">
-          <SidebarHeader className="border-b border-slate-700">
-            <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-700/50">
+      <div className="min-h-screen bg-black text-white flex">
+        <Sidebar className="border-gray-700">
+          <SidebarHeader className="border-b border-gray-700">
+            <div className="flex items-center gap-2 px-2 py-3 border-b border-gray-700/50">
               <LayoutDashboardIcon className="h-8 w-8 text-purple-400" />
               <div className="flex flex-col">
-                <h1 className="text-lg font-semibold text-slate-100">Governance</h1>
-                <p className="text-xs text-slate-400">Dashboard</p>
+                <h1 className="text-lg font-semibold text-white">Governance</h1>
+                <p className="text-xs text-gray-400">Dashboard</p>
               </div>
             </div>
 
             {/* User information with profile image */}
-            <div className="flex items-center gap-3 p-3 text-sm bg-slate-800/50 rounded-lg mx-2">
+            <div className="flex items-center gap-3 p-3 text-sm bg-gray-900/50 rounded-lg mx-2">
               <Avatar className="h-8 w-8 border-2 border-purple-500/30">
                 <AvatarImage src={appUser.image || undefined} alt={appUser.name || "User"} />
                 <AvatarFallback className="bg-purple-600/20 text-purple-300 text-xs font-semibold">
@@ -271,7 +238,7 @@ export default function DashboardPage() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-medium text-slate-100 truncate text-sm">{appUser.name || "User"}</span>
+                <span className="font-medium text-white truncate text-sm">{appUser.name || "User"}</span>
                 <div className="flex items-center gap-1 mt-0.5">
                   <Badge
                     variant="outline"
@@ -291,7 +258,7 @@ export default function DashboardPage() {
 
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className="text-slate-400 font-medium">Navigation</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-gray-400 font-medium">Navigation</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.main.map((item) => (
@@ -299,7 +266,7 @@ export default function DashboardPage() {
                       <SidebarMenuButton
                         asChild
                         isActive={currentPath === item.url}
-                        className="text-slate-300 hover:text-slate-100 hover:bg-slate-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300 data-[active=true]:border-purple-500/50"
+                        className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300 data-[active=true]:border-purple-500/50"
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
@@ -313,7 +280,7 @@ export default function DashboardPage() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-slate-400 font-medium">Settings</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-gray-400 font-medium">Settings</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.settings.map((item) => (
@@ -321,7 +288,7 @@ export default function DashboardPage() {
                       <SidebarMenuButton
                         asChild
                         isActive={currentPath === item.url}
-                        className="text-slate-300 hover:text-slate-100 hover:bg-slate-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                        className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
@@ -335,7 +302,7 @@ export default function DashboardPage() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-slate-400 font-medium">Support</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-gray-400 font-medium">Support</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.support.map((item) => (
@@ -343,7 +310,7 @@ export default function DashboardPage() {
                       <SidebarMenuButton
                         asChild
                         isActive={currentPath === item.url}
-                        className="text-slate-300 hover:text-slate-100 hover:bg-slate-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                        className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
@@ -357,12 +324,12 @@ export default function DashboardPage() {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-slate-700">
+          <SidebarFooter className="border-t border-gray-700">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 w-full justify-start"
+                  className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 w-full justify-start"
                 >
                   <LogOutIcon className="h-4 w-4" />
                   <span>Sign Out</span>
@@ -374,9 +341,9 @@ export default function DashboardPage() {
         </Sidebar>
 
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-700 px-4 bg-slate-800/50 backdrop-blur-md">
-            <SidebarTrigger className="text-slate-400 hover:text-slate-100" />
-            <Separator orientation="vertical" className="mr-2 h-4 bg-slate-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-700 px-4 bg-gray-900/50 backdrop-blur-md">
+            <SidebarTrigger className="text-gray-400 hover:text-white" />
+            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-600" />
 
             {/* Logo centrado */}
             <div className="flex-1 flex justify-center">
@@ -397,13 +364,13 @@ export default function DashboardPage() {
             </div>
           </header>
 
-          <main className="min-h-screen bg-slate-900 text-slate-50 p-6">
+          <main className="min-h-screen bg-black text-white p-6 space-y-8">
             {/* Welcome Card */}
             {/* Welcome Card - Compact and Modern */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main Welcome Section */}
               <div className="lg:col-span-2">
-                <Card className="bg-gradient-to-br from-slate-800 to-slate-800/80 border-slate-700 relative overflow-hidden">
+                <Card className="bg-gradient-to-br from-gray-900 to-gray-900/80 border-gray-700 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent" />
                   <CardContent className="p-6 relative">
                     <div className="flex items-center gap-4 mb-4">
@@ -414,8 +381,8 @@ export default function DashboardPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h1 className="text-2xl font-bold text-slate-100">Welcome back, {appUser.name || "User"}!</h1>
-                        <p className="text-slate-400 text-sm">Ready to participate in governance decisions</p>
+                        <h1 className="text-2xl font-bold text-white">Welcome back, {appUser.name || "User"}!</h1>
+                        <p className="text-gray-400 text-sm">Ready to participate in governance decisions</p>
                       </div>
                     </div>
 
@@ -449,7 +416,7 @@ export default function DashboardPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-purple-300">Admin Access</h3>
                       </div>
-                      <p className="text-slate-400 text-sm leading-relaxed">
+                      <p className="text-gray-400 text-sm leading-relaxed">
                         Create and manage proposals with full administrative privileges.
                       </p>
                     </CardContent>
@@ -465,7 +432,7 @@ export default function DashboardPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-sky-300">Core Contributor</h3>
                       </div>
-                      <p className="text-slate-400 text-sm leading-relaxed">
+                      <p className="text-gray-400 text-sm leading-relaxed">
                         Vote on proposals and contribute to governance decisions.
                       </p>
                     </CardContent>
@@ -481,23 +448,23 @@ export default function DashboardPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-orange-300">Super Admin</h3>
                       </div>
-                      <p className="text-slate-400 text-sm leading-relaxed">
+                      <p className="text-gray-400 text-sm leading-relaxed">
                         Full system access with user management capabilities.
                       </p>
                     </CardContent>
                   </Card>
                 )}
 
-                {!["ADMIN", "CORE_CONTRIBUTOR", "SUPER_ADMIN"].includes(userRole) && (
-                  <Card className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 border-slate-600/50 h-full">
+                {!["ADMIN", "CORE_CONTRIBUTOR", "SUPER_ADMIN"].includes(userRole as any) && (
+                  <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border-gray-600/50 h-full">
                     <CardContent className="p-6 flex flex-col justify-center h-full">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-slate-600/20 rounded-lg">
-                          <ActivityIcon className="h-5 w-5 text-slate-300" />
+                        <div className="p-2 bg-gray-600/20 rounded-lg">
+                          <ActivityIcon className="h-5 w-5 text-gray-300" />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-300">Community Member</h3>
+                        <h3 className="text-lg font-semibold text-gray-300">Community Member</h3>
                       </div>
-                      <p className="text-slate-400 text-sm leading-relaxed">
+                      <p className="text-gray-400 text-sm leading-relaxed">
                         Participate in community discussions and stay informed.
                       </p>
                     </CardContent>
@@ -507,19 +474,29 @@ export default function DashboardPage() {
             </div>
 
             {/* Dashboard Metrics */}
-            <DashboardMetrics />
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <DashboardMetrics />
+            </div>
 
             {/* Quick Actions and Recent Activity Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <QuickActions userRole={userRole} />
-              <RecentActivity />
+              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+                <QuickActions userRole={userRole} />
+              </div>
+              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+                <RecentActivity />
+              </div>
             </div>
 
             {/* Calendar */}
-            <DashboardCalendar />
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <DashboardCalendar />
+            </div>
 
             {/* Charts and Analytics */}
-            <DashboardCharts />
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <DashboardCharts />
+            </div>
           </main>
         </SidebarInset>
       </div>
