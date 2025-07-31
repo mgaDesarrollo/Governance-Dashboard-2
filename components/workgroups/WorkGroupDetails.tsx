@@ -209,8 +209,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black p-6 w-full">
-      <div className="w-full space-y-6">
+    <div className="min-h-screen bg-black p-4 sm:p-6 w-full">
+      <div className="w-full max-w-none space-y-6">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -219,10 +219,10 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                 <BuildingIcon className="w-6 h-6 text-gray-300" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-wide">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">
                   {localWG.name}
                 </h1>
-                <p className="text-gray-400 font-medium">
+                <p className="text-sm sm:text-base text-gray-400 font-medium">
                   {localWG.missionStatement}
                 </p>
               </div>
@@ -238,50 +238,50 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
           </div>
           
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
-                  <UsersIcon className="w-5 h-5 text-gray-400" />
+                  <UsersIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-400 font-medium">Members</p>
-                    <p className="text-2xl font-bold text-white">{localWG.totalMembers}</p>
+                    <p className="text-xs sm:text-sm text-gray-400 font-medium">Members</p>
+                    <p className="text-lg sm:text-2xl font-bold text-white">{localWG.totalMembers}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
-                  <TargetIcon className="w-5 h-5 text-gray-400" />
+                  <TargetIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-400 font-medium">Type</p>
-                    <p className="text-2xl font-bold text-white">{localWG.type}</p>
+                    <p className="text-xs sm:text-sm text-gray-400 font-medium">Type</p>
+                    <p className="text-lg sm:text-2xl font-bold text-white">{localWG.type}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
-                  <TrendingUpIcon className="w-5 h-5 text-gray-400" />
+                  <TrendingUpIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-400 font-medium">Status</p>
-                    <p className="text-2xl font-bold text-white">{localWG.status}</p>
+                    <p className="text-xs sm:text-sm text-gray-400 font-medium">Status</p>
+                    <p className="text-lg sm:text-2xl font-bold text-white">{localWG.status}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
-                  <CalendarIcon className="w-5 h-5 text-gray-400" />
+                  <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-400 font-medium">Created</p>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-xs sm:text-sm text-gray-400 font-medium">Created</p>
+                    <p className="text-lg sm:text-2xl font-bold text-white">
                       {localWG.dateOfCreation ? new Date(localWG.dateOfCreation).getFullYear() : '-'}
                     </p>
                   </div>
@@ -318,7 +318,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     }`}
                   >
                     <IconComponent className="w-4 h-4" />
-                    <span>{tab.label}</span>
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                   </Button>
                 );
               })}
@@ -411,7 +412,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gray-900 border-gray-700">
+                  <Card className="bg-gray-900 border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Mission & Scope</h3>
                     </CardHeader>
@@ -423,7 +424,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gray-900 border-gray-700">
+                  <Card className="bg-gray-900 border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Membership</h3>
                     </CardHeader>
@@ -441,7 +442,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Activity & Reports Tab */}
               {activeTab === 'activity' && (
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-gray-900 border-gray-700 w-full">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-bold text-white">Quarterly Reports</h3>
@@ -497,7 +498,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Budget Tab */}
               {activeTab === 'budget' && (
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-gray-900 border-gray-700 w-full">
                   <CardHeader>
                     <h3 className="text-xl font-bold text-white">Budget & Resources</h3>
                   </CardHeader>
@@ -517,8 +518,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Links & Governance Tab */}
               {activeTab === 'links' && (
-                <div className="space-y-6">
-                  <Card className="bg-gray-900 border-gray-700">
+                <div className="space-y-6 w-full">
+                  <Card className="bg-gray-900 border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Connections & Dependencies</h3>
                     </CardHeader>
@@ -531,7 +532,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gray-900 border-gray-700">
+                  <Card className="bg-gray-900 border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Consent & Governance</h3>
                     </CardHeader>
@@ -549,7 +550,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Future & Roadmap Tab */}
               {activeTab === 'future' && (
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-gray-900 border-gray-700 w-full">
                   <CardHeader>
                     <h3 className="text-xl font-bold text-white">Future & Roadmap</h3>
                   </CardHeader>
@@ -568,7 +569,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
           {/* Join Requests Section */}
           {joinRequests.length > 0 && (
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-gray-900 border-gray-700 w-full">
               <CardHeader>
                 <h3 className="text-xl font-bold text-white">Pending Join Requests</h3>
               </CardHeader>
