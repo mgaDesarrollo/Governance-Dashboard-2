@@ -273,19 +273,8 @@ export default function WorkGroupsPage() {
           </div>
         </>
       ) : (
-        <div className="w-full flex flex-col items-center justify-start">
-          <div className="w-full max-w-4xl mx-auto mt-8 mb-8 p-0 relative">
-            <button
-              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold z-10 bg-gray-900 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-800 transition-colors"
-              onClick={() => setSelected(null)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <div className="bg-slate-900 rounded-2xl shadow-2xl p-0">
-              <WorkGroupDetails workGroup={selected as any} />
-            </div>
-          </div>
+        <div className="w-full">
+          <WorkGroupDetails workGroup={selected as any} />
         </div>
       )}
     </div>

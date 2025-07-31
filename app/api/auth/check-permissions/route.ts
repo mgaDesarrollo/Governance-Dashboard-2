@@ -8,13 +8,10 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Obtener datos actualizados del usuario
+    // Buscar el usuario actualizado en la base de datos
     const user = await prisma.user.findUnique({
       where: {
         email: session.user.email
@@ -30,18 +27,19 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    return NextResponse.json(user)
+    // Devolver los datos del usuario con headers para evitar cache
+    return NextResponse.json(user, {
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+      }
+    })
   } catch (error) {
     console.error("Error checking permissions:", error)
-    return NextResponse.json(
-      { error: "Failed to check permissions" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 } 

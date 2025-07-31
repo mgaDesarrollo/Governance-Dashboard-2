@@ -1,77 +1,153 @@
 import React from "react";
 import { PastBudget } from "../../lib/types";
+import { DollarSignIcon, TrendingUpIcon, CalendarIcon, LinkIcon } from "lucide-react";
 
 interface Props {
-  currentBudgetTier: string;
-  currentBudget: string;
-  utilizationSummary: string;
-  fundingSources: string[];
-  nextProposal: string;
-  budgetProposalLink: string;
-  pastBudgets: PastBudget[];
+  currentBudgetTier?: string;
+  currentBudget?: string;
+  utilizationSummary?: string;
+  fundingSources?: string[];
+  nextProposal?: string;
+  budgetProposalLink?: string;
+  pastBudgets?: PastBudget[];
 }
 
 const BudgetResources: React.FC<Props> = ({
   currentBudgetTier,
   currentBudget,
   utilizationSummary,
-  fundingSources,
+  fundingSources = [],
   nextProposal,
   budgetProposalLink,
-  pastBudgets,
+  pastBudgets = [],
 }) => (
-  <section className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col gap-4">
-    <h3 className="text-xl font-semibold flex items-center gap-2 text-purple-700">📌 Presupuesto y Recursos</h3>
-    <div className="flex flex-wrap gap-6">
-      <div>
-        <span className="font-semibold text-slate-700">Nivel:</span>
-        <span className="ml-2 text-slate-600">{currentBudgetTier}</span>
+  <div className="w-full space-y-6">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+        <DollarSignIcon className="w-5 h-5 text-gray-300" />
       </div>
       <div>
-        <span className="font-semibold text-slate-700">Presupuesto actual:</span>
-        <span className="ml-2 text-slate-600">{currentBudget}</span>
+        <h3 className="text-lg sm:text-xl font-bold text-white">Budget & Resources</h3>
+        <p className="text-xs sm:text-sm text-gray-400">Financial planning and resource allocation</p>
       </div>
-      <div>
-        <span className="font-semibold text-slate-700">Próxima propuesta:</span>
-        <span className="ml-2 text-slate-600">{nextProposal}</span>
+    </div>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Current Budget Information */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <DollarSignIcon className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-300">Current Budget</span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+            <span className="text-sm text-gray-400">Tier:</span>
+            <span className="text-sm font-medium text-white">{currentBudgetTier || "Not specified"}</span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+            <span className="text-sm text-gray-400">Amount:</span>
+            <span className="text-sm font-medium text-white">{currentBudget || "Not specified"}</span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+            <span className="text-sm text-gray-400">Next Proposal:</span>
+            <span className="text-sm font-medium text-white">{nextProposal || "Not specified"}</span>
+          </div>
+        </div>
       </div>
-      <a
-        href={budgetProposalLink}
-        className="inline-flex items-center gap-1 text-purple-600 font-medium hover:underline hover:text-purple-800 transition-colors text-sm"
-      >
-        Ver propuesta de presupuesto <span aria-hidden>→</span>
-      </a>
+      
+      {/* Utilization Summary */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <TrendingUpIcon className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-300">Utilization Summary</span>
+        </div>
+        <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+          <p className="text-sm text-gray-200">
+            {utilizationSummary || "No utilization summary available"}
+          </p>
+        </div>
+      </div>
     </div>
-    <div>
-      <span className="font-semibold text-slate-700">Resumen de utilización:</span>
-      <span className="ml-2 text-slate-600">{utilizationSummary}</span>
+    
+    {/* Funding Sources */}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <DollarSignIcon className="w-4 h-4 text-gray-400" />
+        <span className="text-sm font-medium text-gray-300">Funding Sources</span>
+      </div>
+      {fundingSources.length > 0 ? (
+        <div className="space-y-2">
+          {fundingSources.map((source, i) => (
+            <div key={i} className="flex items-center gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              <span className="text-sm text-gray-200">{source}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+          <p className="text-sm text-gray-500">No funding sources specified</p>
+        </div>
+      )}
     </div>
-    <div>
-      <span className="font-semibold text-slate-700">Fuentes de financiamiento:</span>
-      <ul className="mt-1 ml-4 list-disc text-slate-700">
-        {fundingSources.map((source, i) => (
-          <li key={i}>{source}</li>
-        ))}
-      </ul>
+    
+    {/* Budget Proposal Link */}
+    {budgetProposalLink && (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <LinkIcon className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-300">Budget Proposal</span>
+        </div>
+        <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+          <a
+            href={budgetProposalLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-purple-400 hover:text-purple-300 text-sm font-medium hover:underline"
+          >
+            View Budget Proposal →
+          </a>
+        </div>
+      </div>
+    )}
+    
+    {/* Past Budgets */}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <CalendarIcon className="w-4 h-4 text-gray-400" />
+        <span className="text-sm font-medium text-gray-300">Past Budgets</span>
+      </div>
+      {pastBudgets.length > 0 ? (
+        <div className="space-y-2">
+          {pastBudgets.map((budget, i) => (
+            <div key={i} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <div>
+                  <p className="text-sm font-medium text-white">{budget.title}</p>
+                  <p className="text-xs text-gray-400">{budget.amount}</p>
+                </div>
+              </div>
+              {budget.link && (
+                <a
+                  href={budget.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-400 hover:text-purple-300 text-xs font-medium hover:underline"
+                >
+                  View →
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+          <p className="text-sm text-gray-500">No past budgets available</p>
+        </div>
+      )}
     </div>
-    <div>
-      <span className="font-semibold text-slate-700">Historial de presupuestos:</span>
-      <ul className="mt-2 flex flex-col gap-2 ml-4">
-        {pastBudgets.map((b, i) => (
-          <li key={i} className="flex items-center gap-2 text-slate-700">
-            <span className="font-medium">{b.title}:</span>
-            <span>{b.amount}</span>
-            <a
-              href={b.link}
-              className="text-purple-600 hover:underline text-sm ml-2"
-            >
-              Ver detalle →
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
+  </div>
 );
 
 export default BudgetResources; 

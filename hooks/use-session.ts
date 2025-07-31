@@ -33,13 +33,21 @@ export function useSessionWithRefresh() {
   // Función para verificar permisos de administrador
   const checkAdminPermissions = async () => {
     try {
-      const response = await fetch("/api/auth/check-permissions")
+      const response = await fetch("/api/auth/check-permissions", {
+        method: "GET",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache"
+        }
+      })
+      
       if (response.ok) {
         const userData = await response.json()
         setUser(userData)
         
-        // Si el rol cambió, actualizar la sesión
+        // Si el rol cambió, actualizar la sesión inmediatamente
         if (session?.user?.role !== userData.role) {
+          console.log("Role changed from", session?.user?.role, "to", userData.role)
           await refreshSession()
         }
       }
@@ -55,8 +63,9 @@ export function useSessionWithRefresh() {
       setUser(session.user as User)
       setLoading(false)
       
-      // Verificar permisos cada 30 segundos
-      const interval = setInterval(checkAdminPermissions, 30000)
+      // Verificar permisos inmediatamente y luego cada 15 segundos
+      checkAdminPermissions()
+      const interval = setInterval(checkAdminPermissions, 15000)
       return () => clearInterval(interval)
     } else if (status === "unauthenticated") {
       setUser(null)
