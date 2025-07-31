@@ -299,7 +299,7 @@ export default function QuarterlyReportsPage() {
   };
 
   return (
-    <div className="p-8 min-h-screen bg-slate-900 text-slate-50">
+    <div className="p-6 space-y-6">
       {/* DEBUG: Mostrar userId de la sesión y workGroupId seleccionado */}
       <div className="text-xs text-slate-400 mb-2">
         Your userId: <span className="font-mono">{session?.user?.id}</span> | Selected workGroupId: <span className="font-mono">{form.workgroup}</span>

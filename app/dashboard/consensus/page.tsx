@@ -90,7 +90,6 @@ export default function ConsensusPage() {
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    // Wait for session to load completely
     if (status === "loading") {
       return
     }
@@ -135,29 +134,24 @@ export default function ConsensusPage() {
   const applyFilters = () => {
     let filtered = [...reports]
 
-    // Filter by status
     if (filters.status) {
       filtered = filtered.filter(report => report.consensusStatus === filters.status)
     }
 
-    // Filter by work group
     if (filters.workGroup) {
       filtered = filtered.filter(report => 
         report.workGroup.name.toLowerCase().includes(filters.workGroup.toLowerCase())
       )
     }
 
-    // Filter by year
     if (filters.year) {
       filtered = filtered.filter(report => report.year.toString() === filters.year)
     }
 
-    // Filter by quarter
     if (filters.quarter) {
       filtered = filtered.filter(report => report.quarter === filters.quarter)
     }
 
-    // Filter by search term
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase()
       filtered = filtered.filter(report => 
@@ -207,7 +201,6 @@ export default function ConsensusPage() {
     })
   }
 
-  // Get unique values for filter options
   const getUniqueWorkGroups = () => {
     const workGroups = reports.map(report => report.workGroup.name)
     return [...new Set(workGroups)]
@@ -269,352 +262,350 @@ export default function ConsensusPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-              <VoteIcon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white tracking-wide">
-                Consensus System
-              </h1>
-              <p className="text-gray-400 font-medium">
-                Vote and comment on quarterly reports that require community consensus
-              </p>
-            </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+            <VoteIcon className="w-6 h-6 text-white" />
           </div>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <FileTextIcon className="w-5 h-5 text-purple-400" />
-                  <div>
-                    <p className="text-sm text-gray-400 font-medium">Total Reports</p>
-                    <p className="text-2xl font-bold text-white">{filteredReports.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <TargetIcon className="w-5 h-5 text-yellow-400" />
-                  <div>
-                    <p className="text-sm text-gray-400 font-medium">Pending</p>
-                    <p className="text-2xl font-bold text-yellow-400">
-                      {filteredReports.filter(r => r.consensusStatus === "PENDING").length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <TrendingUpIcon className="w-5 h-5 text-blue-400" />
-                  <div>
-                    <p className="text-sm text-gray-400 font-medium">In Consensus</p>
-                    <p className="text-2xl font-bold text-blue-400">
-                      {filteredReports.filter(r => r.consensusStatus === "IN_CONSENSUS").length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gray-900 border-gray-700">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-400" />
-                  <div>
-                    <p className="text-sm text-gray-400 font-medium">Consensed</p>
-                    <p className="text-2xl font-bold text-green-400">
-                      {filteredReports.filter(r => r.consensusStatus === "CONSENSED").length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div>
+            <h1 className="text-3xl font-bold text-white tracking-wide">
+              Consensus System
+            </h1>
+            <p className="text-gray-400 font-medium">
+              Vote and comment on quarterly reports that require community consensus
+            </p>
           </div>
         </div>
-
-        <Separator className="border-gray-700" />
-
-        {/* Filters Section */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-gray-900 border-gray-700">
+            <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <FilterIcon className="w-5 h-5 text-purple-400" />
-                <h3 className="text-lg font-bold text-white tracking-wide">Filters</h3>
+                <FileTextIcon className="w-5 h-5 text-purple-400" />
+                <div>
+                  <p className="text-sm text-gray-400 font-medium">Total Reports</p>
+                  <p className="text-2xl font-bold text-white">{filteredReports.length}</p>
+                </div>
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gray-900 border-gray-700">
+            <CardContent className="p-4">
               <div className="flex items-center space-x-2">
+                <TargetIcon className="w-5 h-5 text-yellow-400" />
+                <div>
+                  <p className="text-sm text-gray-400 font-medium">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-400">
+                    {filteredReports.filter(r => r.consensusStatus === "PENDING").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gray-900 border-gray-700">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <TrendingUpIcon className="w-5 h-5 text-blue-400" />
+                <div>
+                  <p className="text-sm text-gray-400 font-medium">In Consensus</p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {filteredReports.filter(r => r.consensusStatus === "IN_CONSENSUS").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gray-900 border-gray-700">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircleIcon className="w-5 h-5 text-green-400" />
+                <div>
+                  <p className="text-sm text-gray-400 font-medium">Consensed</p>
+                  <p className="text-2xl font-bold text-green-400">
+                    {filteredReports.filter(r => r.consensusStatus === "CONSENSED").length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <Separator className="border-gray-700" />
+
+      {/* Filters Section */}
+      <Card className="bg-gray-900 border-gray-700">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <FilterIcon className="w-5 h-5 text-purple-400" />
+              <h3 className="text-lg font-bold text-white tracking-wide">Filters</h3>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-gray-400 hover:text-white border-gray-600 hover:border-gray-500"
+              >
+                {showFilters ? <XIcon className="w-4 h-4" /> : <FilterIcon className="w-4 h-4" />}
+                {showFilters ? "Hide" : "Show"} Filters
+              </Button>
+              {(filters.status || filters.workGroup || filters.year || filters.quarter || filters.search) && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="text-gray-400 hover:text-white border-gray-600 hover:border-gray-500"
+                  onClick={clearFilters}
+                  className="text-red-400 hover:text-red-300 border-red-600 hover:border-red-500"
                 >
-                  {showFilters ? <XIcon className="w-4 h-4" /> : <FilterIcon className="w-4 h-4" />}
-                  {showFilters ? "Hide" : "Show"} Filters
+                  <XIcon className="w-4 h-4 mr-1" />
+                  Clear
                 </Button>
-                {(filters.status || filters.workGroup || filters.year || filters.quarter || filters.search) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-red-400 hover:text-red-300 border-red-600 hover:border-red-500"
-                  >
-                    <XIcon className="w-4 h-4 mr-1" />
-                    Clear
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
-          </CardHeader>
-          
-          {showFilters && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Search */}
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Search..."
-                    value={filters.search}
-                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                    className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
-                  />
-                </div>
-
-                {/* Status Filter */}
-                <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="">All statuses</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="IN_CONSENSUS">In Consensus</SelectItem>
-                    <SelectItem value="CONSENSED">Consensed</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Work Group Filter */}
-                <Select value={filters.workGroup} onValueChange={(value) => setFilters({ ...filters, workGroup: value })}>
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Work Group" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="">All groups</SelectItem>
-                    {getUniqueWorkGroups().map((workGroup) => (
-                      <SelectItem key={workGroup} value={workGroup}>{workGroup}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Year Filter */}
-                <Select value={filters.year} onValueChange={(value) => setFilters({ ...filters, year: value })}>
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="">All years</SelectItem>
-                    {getUniqueYears().map((year) => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Quarter Filter */}
-                <Select value={filters.quarter} onValueChange={(value) => setFilters({ ...filters, quarter: value })}>
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                    <SelectValue placeholder="Quarter" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="">All quarters</SelectItem>
-                    {getUniqueQuarters().map((quarter) => (
-                      <SelectItem key={quarter} value={quarter}>Q{quarter}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          </div>
+        </CardHeader>
+        
+        {showFilters && (
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search..."
+                  value={filters.search}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                />
               </div>
-            </CardContent>
-          )}
+
+              {/* Status Filter */}
+              <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="IN_CONSENSUS">In Consensus</SelectItem>
+                  <SelectItem value="CONSENSED">Consensed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Work Group Filter */}
+              <Select value={filters.workGroup} onValueChange={(value) => setFilters({ ...filters, workGroup: value })}>
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="Work Group" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="">All groups</SelectItem>
+                  {getUniqueWorkGroups().map((workGroup) => (
+                    <SelectItem key={workGroup} value={workGroup}>{workGroup}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Year Filter */}
+              <Select value={filters.year} onValueChange={(value) => setFilters({ ...filters, year: value })}>
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="">All years</SelectItem>
+                  {getUniqueYears().map((year) => (
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Quarter Filter */}
+              <Select value={filters.quarter} onValueChange={(value) => setFilters({ ...filters, quarter: value })}>
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="Quarter" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="">All quarters</SelectItem>
+                  {getUniqueQuarters().map((quarter) => (
+                    <SelectItem key={quarter} value={quarter}>Q{quarter}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Reports List */}
+      {filteredReports.length === 0 ? (
+        <Card className="bg-gray-900 border-gray-700">
+          <CardContent className="p-12 text-center">
+            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FileTextIcon className="w-8 h-8 text-gray-500" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2 tracking-wide">
+              {reports.length === 0 ? "No Reports Pending Consensus" : "No Results Found"}
+            </h3>
+            <p className="text-gray-400 mb-6 max-w-md mx-auto font-medium">
+              {reports.length === 0 
+                ? "Currently there are no quarterly reports that require community consensus."
+                : "Try adjusting the filters to see more results."
+              }
+            </p>
+            <Button 
+              onClick={() => router.push("/dashboard/quarterly-reports")}
+              className="bg-purple-600 hover:bg-purple-700 font-bold"
+            >
+              View All Reports
+            </Button>
+          </CardContent>
         </Card>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white tracking-wide">
+              Reports Pending Consensus
+            </h2>
+            <Badge variant="outline" className="text-gray-400 font-bold">
+              {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
+            </Badge>
+          </div>
+          
+          <div className="grid gap-6">
+            {filteredReports.map((report) => (
+              <Card key={report.id} className="bg-gray-900 border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                            <BuildingIcon className="w-5 h-5 text-purple-400" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-lg tracking-wide">
+                              {report.workGroup.name}
+                            </h3>
+                            <p className="text-sm text-gray-400 font-medium">
+                              {report.year} Q{report.quarter}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {getStatusBadge(report.consensusStatus)}
+                          <Button
+                            onClick={() => router.push(`/dashboard/consensus/${report.id}`)}
+                            className="bg-purple-600 hover:bg-purple-700 font-bold"
+                          >
+                            Go to Consensus
+                          </Button>
+                        </div>
+                      </div>
 
-        {/* Reports List */}
-        {filteredReports.length === 0 ? (
-          <Card className="bg-gray-900 border-gray-700">
-            <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FileTextIcon className="w-8 h-8 text-gray-500" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2 tracking-wide">
-                {reports.length === 0 ? "No Reports Pending Consensus" : "No Results Found"}
-              </h3>
-              <p className="text-gray-400 mb-6 max-w-md mx-auto font-medium">
-                {reports.length === 0 
-                  ? "Currently there are no quarterly reports that require community consensus."
-                  : "Try adjusting the filters to see more results."
-                }
-              </p>
-              <Button 
-                onClick={() => router.push("/dashboard/quarterly-reports")}
-                className="bg-purple-600 hover:bg-purple-700 font-bold"
-              >
-                View All Reports
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white tracking-wide">
-                Reports Pending Consensus
-              </h2>
-              <Badge variant="outline" className="text-gray-400 font-bold">
-                {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
-              </Badge>
-            </div>
-            
-            <div className="grid gap-6">
-              {filteredReports.map((report) => (
-                <Card key={report.id} className="bg-gray-900 border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 space-y-4">
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
-                              <BuildingIcon className="w-5 h-5 text-purple-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-white text-lg tracking-wide">
-                                {report.workGroup.name}
-                              </h3>
-                              <p className="text-sm text-gray-400 font-medium">
-                                {report.year} Q{report.quarter}
-                              </p>
-                            </div>
+                      {/* Stats Row */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="flex items-center space-x-2">
+                          <UsersIcon className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">Participants</p>
+                            <p className="text-sm font-bold text-white">{report.participants.length}</p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            {getStatusBadge(report.consensusStatus)}
-                            <Button
-                              onClick={() => router.push(`/dashboard/consensus/${report.id}`)}
-                              className="bg-purple-600 hover:bg-purple-700 font-bold"
-                            >
-                              Go to Consensus
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Stats Row */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="flex items-center space-x-2">
-                            <UsersIcon className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Participants</p>
-                              <p className="text-sm font-bold text-white">{report.participants.length}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <DollarSignIcon className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Budget</p>
-                              <p className="text-sm font-bold text-white">
-                                ${getTotalBudget(report.budgetItems).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <UserIcon className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Created by</p>
-                              <p className="text-sm font-bold text-white">{report.createdBy.name}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <ClockIcon className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Date</p>
-                              <p className="text-sm font-bold text-white">
-                                {formatDate(report.createdAt)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <Separator className="border-gray-700 mb-4" />
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-bold text-white mb-2 tracking-wide">Report Summary</h4>
-                        <p className="text-gray-400 text-sm leading-relaxed font-medium">
-                          {report.detail || "No description provided"}
-                        </p>
-                      </div>
-                      
-                      <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-                        <h5 className="font-bold text-white text-sm mb-2 tracking-wide">Proposal Details</h5>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <UserIcon className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-400 font-medium">Proposed by:</span>
-                            <span className="text-xs font-bold text-white">{report.createdBy.name}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <CalendarIcon className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-400 font-medium">Created:</span>
-                            <span className="text-xs font-bold text-white">{formatDate(report.createdAt)}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <UsersIcon className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-400 font-medium">Participants:</span>
-                            <span className="text-xs font-bold text-white">{report.participants.length} members</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-4">
-                          {report.votingRounds.length > 0 && (
-                            <div className="flex items-center space-x-2">
-                              <VoteIcon className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-400 font-medium">Round:</span>
-                              <span className="text-white font-bold">{report.votingRounds[0].roundNumber}</span>
-                            </div>
-                          )}
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          <span className="text-gray-400 font-medium">Status:</span>
-                          {getStatusBadge(report.consensusStatus)}
+                          <DollarSignIcon className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">Budget</p>
+                            <p className="text-sm font-bold text-white">
+                              ${getTotalBudget(report.budgetItems).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <UserIcon className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">Created by</p>
+                            <p className="text-sm font-bold text-white">{report.createdBy.name}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <ClockIcon className="w-4 h-4 text-gray-400" />
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">Date</p>
+                            <p className="text-sm font-bold text-white">
+                              {formatDate(report.createdAt)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent>
+                  <Separator className="border-gray-700 mb-4" />
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-bold text-white mb-2 tracking-wide">Report Summary</h4>
+                      <p className="text-gray-400 text-sm leading-relaxed font-medium">
+                        {report.detail || "No description provided"}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                      <h5 className="font-bold text-white text-sm mb-2 tracking-wide">Proposal Details</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <UserIcon className="w-3 h-3 text-gray-400" />
+                          <span className="text-xs text-gray-400 font-medium">Proposed by:</span>
+                          <span className="text-xs font-bold text-white">{report.createdBy.name}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CalendarIcon className="w-3 h-3 text-gray-400" />
+                          <span className="text-xs text-gray-400 font-medium">Created:</span>
+                          <span className="text-xs font-bold text-white">{formatDate(report.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <UsersIcon className="w-3 h-3 text-gray-400" />
+                          <span className="text-xs text-gray-400 font-medium">Participants:</span>
+                          <span className="text-xs font-bold text-white">{report.participants.length} members</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center space-x-4">
+                        {report.votingRounds.length > 0 && (
+                          <div className="flex items-center space-x-2">
+                            <VoteIcon className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-400 font-medium">Round:</span>
+                            <span className="text-white font-bold">{report.votingRounds[0].roundNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-400 font-medium">Status:</span>
+                        {getStatusBadge(report.consensusStatus)}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 } 

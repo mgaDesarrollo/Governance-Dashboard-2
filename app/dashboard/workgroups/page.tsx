@@ -24,7 +24,7 @@ export default function WorkGroupsPage() {
   }, []);
 
   return (
-    <div className="p-8 min-h-screen bg-slate-900 text-slate-50">
+    <div className="p-6 space-y-6">
       {!selected && (
         <>
           <h1 className="text-3xl font-bold mb-6 flex items-center gap-3 text-white tracking-wide">
