@@ -3,24 +3,46 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get("search")
+    const status = searchParams.get("status")
+
+    let whereClause: any = {}
+
+    // Filtro por búsqueda
+    if (search) {
+      whereClause.OR = [
+        {
+          name: {
+            contains: search,
+            mode: "insensitive"
+          }
+        },
+        {
+          missionStatement: {
+            contains: search,
+            mode: "insensitive"
+          }
+        },
+        {
+          type: {
+            contains: search,
+            mode: "insensitive"
+          }
+        }
+      ]
+    }
+
+    // Filtro por estado
+    if (status) {
+      whereClause.status = status
+    }
+
     const workgroups = await prisma.workGroup.findMany({
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        dateOfCreation: true,
-        status: true,
-        missionStatement: true,
-        goalsAndFocus: true,
-        totalMembers: true,
-        roles: true,
-        memberDirectoryLink: true,
-        createdAt: true,
-        updatedAt: true,
+      where: whereClause,
+      include: {
         members: {
-          select: {
-            id: true,
-            role: true,
+          include: {
             user: {
               select: {
                 id: true,
@@ -29,13 +51,33 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        quarterlyReports: {
+          select: {
+            id: true,
+            year: true,
+            quarter: true,
+            consensusStatus: true
+          }
         }
+      },
+      orderBy: {
+        createdAt: "desc"
       }
     })
-    console.log(JSON.stringify(workgroups, null, 2));
-    return NextResponse.json(workgroups)
+
+    // Transformar los datos para incluir totalMembers
+    const workgroupsWithStats = workgroups.map(wg => ({
+      ...wg,
+      totalMembers: wg.members.length.toString()
+    }))
+
+    return NextResponse.json(workgroupsWithStats)
   } catch (error) {
-    console.error("Error listando workgroups:", error)
-    return NextResponse.json({ error: "Error interno" }, { status: 500 })
+    console.error("Error fetching workgroups:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch workgroups" },
+      { status: 500 }
+    )
   }
 }

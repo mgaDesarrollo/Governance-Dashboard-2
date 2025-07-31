@@ -16,26 +16,25 @@ import { RecentActivity } from "@/components/recent-activity"
 import { QuickActions } from "@/components/quick-actions"
 import { DashboardMetrics } from "@/components/dashboard-metrics"
 import { DashboardCalendar } from "@/components/dashboard-calendar"
-import { DashboardCharts } from "@/components/dashboard-charts"
 
 export default function DashboardPage() {
   const { data: session } = useSession()
   const [appUser, setAppUser] = useState({
-    name: "",
-    email: "",
+    name: "User",
+    email: "user@example.com",
     image: "",
-    role: "CORE_CONTRIBUTOR" as UserRole,
+    role: "COMMUNITY_MEMBER" as UserRole,
     status: "AVAILABLE" as UserAvailabilityStatus,
   })
 
   useEffect(() => {
     if (session?.user) {
       setAppUser({
-        name: session.user.name || "",
-        email: session.user.email || "",
+        name: session.user.name || "User",
+        email: session.user.email || "user@example.com",
         image: session.user.image || "",
-        role: session.user.role || "CORE_CONTRIBUTOR",
-        status: session.user.status || "AVAILABLE",
+        role: "COMMUNITY_MEMBER" as UserRole,
+        status: "AVAILABLE" as UserAvailabilityStatus,
       })
     }
   }, [session])
@@ -75,7 +74,7 @@ export default function DashboardPage() {
   const statusInfo = getStatusBadgeInfo(userStatus)
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 space-y-8">
+    <div className="space-y-6 max-w-none">
       {/* Welcome Card */}
       {/* Welcome Card - Compact and Modern */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -204,11 +203,6 @@ export default function DashboardPage() {
       {/* Calendar */}
       <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
         <DashboardCalendar />
-      </div>
-
-      {/* Charts and Analytics */}
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-        <DashboardCharts />
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import React from "react";
+import { TargetIcon, CompassIcon } from "lucide-react";
 
 interface Props {
   missionStatement: string;
@@ -6,26 +7,48 @@ interface Props {
 }
 
 const MissionScopeCard: React.FC<Props> = ({ missionStatement, goalsAndFocus }) => (
-  <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-purple-700 p-8 mb-6 flex flex-col gap-6">
-    <h3 className="text-2xl font-bold flex items-center gap-3 text-purple-300 mb-2 drop-shadow">
-      <span className="text-3xl">🧭</span>
-      Mission & Scope
-    </h3>
-    <div className="mb-3">
-      <span className="font-semibold text-purple-200 text-lg">Mission:</span>
-      <p className="mt-1 text-slate-200 whitespace-pre-line text-base leading-relaxed bg-slate-800 rounded-lg px-4 py-2 border border-slate-700 shadow-inner">
-        {missionStatement}
-      </p>
+  <div className="w-full space-y-6">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+        <CompassIcon className="w-5 h-5 text-gray-300" />
+      </div>
+      <div>
+        <h3 className="text-xl font-bold text-white">Mission & Scope</h3>
+        <p className="text-sm text-gray-400">Strategic direction and objectives</p>
+      </div>
     </div>
-    <div>
-      <span className="font-semibold text-purple-200 text-lg">Focus Areas:</span>
-      <ul className="mt-2 ml-6 list-disc text-slate-100 text-base space-y-1">
-        {goalsAndFocus.map((goal, i) => (
-          <li key={i} className="pl-1">{goal}</li>
-        ))}
-      </ul>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Mission Statement */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <TargetIcon className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-300">Mission Statement</span>
+        </div>
+        <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+          <p className="text-sm text-gray-200 leading-relaxed">
+            {missionStatement}
+          </p>
+        </div>
+      </div>
+      
+      {/* Focus Areas */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <TargetIcon className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-300">Focus Areas</span>
+        </div>
+        <div className="space-y-2">
+          {goalsAndFocus.map((goal, i) => (
+            <div key={i} className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+              <p className="text-sm text-gray-200">{goal}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  </section>
+  </div>
 );
 
 export default MissionScopeCard; 

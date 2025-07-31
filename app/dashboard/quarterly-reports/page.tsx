@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { XIcon, FileTextIcon, PlusIcon, MinusIcon, CalendarIcon, UsersIcon, CurrencyIcon, CheckCircleIcon, ClockIcon, BuildingIcon } from "lucide-react";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton"
 
 // Tipos para challenges
 type Challenge = string;
@@ -357,7 +358,7 @@ export default function QuarterlyReportsPage() {
         Quarterly Reports
       </h1>
       {loading ? (
-        <p className="text-slate-400 text-center py-12">Loading reports...</p>
+        <LoadingSkeleton type="page" />
       ) : filteredReports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24">
           <FileTextIcon className="w-16 h-16 text-slate-700 mb-4" />

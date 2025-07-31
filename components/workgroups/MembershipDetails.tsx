@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { UsersIcon, UserPlusIcon, UserIcon, MailIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface UserOption {
   id: string;
@@ -79,77 +83,132 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
   };
 
   return (
-    <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-purple-700 p-8 mb-6 flex flex-col gap-6">
-      <h3 className="text-2xl font-bold flex items-center gap-3 text-purple-300 mb-2 drop-shadow">
-        <span className="text-3xl">👥</span>
-        Membership & Roles
-      </h3>
-      <div>
-        <span className="font-semibold text-purple-200 text-lg">Current Members:</span>
-        {membersLoading ? (
-          <span className="ml-2 text-slate-400 text-sm">Loading...</span>
-        ) : members.length === 0 ? (
-          <span className="ml-2 text-slate-500 text-sm">No members yet.</span>
-        ) : (
-          <ul className="mt-2 ml-4 list-disc text-slate-100 text-base space-y-1">
-            {members.map((m) => (
-              <li key={m.id} className="flex gap-2 items-center">
-                <span className="font-medium text-purple-100">{m.user?.name || "Unknown user"}</span>
-                <span className="text-xs text-slate-400">({m.user?.email || "No email"})</span>
-                <span className="text-xs text-purple-700 bg-purple-200 rounded px-2 py-0.5 ml-2">{m.role}</span>
-              </li>
-            ))}
-          </ul>
+    <div className="w-full space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+            <UsersIcon className="w-5 h-5 text-gray-300" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white">Membership & Roles</h3>
+            <p className="text-sm text-gray-400">Team members and their roles</p>
+          </div>
+        </div>
+        {workGroupId && (
+          <Button
+            onClick={() => setModalOpen(true)}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <UserPlusIcon className="w-4 h-4 mr-2" />
+            Add Member
+          </Button>
         )}
       </div>
-      {workGroupId && (
-        <button
-          className="mt-4 bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors w-fit"
-          onClick={() => setModalOpen(true)}
-        >
-          Add user
-        </button>
-      )}
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Current Members */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <UsersIcon className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-medium text-gray-300">Current Members</span>
+          </div>
+          {membersLoading ? (
+            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+              <p className="text-sm text-gray-400">Loading members...</p>
+            </div>
+          ) : members.length === 0 ? (
+            <div className="p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+              <p className="text-sm text-gray-500">No members yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {members.map((m) => (
+                <div key={m.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                    <UserIcon className="w-4 h-4 text-gray-300" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white">{m.user?.name || "Unknown user"}</p>
+                    <p className="text-xs text-gray-400">{m.user?.email || "No email"}</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs bg-gray-500/10 text-gray-300 border-gray-500/30">
+                    {m.role}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Roles */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <UsersIcon className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-medium text-gray-300">Available Roles</span>
+          </div>
+          <div className="space-y-2">
+            {roles.map((role, i) => (
+              <div key={i} className="flex items-center gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-sm text-gray-200">{role}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <form
-            className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-8 relative border border-purple-700 flex flex-col gap-4"
-            onSubmit={handleAdd}
-          >
-            <button
-              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold"
-              type="button"
-              onClick={() => setModalOpen(false)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h3 className="text-xl font-bold text-purple-300 mb-2">Add user to WorkGroup</h3>
-            <label className="text-slate-300 text-sm font-semibold">Select a user
-              <select
-                className="mt-1 w-full rounded bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                value={selectedUser}
-                onChange={e => setSelectedUser(e.target.value)}
-                required
-              >
-                <option value="">Select a user...</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                ))}
-              </select>
-            </label>
-            {error && <div className="text-red-400 text-sm">{error}</div>}
-            <button
-              type="submit"
-              className="mt-4 bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors"
-              disabled={loading || !selectedUser}
-            >
-              {success ? "Added!" : loading ? "Adding..." : "Add"}
-            </button>
-          </form>
+          <Card className="bg-gray-900 border-gray-700 max-w-md w-full mx-4">
+            <CardHeader>
+              <CardTitle className="text-white">Add Member to WorkGroup</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAdd} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Select a user
+                  </label>
+                  <select
+                    className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"
+                    value={selectedUser}
+                    onChange={e => setSelectedUser(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a user...</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {error && (
+                  <div className="text-red-400 text-sm">{error}</div>
+                )}
+                
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={loading || !selectedUser}
+                  >
+                    {success ? "Added!" : loading ? "Adding..." : "Add Member"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       )}
-    </section>
+    </div>
   );
 };
 

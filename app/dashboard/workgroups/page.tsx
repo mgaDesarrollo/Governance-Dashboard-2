@@ -2,7 +2,24 @@
 import React, { useState, useEffect } from "react";
 import WorkGroupDetails from "@/components/workgroups/WorkGroupDetails";
 import type { WorkGroup } from "@/lib/types";
-import { BuildingIcon, UsersIcon, CalendarIcon, CheckCircleIcon } from "lucide-react";
+import { 
+  BuildingIcon, 
+  UsersIcon, 
+  CalendarIcon, 
+  CheckCircleIcon, 
+  SearchIcon,
+  FilterIcon,
+  PlusIcon,
+  ArrowRightIcon,
+  TrendingUpIcon,
+  ActivityIcon
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton"
 
 // Tipo extendido para aceptar 'members'
 type WorkGroupWithMembers = WorkGroup & { members?: any[] };
@@ -11,6 +28,8 @@ export default function WorkGroupsPage() {
   const [workGroups, setWorkGroups] = useState<WorkGroupWithMembers[] | undefined>(undefined);
   const [selected, setSelected] = useState<WorkGroupWithMembers | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
     setLoading(true);
@@ -23,116 +42,241 @@ export default function WorkGroupsPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  const filteredWorkGroups = workGroups?.filter(wg => {
+    const matchesSearch = wg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         wg.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || wg.status.toLowerCase() === filterStatus;
+    return matchesSearch && matchesStatus;
+  }) || [];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return <Badge className="bg-green-500/20 text-green-300 border-green-500/30 font-semibold">Active</Badge>;
+      case 'Inactive':
+        return <Badge className="bg-gray-500/20 text-gray-300 border-gray-500/30 font-semibold">Inactive</Badge>;
+      default:
+        return <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 font-semibold">{status}</Badge>;
+    }
+  };
+
+  const stats = {
+    total: workGroups?.length || 0,
+    active: workGroups?.filter(wg => wg.status === 'Active').length || 0,
+    inactive: workGroups?.filter(wg => wg.status === 'Inactive').length || 0,
+    totalMembers: workGroups?.reduce((sum, wg) => sum + parseInt(wg.totalMembers || '0'), 0) || 0
+  };
+
   return (
-    <div className="p-6 space-y-6">
-      {!selected && (
+    <div className="space-y-6">
+      {loading ? (
+        <LoadingSkeleton type="page" />
+      ) : !selected ? (
         <>
-          <h1 className="text-3xl font-bold mb-6 flex items-center gap-3 text-white tracking-wide">
-            <BuildingIcon className="w-8 h-8 text-purple-400" />
-            Workgroups and Guilds
-          </h1>
-          <p className="mb-8 text-slate-400 max-w-2xl font-medium">
-            Control panel for workgroups and guilds. Explore active groups, their status and access their details.
-          </p>
+          {/* Header Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+                <BuildingIcon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white tracking-wide">
+                  Workgroups and Guilds
+                </h1>
+                <p className="text-gray-400 font-medium">
+                  Manage and explore active workgroups and guilds in the ecosystem
+                </p>
+              </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <BuildingIcon className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-sm text-gray-400 font-medium">Total Groups</p>
+                      <p className="text-2xl font-bold text-white">{stats.total}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <ActivityIcon className="w-5 h-5 text-green-400" />
+                    <div>
+                      <p className="text-sm text-gray-400 font-medium">Active Groups</p>
+                      <p className="text-2xl font-bold text-white">{stats.active}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-purple-500/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <UsersIcon className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <p className="text-sm text-gray-400 font-medium">Total Members</p>
+                      <p className="text-2xl font-bold text-white">{stats.totalMembers}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/30">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUpIcon className="w-5 h-5 text-orange-400" />
+                    <div>
+                      <p className="text-sm text-gray-400 font-medium">Growth Rate</p>
+                      <p className="text-2xl font-bold text-white">+12%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <Separator className="border-gray-700" />
+
+          {/* Search and Filters */}
+          <Card className="bg-gray-900 border-gray-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <FilterIcon className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-lg font-bold text-white tracking-wide">Search & Filters</h3>
+                </div>
+                <Button className="bg-purple-600 hover:bg-purple-700 font-bold">
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Create Workgroup
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search workgroups..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                  />
+                </div>
+
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="bg-gray-800 border-gray-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                <div className="flex items-center justify-end">
+                  <Badge variant="outline" className="text-gray-400 font-bold">
+                    {filteredWorkGroups.length} workgroup{filteredWorkGroups.length !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Workgroups Grid */}
+          <div className="w-full">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
+                <p className="text-gray-400 font-medium">Loading workgroups...</p>
+              </div>
+            ) : !workGroups || workGroups.length === 0 ? (
+              <Card className="bg-gray-900 border-gray-700">
+                <CardContent className="p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <BuildingIcon className="w-8 h-8 text-gray-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2 tracking-wide">No Workgroups Found</h3>
+                  <p className="text-gray-400 mb-6 max-w-md mx-auto font-medium">
+                    Get started by creating your first workgroup or guild.
+                  </p>
+                  <Button className="bg-purple-600 hover:bg-purple-700 font-bold">
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    Create Workgroup
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredWorkGroups.map((wg) => (
+                  <Card 
+                    key={wg.id} 
+                    className="bg-gray-900 border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg cursor-pointer group"
+                    onClick={() => setSelected(wg)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
+                            <BuildingIcon className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-lg tracking-wide group-hover:text-purple-300 transition-colors">
+                              {wg.name}
+                            </h3>
+                            <p className="text-sm text-gray-400 font-medium">{wg.type}</p>
+                          </div>
+                        </div>
+                        {getStatusBadge(wg.status)}
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center space-x-2">
+                            <UsersIcon className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium">Members</p>
+                              <p className="text-sm font-bold text-white">{wg.totalMembers}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <CalendarIcon className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <p className="text-xs text-gray-500 font-medium">Created</p>
+                              <p className="text-sm font-bold text-white">
+                                {wg.dateOfCreation ? new Date(wg.dateOfCreation).toLocaleDateString() : "-"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2">
+                          <span className="text-xs text-gray-500 font-medium">
+                            Click to view details
+                          </span>
+                          <ArrowRightIcon className="w-4 h-4 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </>
-      )}
-      {!selected && (
-        <div className="w-full">
-          {loading ? (
-            <p className="text-slate-400 text-center py-12">Loading workgroups...</p>
-          ) : !workGroups || workGroups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24">
-              <BuildingIcon className="w-16 h-16 text-slate-700 mb-4" />
-              <p className="text-slate-400 text-lg">No workgroups found.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-lg shadow border border-slate-700 bg-slate-800">
-              <table className="min-w-full bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-                <thead className="bg-slate-700">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <BuildingIcon className="w-3 h-3" />
-                        <span>Name</span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <BuildingIcon className="w-3 h-3" />
-                        <span>Type</span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <UsersIcon className="w-3 h-3" />
-                        <span>Members</span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <CalendarIcon className="w-3 h-3" />
-                        <span>Created</span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <CheckCircleIcon className="w-3 h-3" />
-                        <span>Status</span>
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <span>Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {workGroups.map((wg) => (
-                    <tr
-                      key={wg.id}
-                      className="hover:bg-slate-700/40 cursor-pointer transition-colors"
-                      onClick={() => setSelected(wg)}
-                    >
-                      <td className="px-4 py-3 font-medium text-slate-100">{wg.name}</td>
-                      <td className="px-4 py-3 text-slate-300">{wg.type}</td>
-                      <td className="px-4 py-3 text-slate-300">{wg.totalMembers}</td>
-                      <td className="px-4 py-3 text-slate-300">
-                        {wg.dateOfCreation ? new Date(wg.dateOfCreation).toLocaleDateString() : "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          wg.status === 'Active' 
-                            ? 'bg-green-700 text-green-100 border-green-500' 
-                            : wg.status === 'Inactive' 
-                              ? 'bg-gray-700 text-gray-300 border-gray-500' 
-                              : 'bg-yellow-700 text-yellow-100 border-yellow-500'
-                        }`}>
-                          {wg.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelected(wg);
-                          }}
-                          className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
-                        >
-                          View details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-      {selected && (
+      ) : (
         <div className="w-full flex flex-col items-center justify-start">
           <div className="w-full max-w-4xl mx-auto mt-8 mb-8 p-0 relative">
             <button
-              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold z-10"
+              className="absolute top-4 right-4 text-slate-400 hover:text-purple-400 text-2xl font-bold z-10 bg-gray-900 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-800 transition-colors"
               onClick={() => setSelected(null)}
               aria-label="Close"
             >

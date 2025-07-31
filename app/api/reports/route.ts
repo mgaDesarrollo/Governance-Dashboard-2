@@ -1,32 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const consensusStatus = searchParams.get('consensusStatus');
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get("search")
+    const consensusStatus = searchParams.get("consensusStatus")
 
-    // Construir el where clause
-    const where: any = {};
+    let whereClause: any = {}
+
+    // Filtro por búsqueda
+    if (search) {
+      whereClause.OR = [
+        {
+          workGroup: {
+            name: {
+              contains: search,
+              mode: "insensitive"
+            }
+          }
+        },
+        {
+          quarter: {
+            contains: search,
+              mode: "insensitive"
+          }
+        },
+        {
+          year: {
+            equals: parseInt(search) || undefined
+          }
+        }
+      ]
+    }
+
+    // Filtro por estado de consenso
     if (consensusStatus) {
-      // Convertir el valor a mayúsculas para que coincida con el enum
-      where.consensusStatus = consensusStatus.toUpperCase();
+      whereClause.consensusStatus = consensusStatus
     }
 
     const reports = await prisma.quarterlyReport.findMany({
-      where,
+      where: whereClause,
       include: {
         workGroup: {
           select: {
             id: true,
-            name: true
-          }
-        },
-        createdBy: {
-          select: {
-            id: true,
             name: true,
-            email: true
+            missionStatement: true
           }
         },
         participants: {
@@ -40,18 +60,25 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        budgetItems: true,
-        votingRounds: {
-          where: { status: "ACTIVA" },
-          take: 1
+        budgetItems: {
+          select: {
+            id: true,
+            amountUsd: true,
+            description: true
+          }
         }
       },
-      orderBy: { createdAt: "desc" }
-    });
+      orderBy: {
+        createdAt: "desc"
+      }
+    })
 
-    return NextResponse.json(reports);
+    return NextResponse.json(reports)
   } catch (error) {
-    console.error("Error fetching reports:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Error fetching reports:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch reports" },
+      { status: 500 }
+    )
   }
 } 

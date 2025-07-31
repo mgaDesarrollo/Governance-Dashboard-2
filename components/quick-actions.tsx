@@ -1,9 +1,21 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { PlusIcon, FileTextIcon, BellIcon, UserIcon, BarChart3Icon, ZapIcon, ArrowRightIcon } from "lucide-react"
+import { 
+  PlusIcon, 
+  FileTextIcon, 
+  BellIcon, 
+  UserIcon, 
+  BarChart3Icon, 
+  ZapIcon, 
+  ArrowRightIcon,
+  VoteIcon,
+  ClockIcon,
+  SettingsIcon
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { UserRole } from "@/lib/types"
 
@@ -13,18 +25,48 @@ interface QuickActionsProps {
 
 export function QuickActions({ userRole }: QuickActionsProps) {
   const router = useRouter()
+  const [pendingCount, setPendingCount] = useState(0)
+  const [votingCount, setVotingCount] = useState(0)
+  const [notificationCount, setNotificationCount] = useState(0)
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        // Fetch pending proposals count
+        const proposalsRes = await fetch("/api/proposals?status=pending")
+        const proposals = await proposalsRes.json()
+        setPendingCount(proposals.length || 0)
+
+        // Fetch quarterly reports in voting
+        const reportsRes = await fetch("/api/reports?consensusStatus=IN_CONSENSUS")
+        const reports = await reportsRes.json()
+        setVotingCount(reports.length || 0)
+
+        // Mock notification count
+        setNotificationCount(Math.floor(Math.random() * 10) + 3)
+      } catch (error) {
+        console.error("Error fetching counts:", error)
+        // Fallback to mock counts
+        setPendingCount(3)
+        setVotingCount(2)
+        setNotificationCount(5)
+      }
+    }
+
+    fetchCounts()
+  }, [])
 
   const actions = [
     {
-      id: "create-proposal",
-      title: "Create New Proposal",
-      description: "Start a new governance proposal",
-      icon: <PlusIcon className="h-5 w-5" />,
-      href: "/dashboard/proposals/create",
-      color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-green-300",
-      iconColor: "text-green-400",
-      adminOnly: true,
-      badge: "Admin",
+      id: "notifications",
+      title: "Review Notifications",
+      description: "Check your latest updates and alerts",
+      icon: <BellIcon className="h-5 w-5" />,
+      href: "/dashboard/notifications",
+      color: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/30 text-yellow-300",
+      iconColor: "text-yellow-400",
+      adminOnly: false,
+      badge: notificationCount > 0 ? `${notificationCount} New` : undefined,
     },
     {
       id: "pending-proposals",
@@ -35,39 +77,49 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       color: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-300",
       iconColor: "text-blue-400",
       adminOnly: false,
-      badge: "3 Pending",
+      badge: pendingCount > 0 ? `${pendingCount} Pending` : undefined,
     },
     {
-      id: "notifications",
-      title: "Review Notifications",
-      description: "Check your latest updates",
-      icon: <BellIcon className="h-5 w-5" />,
-      href: "/dashboard/notifications",
-      color: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/30 text-yellow-300",
-      iconColor: "text-yellow-400",
+      id: "voting-reports",
+      title: "Quarterly Reports in Voting",
+      description: "View reports currently being voted on",
+      icon: <VoteIcon className="h-5 w-5" />,
+      href: "/dashboard/consensus",
+      color: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-300",
+      iconColor: "text-purple-400",
       adminOnly: false,
-      badge: "5 New",
+      badge: votingCount > 0 ? `${votingCount} Active` : undefined,
     },
     {
       id: "update-profile",
       title: "Update Profile",
-      description: "Edit your profile information",
+      description: "Edit your profile information and preferences",
       icon: <UserIcon className="h-5 w-5" />,
-      href: "/dashboard/profile/edit",
-      color: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-300",
-      iconColor: "text-purple-400",
+      href: "/dashboard/profile",
+      color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-green-300",
+      iconColor: "text-green-400",
       adminOnly: false,
     },
     {
-      id: "view-analytics",
-      title: "View Statistics",
-      description: "Complete governance analytics",
-      icon: <BarChart3Icon className="h-5 w-5" />,
-      href: "/dashboard/analytics",
+      id: "create-proposal",
+      title: "Create New Proposal",
+      description: "Start a new governance proposal",
+      icon: <PlusIcon className="h-5 w-5" />,
+      href: "/dashboard/proposals/create",
       color: "bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-300",
       iconColor: "text-orange-400",
       adminOnly: true,
-      badge: "Analytics",
+      badge: "Admin",
+    },
+    {
+      id: "analytics",
+      title: "View Analytics",
+      description: "Complete governance analytics and insights",
+      icon: <BarChart3Icon className="h-5 w-5" />,
+      href: "/dashboard/analytics",
+      color: "bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/30 text-indigo-300",
+      iconColor: "text-indigo-400",
+      adminOnly: false,
     },
   ]
 
@@ -89,7 +141,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
         <CardDescription className="text-slate-400">Fast access to common tasks</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filteredActions.map((action) => (
             <Button
               key={action.id}
@@ -125,7 +177,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
         {userRole !== "ADMIN" && userRole !== "SUPER_ADMIN" && (
           <div className="mt-4 p-3 bg-slate-700/30 border border-slate-600/50 rounded-lg">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-              <FileTextIcon className="h-4 w-4" />
+              <SettingsIcon className="h-4 w-4" />
               <span>Some actions require admin privileges</span>
             </div>
           </div>

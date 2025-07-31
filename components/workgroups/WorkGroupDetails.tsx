@@ -27,7 +27,13 @@ import {
   UserIcon,
   SettingsIcon,
   GlobeIcon,
-  StarIcon
+  StarIcon,
+  XIcon,
+  PinIcon,
+  CalendarDaysIcon,
+  WalletIcon,
+  LinkIcon,
+  CompassIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,11 +41,11 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 const tabs = [
-  { key: 'general', label: 'General', icon: '📌' },
-  { key: 'activity', label: 'Activity & Reports', icon: '📅' },
-  { key: 'budget', label: 'Budget & Resources', icon: '💰' },
-  { key: 'links', label: 'Links & Governance', icon: '🔗' },
-  { key: 'future', label: 'Future & Roadmap', icon: '🧭' },
+  { key: 'general', label: 'General', icon: PinIcon },
+  { key: 'activity', label: 'Activity & Reports', icon: CalendarDaysIcon },
+  { key: 'budget', label: 'Budget & Resources', icon: WalletIcon },
+  { key: 'links', label: 'Links & Governance', icon: LinkIcon },
+  { key: 'future', label: 'Future & Roadmap', icon: CompassIcon },
 ];
 
 interface Props {
@@ -203,22 +209,32 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-black p-6 w-full">
+      <div className="w-full space-y-6">
         {/* Header */}
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-              <BuildingIcon className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+                <BuildingIcon className="w-6 h-6 text-gray-300" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white tracking-wide">
+                  {localWG.name}
+                </h1>
+                <p className="text-gray-400 font-medium">
+                  {localWG.missionStatement}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white tracking-wide">
-                {localWG.name}
-              </h1>
-              <p className="text-gray-400 font-medium">
-                {localWG.missionStatement}
-              </p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              className="text-gray-400 hover:text-white border-gray-600 hover:border-gray-500"
+            >
+              <XIcon className="w-4 h-4" />
+            </Button>
           </div>
           
           {/* Stats */}
@@ -226,7 +242,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
             <Card className="bg-gray-900 border-gray-700">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <UsersIcon className="w-5 h-5 text-purple-400" />
+                  <UsersIcon className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-400 font-medium">Members</p>
                     <p className="text-2xl font-bold text-white">{localWG.totalMembers}</p>
@@ -238,10 +254,10 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
             <Card className="bg-gray-900 border-gray-700">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <TargetIcon className="w-5 h-5 text-yellow-400" />
+                  <TargetIcon className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-400 font-medium">Type</p>
-                    <p className="text-2xl font-bold text-yellow-400">{localWG.type}</p>
+                    <p className="text-2xl font-bold text-white">{localWG.type}</p>
                   </div>
                 </div>
               </CardContent>
@@ -250,10 +266,10 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
             <Card className="bg-gray-900 border-gray-700">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <TrendingUpIcon className="w-5 h-5 text-blue-400" />
+                  <TrendingUpIcon className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-400 font-medium">Status</p>
-                    <p className="text-2xl font-bold text-blue-400">{localWG.status}</p>
+                    <p className="text-2xl font-bold text-white">{localWG.status}</p>
                   </div>
                 </div>
               </CardContent>
@@ -262,10 +278,10 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
             <Card className="bg-gray-900 border-gray-700">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <CalendarIcon className="w-5 h-5 text-green-400" />
+                  <CalendarIcon className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-400 font-medium">Created</p>
-                    <p className="text-2xl font-bold text-green-400">
+                    <p className="text-2xl font-bold text-white">
                       {localWG.dateOfCreation ? new Date(localWG.dateOfCreation).getFullYear() : '-'}
                     </p>
                   </div>
@@ -281,37 +297,40 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
         <Card className="bg-gray-900 border-gray-700">
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <SettingsIcon className="w-5 h-5 text-purple-400" />
+              <SettingsIcon className="w-5 h-5 text-gray-400" />
               <h3 className="text-lg font-bold text-white tracking-wide">Workgroup Details</h3>
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {tabs.map(tab => (
-                <Button
-                  key={tab.key}
-                  variant={activeTab === tab.key ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 ${
-                    activeTab === tab.key
-                      ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                      : 'text-gray-400 hover:text-white border-gray-600 hover:border-gray-500'
-                  }`}
-                >
-                  <span className="text-lg">{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </Button>
-              ))}
+              {tabs.map(tab => {
+                const IconComponent = tab.icon;
+                return (
+                  <Button
+                    key={tab.key}
+                    variant={activeTab === tab.key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex items-center gap-2 transition-all duration-200 ${
+                      activeTab === tab.key
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg'
+                        : 'text-gray-400 hover:text-white border-gray-600 hover:border-gray-500 hover:bg-gray-800'
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </Button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
         {/* Content Area */}
-        <div className="space-y-6">
+        <div className="space-y-6 w-full">
           {/* MODO EDICIÓN EN PÁGINA */}
           {editOpen ? (
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-gray-900 border-gray-700 w-full">
               <CardHeader>
                 <h3 className="text-xl font-bold text-white">Edit Workgroup</h3>
               </CardHeader>
@@ -376,8 +395,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
             <>
               {/* General Tab */}
               {activeTab === 'general' && (
-                <div className="space-y-6">
-                  <Card className="bg-gray-900 border-gray-700">
+                <div className="space-y-6 w-full">
+                  <Card className="bg-gray-900 border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Basic Information</h3>
                     </CardHeader>

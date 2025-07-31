@@ -1,138 +1,116 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import {
-  LayoutDashboardIcon,
-  LogOutIcon,
-  UserCogIcon,
-  AlertTriangleIcon,
-  FileTextIcon,
-  TimerIcon,
-  SettingsIcon,
-  ActivityIcon,
-  UsersIcon,
-  HomeIcon,
-  BarChart3Icon,
-  BellIcon,
-  HelpCircleIcon,
-} from "lucide-react"
-import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
+import { useSessionWithRefresh } from "@/hooks/use-session"
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset, SidebarTrigger, SidebarRail } from "@/components/ui/sidebar"
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel } from "@/components/ui/sidebar"
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { GlobalSearch } from "@/components/global-search"
 import Image from "next/image"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  LayoutDashboardIcon,
+  FileTextIcon,
+  UsersIcon,
+  BarChart3Icon,
+  ClockIcon,
+  UserCogIcon,
+  SettingsIcon,
+  HelpCircleIcon,
+  BellIcon,
+  LogOutIcon,
+  ActivityIcon,
+  HomeIcon,
+  UserIcon,
+  PlusIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertTriangleIcon
+} from "lucide-react"
+import { usePathname } from "next/navigation"
 
 // Definir los elementos del menú con permisos
-const getMenuItems = (userRole: UserRole) => {
+const getMenuItems = (userRole: string) => {
   const baseItems = [
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: HomeIcon,
-      description: "Overview and main dashboard",
+      icon: HomeIcon
     },
     {
       title: "Proposals",
       url: "/dashboard/proposals",
-      icon: FileTextIcon,
-      description: "View and vote on community proposals",
+      icon: FileTextIcon
     },
     {
       title: "Collaborators",
       url: "/dashboard/collaborators",
-      icon: UsersIcon,
-      description: "Browse profiles of community members",
+      icon: UsersIcon
     },
     {
       title: "WorkGroups & Guilds",
       url: "/dashboard/workgroups",
-      icon: ActivityIcon,
-      description: "Control panel for workgroups and guilds",
+      icon: BarChart3Icon
     },
-    {
-      title: "Quarterly Reports",
-      url: "/dashboard/quarterly-reports",
-      icon: BarChart3Icon,
-      description: "Quarterly reports and budgets",
-    },
+          {
+        title: "Quarterly Reports",
+        url: "/dashboard/quarterly-reports",
+        icon: FileTextIcon
+      },
     {
       title: "Consensus",
       url: "/dashboard/consensus",
-      icon: FileTextIcon,
-      description: "Vote and comment on quarterly reports",
+      icon: ClockIcon
     },
+    {
+      title: "Analytics",
+      url: "/dashboard/analytics",
+      icon: BarChart3Icon
+    }
   ]
 
   const adminItems = [
     {
       title: "Check Expired Proposals",
-      url: "/dashboard/admin/check-expired-proposals",
-      icon: TimerIcon,
-      description: "Update status of expired proposals",
-    },
-    {
-      title: "Analytics",
-      url: "/dashboard/admin/analytics",
-      icon: BarChart3Icon,
-      description: "View detailed analytics and reports",
-    },
+      url: "/dashboard/expired-proposals",
+      icon: AlertTriangleIcon
+    }
   ]
 
   const superAdminItems = [
     {
       title: "User Management",
-      url: "/dashboard/admin/users",
-      icon: UsersIcon,
-      description: "Manage user accounts and permissions",
+      url: "/dashboard/user-management",
+      icon: UserCogIcon
     },
     {
       title: "System Settings",
-      url: "/dashboard/admin/settings",
-      icon: SettingsIcon,
-      description: "Configure system-wide settings",
-    },
+      url: "/dashboard/system-settings",
+      icon: SettingsIcon
+    }
   ]
 
   const settingsItems = [
     {
       title: "Profile",
       url: "/dashboard/profile",
-      icon: UserCogIcon,
-      description: "Manage your profile and preferences",
-    },
+      icon: UserIcon
+    }
   ]
 
   const supportItems = [
     {
       title: "Help & Support",
-      url: "/dashboard/support",
-      icon: HelpCircleIcon,
-      description: "Get help and support",
+      url: "/dashboard/help",
+      icon: HelpCircleIcon
     },
     {
       title: "Notifications",
       url: "/dashboard/notifications",
-      icon: BellIcon,
-      description: "Manage your notifications",
-    },
+      icon: BellIcon
+    }
   ]
 
   return {
@@ -140,7 +118,7 @@ const getMenuItems = (userRole: UserRole) => {
     admin: userRole === "ADMIN" || userRole === "SUPER_ADMIN" ? adminItems : [],
     superAdmin: userRole === "SUPER_ADMIN" ? superAdminItems : [],
     settings: settingsItems,
-    support: supportItems,
+    support: supportItems
   }
 }
 
@@ -149,60 +127,33 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const pathname = usePathname()
-  const [currentPath, setCurrentPath] = useState("")
-  const [appUser, setAppUser] = useState({
-    name: "",
-    email: "",
-    image: "",
-    role: "CORE_CONTRIBUTOR" as UserRole,
-    status: "AVAILABLE" as UserAvailabilityStatus,
-  })
+  const { user, loading, refreshSession, signOut } = useSessionWithRefresh()
+  const currentPath = usePathname()
 
-  useEffect(() => {
-    if (status === "loading") {
-      return
-    }
-    
-    if (status === "unauthenticated") {
-      router.push("/api/auth/signin")
-      return
-    }
-
-    if (session?.user) {
-      setAppUser({
-        name: session.user.name || "",
-        email: session.user.email || "",
-        image: session.user.image || "",
-        role: session.user.role || "CORE_CONTRIBUTOR",
-        status: session.user.status || "AVAILABLE",
-      })
-    }
-  }, [session, status, router])
-
-  useEffect(() => {
-    setCurrentPath(pathname)
-  }, [pathname])
-
-  if (status === "loading") {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Loading...</div>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
       </div>
     )
   }
 
-  if (status === "unauthenticated") {
-    return null
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-gray-400">Please log in to access the dashboard.</p>
+        </div>
+      </div>
+    )
   }
 
-  const userRole = appUser.role
-  const userStatus = appUser.status
+  const userRole = user.role
+  const userStatus = user.status
   const menuItems = getMenuItems(userRole)
 
-  const getStatusBadgeInfo = (status?: UserAvailabilityStatus) => {
+  const getStatusBadgeInfo = (status?: string) => {
     switch (status) {
       case "AVAILABLE":
         return {
@@ -249,13 +200,13 @@ export default function DashboardLayout({
             {/* User information with profile image */}
             <div className="flex items-center gap-3 p-3 text-sm bg-gray-900/50 rounded-lg mx-2">
               <Avatar className="h-8 w-8 border-2 border-purple-500/30">
-                <AvatarImage src={appUser.image || undefined} alt={appUser.name || "User"} />
+                <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
                 <AvatarFallback className="bg-purple-600/20 text-purple-300 text-xs font-semibold">
-                  {appUser.name?.charAt(0)?.toUpperCase() || "U"}
+                  {user.name?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-bold text-white truncate text-sm">{appUser.name || "User"}</span>
+                <span className="font-bold text-white truncate text-sm">{user.name || "User"}</span>
                 <div className="flex items-center gap-1 mt-0.5">
                   <Badge
                     variant="outline"
@@ -391,45 +342,59 @@ export default function DashboardLayout({
 
           <SidebarFooter className="border-t border-gray-700">
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 w-full justify-start"
-                >
-                  <LogOutIcon className="h-4 w-4" />
-                  <span className="font-medium">Sign Out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                             <SidebarMenuItem>
+                 <SidebarMenuButton
+                   onClick={() => {
+                     // Usar el signOut del hook que ya está disponible
+                     signOut()
+                   }}
+                   className="text-gray-400 hover:text-red-400 hover:bg-red-500/10 w-full justify-start"
+                 >
+                   <LogOutIcon className="h-4 w-4" />
+                   <span className="font-medium">Sign Out</span>
+                 </SidebarMenuButton>
+               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
           <SidebarRail />
         </Sidebar>
 
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-700 px-4 bg-gray-900/50 backdrop-blur-md">
-            <SidebarTrigger className="text-gray-400 hover:text-white" />
-            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 sm:gap-4 border-b border-gray-700/50 px-4 sm:px-6 bg-transparent backdrop-blur-sm">
+            <SidebarTrigger className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700/50 flex-shrink-0" />
+            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-600 flex-shrink-0" />
 
-            {/* Logo centrado */}
-            <div className="flex-1 flex justify-center">
-              <Image
-                src="/logo.png"
-                alt="SingularityNET Logo"
-                width={120}
-                height={40}
-                className="object-contain"
-                style={{ height: "auto" }}
-                priority
-              />
+            {/* Logo centrado con mejor diseño */}
+            <div className="flex-1 flex justify-center min-w-0">
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/logo.png"
+                  alt="SingularityNET Logo"
+                  width={160}
+                  height={50}
+                  className="object-contain w-32 sm:w-40"
+                  style={{ height: "auto" }}
+                  priority
+                />
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <HomeIcon className="h-5 w-5 text-purple-400" />
-              <h1 className="text-lg font-bold tracking-wide">Dashboard</h1>
+            {/* Búsqueda global y controles */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <GlobalSearch />
+              
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-800/30 rounded-lg border border-gray-700/30 backdrop-blur-sm">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-300 font-medium">Live</span>
+              </div>
+              
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-800/30 rounded-lg border border-gray-700/30 backdrop-blur-sm">
+                <span className="text-xs text-gray-300 font-medium">Dashboard</span>
+              </div>
             </div>
           </header>
 
-          <main className="flex-1">
+          <main className="flex-1 p-6">
             {children}
           </main>
         </SidebarInset>
