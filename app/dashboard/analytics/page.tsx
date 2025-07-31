@@ -16,7 +16,9 @@ import {
   CheckCircleIcon,
   ClockIcon,
   AlertCircleIcon,
-  BuildingIcon
+  BuildingIcon,
+  FileTextIcon,
+  UserPlusIcon
 } from "lucide-react"
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton"
 
@@ -46,6 +48,21 @@ interface AnalyticsData {
     average: number
     byWorkGroup: { workGroup: string; amount: number }[]
   }
+  activity: {
+    recentReports: {
+      id: string
+      title: string
+      workGroup: string
+      status: string
+      createdAt: string
+    }[]
+    topWorkGroups: {
+      id: string
+      name: string
+      memberCount: number
+      status: string
+    }[]
+  }
 }
 
 export default function AnalyticsPage() {
@@ -57,53 +74,13 @@ export default function AnalyticsPage() {
       try {
         setLoading(true)
         
-        // Fetch data from APIs
-        const [reportsRes, workgroupsRes] = await Promise.all([
-          fetch("/api/reports"),
-          fetch("/api/workgroups")
-        ])
-        
-        const reports = await reportsRes.json()
-        const workgroups = await workgroupsRes.json()
-
-        // Process data for analytics
-        const processedData: AnalyticsData = {
-          quarterlyReports: {
-            total: reports.length,
-            pending: reports.filter((r: any) => r.consensusStatus === "PENDING").length,
-            inConsensus: reports.filter((r: any) => r.consensusStatus === "IN_CONSENSUS").length,
-            consensed: reports.filter((r: any) => r.consensusStatus === "CONSENSED").length,
-            byQuarter: processQuarterlyData(reports),
-            byWorkGroup: processWorkGroupData(reports)
-          },
-          workGroups: {
-            total: workgroups.length,
-            active: workgroups.filter((wg: any) => wg.status === "Active").length,
-            inactive: workgroups.filter((wg: any) => wg.status === "Inactive").length,
-            byType: processWorkGroupTypes(workgroups)
-          },
-          participants: {
-            total: reports.reduce((sum: number, r: any) => sum + r.participants?.length || 0, 0),
-            active: reports.reduce((sum: number, r: any) => sum + (r.participants?.length || 0), 0),
-            newThisMonth: Math.floor(Math.random() * 20) + 5, // Mock data
-            byRole: [
-              { role: "Core Contributors", count: Math.floor(Math.random() * 50) + 20 },
-              { role: "Community Members", count: Math.floor(Math.random() * 100) + 50 },
-              { role: "Admins", count: Math.floor(Math.random() * 10) + 5 }
-            ]
-          },
-          budget: {
-            total: reports.reduce((sum: number, r: any) => 
-              sum + r.budgetItems?.reduce((itemSum: number, item: any) => itemSum + (item.amountUsd || 0), 0) || 0, 0
-            ),
-            average: 0,
-            byWorkGroup: processBudgetData(reports)
-          }
+        const response = await fetch("/api/analytics")
+        if (!response.ok) {
+          throw new Error("Failed to fetch analytics data")
         }
-
-        processedData.budget.average = processedData.budget.total / processedData.quarterlyReports.total || 0
         
-        setAnalyticsData(processedData)
+        const data = await response.json()
+        setAnalyticsData(data)
       } catch (error) {
         console.error("Error fetching analytics data:", error)
       } finally {
@@ -113,41 +90,6 @@ export default function AnalyticsPage() {
 
     fetchAnalyticsData()
   }, [])
-
-  const processQuarterlyData = (reports: any[]) => {
-    const quarters = ["Q1", "Q2", "Q3", "Q4"]
-    return quarters.map(quarter => ({
-      quarter,
-      count: reports.filter(r => r.quarter === quarter).length
-    }))
-  }
-
-  const processWorkGroupData = (reports: any[]) => {
-    const workGroupCounts: { [key: string]: number } = {}
-    reports.forEach(report => {
-      const workGroupName = report.workGroup?.name || "Unknown"
-      workGroupCounts[workGroupName] = (workGroupCounts[workGroupName] || 0) + 1
-    })
-    return Object.entries(workGroupCounts).map(([workGroup, count]) => ({ workGroup, count }))
-  }
-
-  const processWorkGroupTypes = (workgroups: any[]) => {
-    const typeCounts: { [key: string]: number } = {}
-    workgroups.forEach(wg => {
-      typeCounts[wg.type] = (typeCounts[wg.type] || 0) + 1
-    })
-    return Object.entries(typeCounts).map(([type, count]) => ({ type, count }))
-  }
-
-  const processBudgetData = (reports: any[]) => {
-    const budgetByWorkGroup: { [key: string]: number } = {}
-    reports.forEach(report => {
-      const workGroupName = report.workGroup?.name || "Unknown"
-      const budget = report.budgetItems?.reduce((sum: number, item: any) => sum + (item.amountUsd || 0), 0) || 0
-      budgetByWorkGroup[workGroupName] = (budgetByWorkGroup[workGroupName] || 0) + budget
-    })
-    return Object.entries(budgetByWorkGroup).map(([workGroup, amount]) => ({ workGroup, amount }))
-  }
 
   if (loading) {
     return <LoadingSkeleton type="page" />
@@ -169,6 +111,24 @@ export default function AnalyticsPage() {
     )
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "CONSENSED": return "text-green-400"
+      case "IN_CONSENSUS": return "text-yellow-400"
+      case "PENDING": return "text-blue-400"
+      default: return "text-gray-400"
+    }
+  }
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case "CONSENSED": return "bg-green-500/20 text-green-300 border-green-500/30"
+      case "IN_CONSENSUS": return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+      case "PENDING": return "bg-blue-500/20 text-blue-300 border-blue-500/30"
+      default: return "bg-gray-500/20 text-gray-300 border-gray-500/30"
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -187,7 +147,7 @@ export default function AnalyticsPage() {
         <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/30">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <BarChart3Icon className="w-5 h-5 text-blue-400" />
+              <FileTextIcon className="w-5 h-5 text-blue-400" />
               <div>
                 <p className="text-sm text-gray-400 font-medium">Total Reports</p>
                 <p className="text-2xl font-bold text-white">{analyticsData.quarterlyReports.total}</p>
@@ -341,6 +301,59 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Reports */}
+        <Card className="bg-gray-900 border-gray-700">
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <ActivityIcon className="w-5 h-5 text-blue-400" />
+              <h3 className="text-lg font-bold text-white tracking-wide">Recent Reports</h3>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {analyticsData.activity.recentReports.map((report, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white truncate">{report.title}</p>
+                    <p className="text-xs text-gray-400">{report.workGroup}</p>
+                  </div>
+                  <Badge className={getStatusBadgeColor(report.status)}>
+                    {report.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Work Groups */}
+        <Card className="bg-gray-900 border-gray-700">
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <BuildingIcon className="w-5 h-5 text-green-400" />
+              <h3 className="text-lg font-bold text-white tracking-wide">Top Work Groups</h3>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {analyticsData.activity.topWorkGroups.map((workgroup, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white truncate">{workgroup.name}</p>
+                    <p className="text-xs text-gray-400">{workgroup.status}</p>
+                  </div>
+                  <Badge variant="outline" className="text-green-400">
+                    {workgroup.memberCount} members
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quarterly Reports by Quarter */}
@@ -395,6 +408,45 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-gray-900 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserPlusIcon className="w-5 h-5 text-purple-400" />
+              <div>
+                <p className="text-sm text-gray-400 font-medium">New This Month</p>
+                <p className="text-2xl font-bold text-white">{analyticsData.participants.newThisMonth}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-900 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <DollarSignIcon className="w-5 h-5 text-green-400" />
+              <div>
+                <p className="text-sm text-gray-400 font-medium">Avg Budget/Report</p>
+                <p className="text-2xl font-bold text-white">${(analyticsData.budget.average / 1000).toFixed(1)}K</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-900 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <TargetIcon className="w-5 h-5 text-orange-400" />
+              <div>
+                <p className="text-sm text-gray-400 font-medium">Total Participants</p>
+                <p className="text-2xl font-bold text-white">{analyticsData.participants.total}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
