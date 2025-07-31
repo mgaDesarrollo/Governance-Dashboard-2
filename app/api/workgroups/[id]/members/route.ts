@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const workGroupId = params.id
+    const { id: workGroupId } = await params
     const members = await prisma.workGroupMember.findMany({
       where: { workGroupId },
       select: {

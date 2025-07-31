@@ -154,6 +154,7 @@ export type PastBudget = {
 
 export type WorkGroup = {
   // 1. Basic Identification
+  id?: string;
   name: string;
   type: string;
   dateOfCreation: string;

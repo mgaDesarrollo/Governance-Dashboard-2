@@ -352,7 +352,7 @@ export default function QuarterlyReportsPage() {
           Create Report
         </button>
       </div>
-      <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
+      <h1 className="text-3xl font-bold mb-6 flex items-center gap-3 text-white tracking-wide">
         <FileTextIcon className="w-8 h-8 text-purple-400" />
         Quarterly Reports
       </h1>

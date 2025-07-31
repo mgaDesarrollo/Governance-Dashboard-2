@@ -227,7 +227,7 @@ export default function UserManagementPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <UserPlusIcon className="h-6 w-6 text-purple-400" />
-            <CardTitle className="text-xl">User Creation Note</CardTitle>
+            <CardTitle className="text-xl font-bold tracking-wide">User Creation Note</CardTitle>
           </div>
           <CardDescription className="text-slate-400">
             Users are automatically added to the system with a 'Core Contributor' role upon their first login via
@@ -242,7 +242,7 @@ export default function UserManagementPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-2">
               <UsersIcon className="h-6 w-6 text-purple-400" />
-              <CardTitle className="text-xl">Manage User Roles</CardTitle>
+              <CardTitle className="text-xl font-bold tracking-wide">Manage User Roles</CardTitle>
             </div>
             <div className="relative w-full sm:w-64">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />

@@ -1,271 +1,198 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-provider = "postgresql"
-url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-SUPER_ADMIN
-ADMIN
-CORE_CONTRIBUTOR
-}
-
-// Nuevo enum para el estado de disponibilidad del usuario
-enum UserAvailabilityStatus {
-AVAILABLE
-BUSY
-VERY_BUSY
-}
-
-enum ProposalStatus {
-IN_REVIEW
-APPROVED
-REJECTED
-EXPIRED
-}
-
-enum VoteType {
-POSITIVE
-NEGATIVE
-ABSTAIN
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-id            String    @id
-name          String
-email         String?
-image         String?
-role          UserRole  @default(CORE_CONTRIBUTOR)
-createdAt     DateTime  @default(now())
-updatedAt     DateTime  @updatedAt
-
-// Campos existentes
-walletAddress String?   @db.Text
-status        UserAvailabilityStatus? @default(AVAILABLE)
-reputation    Int       @default(0)      // Puntuación de reputación
-fullname      String?   @db.VarChar(255) // Nombre completo opcional
-
-// Nuevos campos solicitados
-skills        String?   @db.Text // Usamos Text para mayor flexibilidad que Varchar(255)
-country       String?   @db.VarChar(255)
-languages     String?   @db.Text // Usamos Text para mayor flexibilidad
-
-// Relaciones
-proposals           Proposal[]
-votes               Vote[]
-comments            Comment[]
-professionalProfile ProfessionalProfile?
-socialLinks         SocialLinks?
-workgroups          WorkGroup[] @relation("UserWorkgroups") // Relación muchos a muchos con WorkGroup
-workGroups          WorkGroupMember[]
-createdQuarterlyReports QuarterlyReport[] @relation("CreatedQuarterlyReports")
-quarterlyReportParticipants QuarterlyReportParticipant[]
-quarterlyReportComments QuarterlyReportComment[]
-  joinRequests        WorkGroupJoinRequest[]
-  consensusVotes      ConsensusVote[] // Relación con votos de consenso
-  consensusComments   ConsensusComment[] // Relación con comentarios de consenso
-  resolvedObjections  Objection[] // Relación con objeciones resueltas por este usuario
-
+  id                          String                       @id
+  name                        String
+  email                       String?
+  image                       String?
+  role                        UserRole                     @default(CORE_CONTRIBUTOR)
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  walletAddress               String?
+  status                      UserAvailabilityStatus?      @default(AVAILABLE)
+  reputation                  Int                          @default(0)
+  fullname                    String?                      @db.VarChar(255)
+  skills                      String?
+  country                     String?                      @db.VarChar(255)
+  languages                   String?
+  comments                    Comment[]
+  consensusComments           ConsensusComment[]
+  consensusVotes              ConsensusVote[]
+  resolvedObjections          Objection[]
+  professionalProfile         ProfessionalProfile?
+  proposals                   Proposal[]
+  createdQuarterlyReports     QuarterlyReport[]            @relation("CreatedQuarterlyReports")
+  quarterlyReportComments     QuarterlyReportComment[]
+  quarterlyReportParticipants QuarterlyReportParticipant[]
+  socialLinks                 SocialLinks?
+  votes                       Vote[]
+  joinRequests                WorkGroupJoinRequest[]
+  workGroups                  WorkGroupMember[]
+  workgroups                  WorkGroup[]                  @relation("UserWorkgroups")
 }
 
-// Nueva tabla para el perfil profesional
 model ProfessionalProfile {
-id         String   @id @default(cuid())
-userId     String   @unique
-tagline    String?  @db.VarChar(255)
-bio        String?  @db.Text
-experience String?  @db.Text
-linkCv     String?  @db.VarChar(2048)
-createdAt  DateTime @default(now())
-updatedAt  DateTime @updatedAt
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  tagline    String?  @db.VarChar(255)
+  bio        String?
+  experience String?
+  linkCv     String?  @db.VarChar(2048)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-@@index([userId])
-
+  @@index([userId])
 }
 
-// Nueva tabla para los enlaces sociales
 model SocialLinks {
-id        String   @id @default(cuid())
-userId    String   @unique
-facebook  String?  @db.VarChar(2048)
-linkedin  String?  @db.VarChar(2048)
-github    String?  @db.VarChar(2048)
-x         String?  @db.VarChar(2048) // Para Twitter/X
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  facebook  String?  @db.VarChar(2048)
+  linkedin  String?  @db.VarChar(2048)
+  github    String?  @db.VarChar(2048)
+  x         String?  @db.VarChar(2048)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-@@index([userId])
+  @@index([userId])
 }
-
-// Elimina el modelo Workgroup (minúscula) y usa solo WorkGroup (mayúscula)
-// Cambia todas las referencias de Workgroup a WorkGroup
-
-// Elimina este bloque si existe:
-// model Workgroup {
-//   ...
-// }
-
-// Asegúrate de que todas las relaciones sean con WorkGroup
-// Por ejemplo, en Proposal:
-// workgroupId   String?        // Clave foránea opcional para WorkGroup
-// workgroup     WorkGroup?     @relation(fields: [workgroupId], references: [id])
-
-// En QuarterlyReport:
-// workGroupId   String
-// workGroup     WorkGroup @relation(fields: [workGroupId], references: [id])
-
-// En WorkGroup:
-// quarterlyReports QuarterlyReport[]
 
 model Proposal {
-id            String         @id @default(cuid())
-title         String
-description   String
-createdAt     DateTime       @default(now())
-updatedAt     DateTime       @updatedAt  // Este campo ya existe y se actualiza automáticamente
-expiresAt     DateTime
-status        ProposalStatus @default(IN_REVIEW)
-positiveVotes Int            @default(0)
-negativeVotes Int            @default(0)
-abstainVotes  Int            @default(0)
+  id            String         @id @default(cuid())
+  title         String
+  description   String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  expiresAt     DateTime
+  status        ProposalStatus @default(IN_REVIEW)
+  positiveVotes Int            @default(0)
+  negativeVotes Int            @default(0)
+  abstainVotes  Int            @default(0)
+  authorId      String
+  workgroupId   String?
+  comments      Comment[]
+  author        User           @relation(fields: [authorId], references: [id])
+  workgroup     WorkGroup?     @relation(fields: [workgroupId], references: [id])
+  votes         Vote[]
 
-// Relations
-authorId      String
-author        User           @relation(fields: [authorId], references: [id])
-votes         Vote[]
-comments      Comment[]
-
-// Nueva relación con WorkGroup
-workgroupId   String?        // Clave foránea opcional para WorkGroup
-workgroup     WorkGroup?     @relation(fields: [workgroupId], references: [id])
-
-@@index([authorId])
-@@index([workgroupId])
+  @@index([authorId])
+  @@index([workgroupId])
 }
 
 model Vote {
-id         String   @id @default(cuid())
-type       VoteType
-createdAt  DateTime @default(now())
-updatedAt  DateTime @updatedAt
+  id         String   @id @default(cuid())
+  type       VoteType
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
-// Relations
-userId     String
-user       User     @relation(fields: [userId], references: [id])
-proposalId String
-proposal   Proposal @relation(fields: [proposalId], references: [id])
-
-@@unique([userId, proposalId])
-@@index([userId])
-@@index([proposalId])
+  @@unique([userId, proposalId])
+  @@index([userId])
+  @@index([proposalId])
 }
 
 model Comment {
-id         String   @id @default(cuid())
-content    String
-createdAt  DateTime @default(now())
-updatedAt  DateTime @updatedAt
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
-// Relations
-userId     String
-user       User     @relation(fields: [userId], references: [id])
-proposalId String
-proposal   Proposal @relation(fields: [proposalId], references: [id])
-
-@@unique([userId, proposalId]) // Un usuario solo puede comentar una vez por propuesta
-@@index([userId])
-@@index([proposalId])
+  @@unique([userId, proposalId])
+  @@index([userId])
+  @@index([proposalId])
 }
 
 model WorkGroup {
-  id                 String   @id @default(uuid())
-  name               String   @unique
-  type               String
-  dateOfCreation     DateTime
-  status             String
-  missionStatement   String
-  goalsAndFocus      String[] // Array de strings (PostgreSQL recomendado)
-  totalMembers       String
-  roles              String[] // Array de strings
+  id                  String                 @id @default(uuid())
+  name                String                 @unique
+  type                String
+  dateOfCreation      DateTime
+  status              String
+  missionStatement    String
+  goalsAndFocus       String[]
+  totalMembers        String
+  roles               String[]
   memberDirectoryLink String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  members WorkGroupMember[]
-  joinRequests       WorkGroupJoinRequest[]
-  quarterlyReports   QuarterlyReport[]
-  proposals Proposal[]
-  users User[] @relation("UserWorkgroups")
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  proposals           Proposal[]
+  quarterlyReports    QuarterlyReport[]
+  joinRequests        WorkGroupJoinRequest[]
+  members             WorkGroupMember[]
+  users               User[]                 @relation("UserWorkgroups")
 }
 
 model WorkGroupMember {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   userId      String
   workGroupId String
-  role        String   // Ej: "member", "admin", etc.
-  joinedAt    DateTime @default(now())
-
+  role        String
+  joinedAt    DateTime  @default(now())
   user        User      @relation(fields: [userId], references: [id])
   workGroup   WorkGroup @relation(fields: [workGroupId], references: [id])
 }
 
 model WorkGroupJoinRequest {
-  id           String   @id @default(uuid())
-  userId       String   // ID del usuario que solicita (ajusta según tu modelo de usuario)
-  workGroupId  String
-  status       String   // "pending", "approved", "rejected"
-  message      String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  workGroup    WorkGroup @relation(fields: [workGroupId], references: [id])
-  user        User      @relation(fields: [userId], references: [id]) // Si tienes modelo User
+  id          String    @id @default(uuid())
+  userId      String
+  workGroupId String
+  status      String
+  message     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+  workGroup   WorkGroup @relation(fields: [workGroupId], references: [id])
 }
 
 model QuarterlyReport {
-  id            String   @id @default(uuid())
-  workGroupId   String
-  workGroup     WorkGroup @relation(fields: [workGroupId], references: [id])
-  year          Int
-  quarter       String   // "Q1", "Q2", "Q3", "Q4"
-  detail        String   // Breve detalle del reporte
-  theoryOfChange String  // Teoría de cambios / objetivo
-  challenges    Json     // Desafíos y aprendizajes: array de objetos { text, completed }
-  plans         String   // Planes para el próximo trimestre
-  createdById   String   // Usuario que crea el reporte
-  createdBy     User     @relation("CreatedQuarterlyReports", fields: [createdById], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  consensusStatus ConsensusStatus @default(PENDING) // Nuevo campo para el estado de consenso
-
-  participants  QuarterlyReportParticipant[]
-  budgetItems   QuarterlyReportBudgetItem[]
-  comments      QuarterlyReportComment[]
-  consensusVotes ConsensusVote[] // Relación con votos de consenso
-  consensusComments ConsensusComment[] // Relación con comentarios de consenso
-  votingRounds VotingRound[] // Relación con rondas de votación
+  id                String                       @id @default(uuid())
+  workGroupId       String
+  year              Int
+  quarter           String
+  detail            String
+  theoryOfChange    String
+  plans             String
+  createdById       String
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+  challenges        Json
+  consensusStatus   ConsensusStatus              @default(PENDING)
+  consensusComments ConsensusComment[]
+  consensusVotes    ConsensusVote[]
+  createdBy         User                         @relation("CreatedQuarterlyReports", fields: [createdById], references: [id])
+  workGroup         WorkGroup                    @relation(fields: [workGroupId], references: [id])
+  budgetItems       QuarterlyReportBudgetItem[]
+  comments          QuarterlyReportComment[]
+  participants      QuarterlyReportParticipant[]
+  votingRounds      VotingRound[]
 }
 
 model QuarterlyReportParticipant {
-  id                String   @id @default(uuid())
+  id                String          @id @default(uuid())
   quarterlyReportId String
   userId            String
-  user              User     @relation(fields: [userId], references: [id])
   quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
+  user              User            @relation(fields: [userId], references: [id])
 }
 
 model QuarterlyReportBudgetItem {
-  id                String   @id @default(uuid())
+  id                String          @id @default(uuid())
   quarterlyReportId String
   name              String
   description       String
@@ -274,19 +201,110 @@ model QuarterlyReportBudgetItem {
 }
 
 model QuarterlyReportComment {
-  id                String   @id @default(uuid())
+  id                String          @id @default(uuid())
   quarterlyReportId String
   userId            String
   content           String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
   quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
-  user              User     @relation(fields: [userId], references: [id])
+  user              User            @relation(fields: [userId], references: [id])
 
-  @@unique([quarterlyReportId, userId]) // Solo un comentario por usuario por reporte
+  @@unique([quarterlyReportId, userId])
 }
 
-// Nuevos enums para el sistema de consenso
+model ConsensusVote {
+  id        String            @id @default(uuid())
+  userId    String
+  reportId  String
+  voteType  ConsensusVoteType
+  comment   String
+  roundId   String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  report    QuarterlyReport   @relation(fields: [reportId], references: [id])
+  round     VotingRound       @relation(fields: [roundId], references: [id])
+  user      User              @relation(fields: [userId], references: [id])
+  objection Objection?
+
+  @@unique([userId, roundId])
+  @@index([reportId])
+  @@index([roundId])
+}
+
+model ConsensusComment {
+  id              String             @id @default(uuid())
+  userId          String
+  reportId        String
+  parentCommentId String?
+  content         String
+  likes           String[]
+  dislikes        String[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  parentComment   ConsensusComment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         ConsensusComment[] @relation("CommentReplies")
+  report          QuarterlyReport    @relation(fields: [reportId], references: [id])
+  user            User               @relation(fields: [userId], references: [id])
+
+  @@index([reportId])
+  @@index([parentCommentId])
+}
+
+model Objection {
+  id           String          @id @default(uuid())
+  voteId       String          @unique
+  status       ObjectionStatus @default(PENDIENTE)
+  resolvedById String?
+  resolvedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  resolvedBy   User?           @relation(fields: [resolvedById], references: [id])
+  vote         ConsensusVote   @relation(fields: [voteId], references: [id])
+
+  @@index([status])
+}
+
+model VotingRound {
+  id          String            @id @default(uuid())
+  reportId    String
+  roundNumber Int
+  status      VotingRoundStatus @default(ACTIVA)
+  startedAt   DateTime          @default(now())
+  endedAt     DateTime?
+  votes       ConsensusVote[]
+  report      QuarterlyReport   @relation(fields: [reportId], references: [id])
+
+  @@unique([reportId, roundNumber])
+  @@index([reportId])
+  @@index([status])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CORE_CONTRIBUTOR
+}
+
+enum UserAvailabilityStatus {
+  AVAILABLE
+  BUSY
+  VERY_BUSY
+}
+
+enum ProposalStatus {
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum VoteType {
+  POSITIVE
+  NEGATIVE
+  ABSTAIN
+}
+
 enum ConsensusStatus {
   PENDING
   IN_CONSENSUS
@@ -310,76 +328,4 @@ enum VotingRoundStatus {
   ACTIVA
   CERRADA
   CONSENSADA
-}
-
-// Nuevos modelos para el sistema de consenso
-model ConsensusVote {
-  id        String            @id @default(uuid())
-  userId    String
-  reportId  String
-  voteType  ConsensusVoteType
-  comment   String            // Justificación obligatoria
-  roundId   String
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  user      User              @relation(fields: [userId], references: [id])
-  report    QuarterlyReport   @relation(fields: [reportId], references: [id])
-  round     VotingRound      @relation(fields: [roundId], references: [id])
-  objection Objection?
-
-  @@unique([userId, roundId]) // Un usuario solo puede votar una vez por ronda
-  @@index([reportId])
-  @@index([roundId])
-}
-
-model ConsensusComment {
-  id              String   @id @default(uuid())
-  userId          String
-  reportId        String
-  parentCommentId String?  // Para respuestas anidadas
-  content         String
-  likes           String[] // Array de userIds que dieron like
-  dislikes        String[] // Array de userIds que dieron dislike
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user            User     @relation(fields: [userId], references: [id])
-  report          QuarterlyReport @relation(fields: [reportId], references: [id])
-  parentComment   ConsensusComment? @relation("CommentReplies", fields: [parentCommentId], references: [id])
-  replies         ConsensusComment[] @relation("CommentReplies")
-
-  @@index([reportId])
-  @@index([parentCommentId])
-}
-
-model Objection {
-  id           String          @id @default(uuid())
-  voteId       String          @unique // Una objeción por voto
-  status       ObjectionStatus @default(PENDIENTE)
-  resolvedById String?         // El admin que la resolvió
-  resolvedAt   DateTime?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-
-  vote         ConsensusVote   @relation(fields: [voteId], references: [id])
-  resolvedBy   User?           @relation(fields: [resolvedById], references: [id])
-
-  @@index([status])
-}
-
-model VotingRound {
-  id          String            @id @default(uuid())
-  reportId    String
-  roundNumber Int
-  status      VotingRoundStatus @default(ACTIVA)
-  startedAt   DateTime          @default(now())
-  endedAt     DateTime?
-
-  report      QuarterlyReport   @relation(fields: [reportId], references: [id])
-  votes       ConsensusVote[]
-
-  @@unique([reportId, roundNumber]) // Una ronda por número por reporte
-  @@index([reportId])
-  @@index([status])
 }

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -127,48 +127,34 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
   const router = useRouter()
   const [report, setReport] = useState<Report | null>(null)
   const [votes, setVotes] = useState<Vote[]>([])
-  const [comments, setComments] = useState<Comment[]>([])
   const [voteStats, setVoteStats] = useState<VoteStats>({ aFavor: 0, enContra: 0, objetar: 0, abstenerse: 0, total: 0 })
+  const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
-  // Voting state
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [showVoteDialog, setShowVoteDialog] = useState(false)
   const [selectedVoteType, setSelectedVoteType] = useState<string>("")
   const [voteComment, setVoteComment] = useState("")
-  const [showVoteDialog, setShowVoteDialog] = useState(false)
   const [submittingVote, setSubmittingVote] = useState(false)
-  
-  // Comment state
   const [newComment, setNewComment] = useState("")
   const [submittingComment, setSubmittingComment] = useState(false)
-  
-  // Admin state
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [adminLoading, setAdminLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("overview")
-
-  const resolvedParams = React.use(params)
-  const reportId = resolvedParams.reportId
+  const [creatingRound, setCreatingRound] = useState(false)
 
   useEffect(() => {
-    if (!session) {
-      router.push("/api/auth/signin")
-      return
+    const fetchData = async () => {
+      const { reportId } = await params
+      fetchReportData(reportId)
     }
-    
-    // Check if user is admin
-    const checkAdminStatus = () => {
-      const userRole = session?.user?.role
-      // For now, we'll check if user is SUPER_ADMIN or if they have admin role
-      // The workGroups property might not be available in the session
-      setIsAdmin(userRole === "SUPER_ADMIN" || userRole === "ADMIN")
-    }
-    
-    checkAdminStatus()
-    fetchReportData()
-  }, [session, reportId])
+    fetchData()
+  }, [params])
 
-  const fetchReportData = async () => {
+  const checkAdminStatus = () => {
+    if (!session?.user) return false
+    const userRole = (session.user as any).role
+    return userRole === "ADMIN" || userRole === "SUPER_ADMIN"
+  }
+
+  const fetchReportData = async (reportId: string) => {
     try {
       setLoading(true)
       setError(null)
@@ -176,7 +162,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
       // Fetch report details
       const reportResponse = await fetch(`/api/quarterly-reports/${reportId}`)
       if (!reportResponse.ok) {
-        throw new Error("Error fetching report")
+        throw new Error("Failed to fetch report")
       }
       const reportData = await reportResponse.json()
       setReport(reportData)
@@ -186,7 +172,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
       if (votesResponse.ok) {
         const votesData = await votesResponse.json()
         setVotes(votesData.votes || [])
-        setVoteStats(votesData.stats || { aFavor: 0, enContra: 0, objetar: 0, abstenerse: 0, total: 0 })
+        setVoteStats(votesData.statistics || { aFavor: 0, enContra: 0, objetar: 0, abstenerse: 0, total: 0 })
       }
 
       // Fetch comments
@@ -195,6 +181,8 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
         const commentsData = await commentsResponse.json()
         setComments(commentsData)
       }
+
+      setIsAdmin(checkAdminStatus())
     } catch (err) {
       console.error("Error fetching report data:", err)
       setError("Error loading report data")
@@ -204,35 +192,50 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
   }
 
   const handleVote = async () => {
-    if (!selectedVoteType || voteComment.length < 10) {
+    if (!selectedVoteType) return
+
+    // Only validate comment for objections
+    if (selectedVoteType === "OBJETAR" && (!voteComment.trim() || voteComment.length < 10)) {
+      alert("Objections require a minimum of 10 characters justification")
       return
     }
 
     try {
       setSubmittingVote(true)
+      setCreatingRound(true)
       const response = await fetch("/api/votes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reportId,
+          reportId: report?.id,
           voteType: selectedVoteType,
           comment: voteComment
         })
       })
 
-      if (response.ok) {
-        setShowVoteDialog(false)
-        setSelectedVoteType("")
-        setVoteComment("")
-        await fetchReportData() // Refresh data
-      } else {
+      if (!response.ok) {
         const errorData = await response.json()
-        setError(errorData.error || "Error submitting vote")
+        throw new Error(errorData.error || "Failed to submit vote")
       }
+
+      // Refresh votes
+      const votesResponse = await fetch(`/api/reports/${report?.id}/votes`)
+      if (votesResponse.ok) {
+        const votesData = await votesResponse.json()
+        setVotes(votesData.votes || [])
+        setVoteStats(votesData.statistics || { aFavor: 0, enContra: 0, objetar: 0, abstenerse: 0, total: 0 })
+      }
+
+      setShowVoteDialog(false)
+      setSelectedVoteType("")
+      setVoteComment("")
     } catch (err) {
-      setError("Error submitting vote")
+      console.error("Error submitting vote:", err)
+      const errorMessage = err instanceof Error ? err.message : "Error submitting vote"
+      alert(errorMessage)
     } finally {
       setSubmittingVote(false)
+      setCreatingRound(false)
     }
   }
 
@@ -245,20 +248,26 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reportId,
+          reportId: report?.id,
           content: newComment
         })
       })
 
-      if (response.ok) {
-        setNewComment("")
-        await fetchReportData() // Refresh comments
-      } else {
-        const errorData = await response.json()
-        setError(errorData.error || "Error submitting comment")
+      if (!response.ok) {
+        throw new Error("Failed to submit comment")
       }
+
+      // Refresh comments
+      const commentsResponse = await fetch(`/api/reports/${report?.id}/comments`)
+      if (commentsResponse.ok) {
+        const commentsData = await commentsResponse.json()
+        setComments(commentsData)
+      }
+
+      setNewComment("")
     } catch (err) {
-      setError("Error submitting comment")
+      console.error("Error submitting comment:", err)
+      alert("Error submitting comment")
     } finally {
       setSubmittingComment(false)
     }
@@ -270,17 +279,25 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reportId,
-          content,
-          parentCommentId
+          reportId: report?.id,
+          parentCommentId,
+          content
         })
       })
 
-      if (response.ok) {
-        await fetchReportData() // Refresh comments
+      if (!response.ok) {
+        throw new Error("Failed to submit reply")
+      }
+
+      // Refresh comments
+      const commentsResponse = await fetch(`/api/reports/${report?.id}/comments`)
+      if (commentsResponse.ok) {
+        const commentsData = await commentsResponse.json()
+        setComments(commentsData)
       }
     } catch (err) {
-      setError("Error submitting reply")
+      console.error("Error submitting reply:", err)
+      alert("Error submitting reply")
     }
   }
 
@@ -291,10 +308,15 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
       })
 
       if (response.ok) {
-        await fetchReportData() // Refresh comments
+        // Refresh comments
+        const commentsResponse = await fetch(`/api/reports/${report?.id}/comments`)
+        if (commentsResponse.ok) {
+          const commentsData = await commentsResponse.json()
+          setComments(commentsData)
+        }
       }
     } catch (err) {
-      setError("Error liking comment")
+      console.error("Error liking comment:", err)
     }
   }
 
@@ -305,17 +327,20 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
       })
 
       if (response.ok) {
-        await fetchReportData() // Refresh comments
+        // Refresh comments
+        const commentsResponse = await fetch(`/api/reports/${report?.id}/comments`)
+        if (commentsResponse.ok) {
+          const commentsData = await commentsResponse.json()
+          setComments(commentsData)
+        }
       }
     } catch (err) {
-      setError("Error disliking comment")
+      console.error("Error disliking comment:", err)
     }
   }
 
-  // Admin functions
   const handleResolveObjection = async (objectionId: string, status: "VALIDA" | "INVALIDA") => {
     try {
-      setAdminLoading(true)
       const response = await fetch(`/api/objections/${objectionId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -323,57 +348,58 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
       })
 
       if (response.ok) {
-        await fetchReportData() // Refresh data
-      } else {
-        const errorData = await response.json()
-        setError(errorData.error || "Error resolving objection")
+        // Refresh votes
+        const votesResponse = await fetch(`/api/reports/${report?.id}/votes`)
+        if (votesResponse.ok) {
+          const votesData = await votesResponse.json()
+          setVotes(votesData.votes || [])
+        }
       }
     } catch (err) {
-      setError("Error resolving objection")
-    } finally {
-      setAdminLoading(false)
+      console.error("Error resolving objection:", err)
+      alert("Error resolving objection")
     }
   }
 
   const handleNewVotingRound = async () => {
     try {
-      setAdminLoading(true)
-      const response = await fetch(`/api/reports/${reportId}/rounds`, {
+      const response = await fetch(`/api/reports/${report?.id}/rounds`, {
         method: "POST"
       })
 
       if (response.ok) {
-        await fetchReportData() // Refresh data
+        // Refresh report data
+        fetchReportData(report?.id || "")
       } else {
         const errorData = await response.json()
-        setError(errorData.error || "Error starting new round")
+        throw new Error(errorData.error || "Failed to create new voting round")
       }
     } catch (err) {
-      setError("Error starting new round")
-    } finally {
-      setAdminLoading(false)
+      console.error("Error creating new voting round:", err)
+      const errorMessage = err instanceof Error ? err.message : "Error creating new voting round"
+      alert(errorMessage)
     }
   }
 
   const handleMarkConsensus = async (status: "CONSENSED" | "REJECTED") => {
     try {
-      setAdminLoading(true)
-      const response = await fetch(`/api/reports/${reportId}/consensus-status`, {
+      const response = await fetch(`/api/reports/${report?.id}/consensus-status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ consensusStatus: status })
       })
 
       if (response.ok) {
-        await fetchReportData() // Refresh data
+        // Refresh report data
+        fetchReportData(report?.id || "")
       } else {
         const errorData = await response.json()
-        setError(errorData.error || "Error updating consensus status")
+        throw new Error(errorData.error || "Failed to mark consensus")
       }
     } catch (err) {
-      setError("Error updating consensus status")
-    } finally {
-      setAdminLoading(false)
+      console.error("Error marking consensus:", err)
+      const errorMessage = err instanceof Error ? err.message : "Error marking consensus"
+      alert(errorMessage)
     }
   }
 
@@ -389,25 +415,25 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
   const getVoteTypeLabel = (type: string) => {
     switch (type) {
-      case "A_FAVOR": return "A Favor"
-      case "EN_CONTRA": return "En Contra"
-      case "OBJETAR": return "Objetar"
-      case "ABSTENERSE": return "Abstenerse"
+      case "A_FAVOR": return "1. CONSENT"
+      case "EN_CONTRA": return "2. OPPOSE"
+      case "OBJETAR": return "2. OBJECT"
+      case "ABSTENERSE": return "3. ABSTAIN"
       default: return type
     }
   }
 
   const getObjectionStatusBadge = (status: string) => {
     switch (status) {
-      case "PENDIENTE": return <Badge variant="secondary">Pendiente</Badge>
-      case "VALIDA": return <Badge variant="destructive">Válida</Badge>
-      case "INVALIDA": return <Badge variant="outline">Inválida</Badge>
+      case "PENDIENTE": return <Badge variant="secondary">Pending</Badge>
+      case "VALIDA": return <Badge variant="destructive">Valid</Badge>
+      case "INVALIDA": return <Badge variant="outline">Invalid</Badge>
       default: return <Badge variant="secondary">{status}</Badge>
     }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -416,20 +442,28 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
     })
   }
 
+  const isCommentRequired = (voteType: string) => {
+    return voteType === "OBJETAR"
+  }
+
+  const getMinCommentLength = (voteType: string) => {
+    return voteType === "OBJETAR" ? 10 : 0
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 p-6">
+      <div className="min-h-screen bg-black p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-1/4 mb-6"></div>
+            <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <div className="h-64 bg-slate-700 rounded"></div>
-                <div className="h-32 bg-slate-700 rounded"></div>
+                <div className="h-64 bg-gray-700 rounded"></div>
+                <div className="h-32 bg-gray-700 rounded"></div>
               </div>
               <div className="space-y-6">
-                <div className="h-48 bg-slate-700 rounded"></div>
-                <div className="h-32 bg-slate-700 rounded"></div>
+                <div className="h-48 bg-gray-700 rounded"></div>
+                <div className="h-32 bg-gray-700 rounded"></div>
               </div>
             </div>
           </div>
@@ -440,7 +474,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
   if (error || !report) {
     return (
-      <div className="min-h-screen bg-slate-900 p-6">
+      <div className="min-h-screen bg-black p-6">
         <div className="max-w-7xl mx-auto">
           <Alert variant="destructive">
             <AlertCircleIcon className="h-4 w-4" />
@@ -460,412 +494,268 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
   )
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6">
+    <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button variant="outline" onClick={() => router.back()}>
               <ArrowLeftIcon className="w-4 h-4 mr-2" />
-              Volver
+              Back
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-200">
-                Consenso del Reporte
+              <h1 className="text-3xl font-bold text-white tracking-wide">
+                Consensus Report
               </h1>
-              <p className="text-slate-400">
+              <p className="text-gray-400 font-medium">
                 {report.workGroup.name} - {report.year} Q{report.quarter}
               </p>
             </div>
           </div>
-          
           <div className="flex items-center space-x-2">
-            <Badge variant={report.consensusStatus === "CONSENSED" ? "default" : "secondary"}>
-              {report.consensusStatus === "CONSENSED" ? "Consensuado" : "Pendiente"}
+            <Badge variant="outline" className="text-gray-400 font-bold">
+              {report.consensusStatus}
             </Badge>
-            {isAdmin && (
-              <Badge variant="outline" className="flex items-center">
-                <ShieldIcon className="w-3 h-3 mr-1" />
-                Admin
-              </Badge>
+            {isAdmin && report.consensusStatus !== "CONSENSED" && (
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={handleNewVotingRound}
+                  className="text-blue-400 hover:text-blue-300 border-blue-600 hover:border-blue-500"
+                >
+                  <RefreshCwIcon className="w-4 h-4 mr-2" />
+                  New Round
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleMarkConsensus("CONSENSED")}
+                  className="text-green-400 hover:text-green-300 border-green-600 hover:border-green-500"
+                >
+                  <CheckIcon className="w-4 h-4 mr-2" />
+                  Mark Consensus
+                </Button>
+              </div>
             )}
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Resumen</TabsTrigger>
-            <TabsTrigger value="voting">Votación</TabsTrigger>
-            <TabsTrigger value="comments">Comentarios</TabsTrigger>
-            {isAdmin && <TabsTrigger value="admin">Administración</TabsTrigger>}
-          </TabsList>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-gray-900 border-gray-700">
+                <TabsTrigger value="overview" className="text-gray-300 hover:text-white">Overview</TabsTrigger>
+                <TabsTrigger value="voting" className="text-gray-300 hover:text-white">Voting</TabsTrigger>
+                <TabsTrigger value="comments" className="text-gray-300 hover:text-white">Comments</TabsTrigger>
+                <TabsTrigger value="objections" className="text-gray-300 hover:text-white">Objections</TabsTrigger>
+              </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Report Details */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
+              {/* Overview Tab */}
+              <TabsContent value="overview" className="space-y-6">
+                <Card className="bg-gray-900 border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileTextIcon className="w-5 h-5 mr-2" />
-                      Detalles del Reporte
+                      Report Details
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-2">
-                        <BuildingIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-300">Workgroup:</span>
-                        <span className="text-sm text-slate-400">{report.workGroup.name}</span>
+                    <div>
+                      <h3 className="font-bold text-white mb-2 tracking-wide">Description</h3>
+                      <p className="text-gray-400 text-sm leading-relaxed font-medium">
+                        {report.detail || "No description provided"}
+                      </p>
+                    </div>
+                    
+                    {report.theoryOfChange && (
+                      <div>
+                        <h3 className="font-bold text-white mb-2 tracking-wide">Theory of Change</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed font-medium">
+                          {report.theoryOfChange}
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <CalendarIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-300">Período:</span>
-                        <span className="text-sm text-slate-400">{report.year} Q{report.quarter}</span>
+                    )}
+
+                    {report.plans && (
+                      <div>
+                        <h3 className="font-bold text-white mb-2 tracking-wide">Future Plans</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed font-medium">
+                          {report.plans}
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <UserIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-300">Creado por:</span>
-                        <span className="text-sm text-slate-400">{report.createdBy.name}</span>
+                    )}
+
+                    {report.challenges && report.challenges.length > 0 && (
+                      <div>
+                        <h3 className="font-bold text-white mb-2 tracking-wide">Challenges & Learning</h3>
+                        <div className="space-y-2">
+                          {Array.isArray(report.challenges)
+                            ? report.challenges.map((challenge: any, index: number) => {
+                                if (typeof challenge === 'string') {
+                                  return (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <CheckIcon className="w-4 h-4 text-green-400" />
+                                      <span className="text-gray-400 text-sm font-medium">{challenge}</span>
+                                    </div>
+                                  );
+                                } else if (challenge && typeof challenge === 'object') {
+                                  // Handle object with text property
+                                  if ('text' in challenge && typeof challenge.text === 'string') {
+                                    return (
+                                      <div key={index} className="flex items-center space-x-2">
+                                        <CheckIcon className="w-4 h-4 text-green-400" />
+                                        <span className="text-gray-400 text-sm font-medium">{challenge.text}</span>
+                                      </div>
+                                    );
+                                  }
+                                  // Handle any other object by converting to string
+                                  return (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <CheckIcon className="w-4 h-4 text-green-400" />
+                                      <span className="text-gray-400 text-sm font-medium">
+                                        {JSON.stringify(challenge)}
+                                      </span>
+                                    </div>
+                                  );
+                                } else {
+                                  // Handle any other type by converting to string
+                                  return (
+                                    <div key={index} className="flex items-center space-x-2">
+                                      <CheckIcon className="w-4 h-4 text-green-400" />
+                                      <span className="text-gray-400 text-sm font-medium">
+                                        {String(challenge)}
+                                      </span>
+                                    </div>
+                                  );
+                                }
+                              })
+                            : report.challenges
+                              ? <div className="text-gray-400 text-sm font-medium">
+                                  {typeof report.challenges === 'object' ? JSON.stringify(report.challenges) : String(report.challenges)}
+                                </div>
+                              : <div className="text-gray-400 text-sm font-medium italic">No challenges</div>
+                          }
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <UsersIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-300">Participantes:</span>
-                        <span className="text-sm text-slate-400">{report.participants.length}</span>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-900 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <UserIcon className="w-5 h-5 mr-2" />
+                      Proposal Creator
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-12 h-12">
+                        <AvatarFallback className="bg-purple-600 text-white font-bold">
+                          {report.createdBy.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-bold text-white text-lg tracking-wide">
+                          {report.createdBy.name}
+                        </h4>
+                        <p className="text-gray-400 text-sm font-medium">
+                          {report.createdBy.email}
+                        </p>
                       </div>
                     </div>
                     
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="font-medium mb-2 text-slate-200">Detalle</h4>
-                      <p className="text-sm text-slate-400">{report.detail}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-2 text-slate-200">Teoría del Cambio</h4>
-                      <p className="text-sm text-slate-400">{report.theoryOfChange}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-2 text-slate-200">Planes Futuros</h4>
-                      <p className="text-sm text-slate-400">{report.plans}</p>
+                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-700">
+                      <div className="flex items-center space-x-2">
+                        <CalendarIcon className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-xs text-gray-500 font-medium">Created</p>
+                          <p className="text-sm font-bold text-white">
+                            {formatDate(report.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <UsersIcon className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-xs text-gray-500 font-medium">Participants</p>
+                          <p className="text-sm font-bold text-white">
+                            {report.participants.length} members
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Budget Items */}
-                {report.budgetItems.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <DollarSignIcon className="w-5 h-5 mr-2" />
-                        Presupuesto
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                <Card className="bg-gray-900 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <DollarSignIcon className="w-5 h-5 mr-2" />
+                      Budget Items
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {report.budgetItems.length === 0 ? (
+                      <p className="text-gray-400 text-sm font-medium">No budget items</p>
+                    ) : (
                       <div className="space-y-3">
                         {report.budgetItems.map((item) => (
-                          <div key={item.id} className="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
+                          <div key={item.id} className="flex justify-between items-center p-3 bg-gray-800 rounded-lg border border-gray-700">
                             <div>
-                              <p className="font-medium text-slate-200">{item.name}</p>
-                              <p className="text-sm text-slate-400">{item.description}</p>
+                              <h4 className="font-bold text-white text-sm tracking-wide">{item.name}</h4>
+                              <p className="text-gray-400 text-xs font-medium">{item.description}</p>
                             </div>
-                            <span className="font-medium text-green-400">
-                              ${item.amountUsd.toLocaleString()}
-                            </span>
+                            <span className="font-bold text-green-400">${item.amountUsd.toLocaleString()}</span>
                           </div>
                         ))}
-                        <div className="flex justify-between items-center pt-3 border-t border-slate-700">
-                          <span className="font-medium text-slate-200">Total</span>
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-700">
+                          <span className="font-bold text-white">Total Budget</span>
                           <span className="font-bold text-green-400">
                             ${report.budgetItems.reduce((sum, item) => sum + item.amountUsd, 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-              {/* Stats Sidebar */}
-              <div className="space-y-6">
-                {/* Vote Statistics */}
-                <Card>
+              {/* Voting Tab */}
+              <TabsContent value="voting" className="space-y-6">
+                <Card className="bg-gray-900 border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <VoteIcon className="w-5 h-5 mr-2" />
-                      Estadísticas de Votación
+                      Consensus Voting
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-green-900/20 rounded-lg border border-green-800">
-                        <div className="text-2xl font-bold text-green-400">{voteStats.aFavor}</div>
-                        <div className="text-sm text-green-400">A Favor</div>
-                      </div>
-                      <div className="text-center p-3 bg-red-900/20 rounded-lg border border-red-800">
-                        <div className="text-2xl font-bold text-red-400">{voteStats.enContra}</div>
-                        <div className="text-sm text-red-400">En Contra</div>
-                      </div>
-                      <div className="text-center p-3 bg-yellow-900/20 rounded-lg border border-yellow-800">
-                        <div className="text-2xl font-bold text-yellow-400">{voteStats.objetar}</div>
-                        <div className="text-sm text-yellow-400">Objetar</div>
-                      </div>
-                      <div className="text-center p-3 bg-slate-800 rounded-lg border border-slate-700">
-                        <div className="text-2xl font-bold text-slate-400">{voteStats.abstenerse}</div>
-                        <div className="text-sm text-slate-400">Abstenerse</div>
-                      </div>
-                    </div>
-                    <div className="text-center pt-3 border-t border-slate-700">
-                      <div className="text-lg font-bold text-slate-200">{voteStats.total}</div>
-                      <div className="text-sm text-slate-400">Total de Votos</div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Objections Summary */}
-                {pendingObjections.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center text-yellow-600">
-                        <AlertTriangleIcon className="w-5 h-5 mr-2" />
-                        Objeciones Pendientes
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-yellow-600">{pendingObjections.length}</div>
-                          <div className="text-sm text-yellow-600">Requieren Revisión</div>
-                        </div>
-                        {isAdmin && (
-                          <Button 
-                            variant="outline" 
-                            className="w-full"
-                            onClick={() => setActiveTab("admin")}
-                          >
-                            <SettingsIcon className="w-4 h-4 mr-2" />
-                            Gestionar Objeciones
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <TargetIcon className="w-5 h-5 mr-2" />
-                      Acciones Rápidas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Dialog open={showVoteDialog} onOpenChange={setShowVoteDialog}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full">
-                          <VoteIcon className="w-4 h-4 mr-2" />
-                          Votar
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Votar en el Consenso</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-2">
-                            {["A_FAVOR", "EN_CONTRA", "OBJETAR", "ABSTENERSE"].map((type) => (
-                              <Button
-                                key={type}
-                                variant={selectedVoteType === type ? "default" : "outline"}
-                                onClick={() => setSelectedVoteType(type)}
-                                className="flex items-center"
-                              >
-                                {getVoteTypeIcon(type)}
-                                <span className="ml-2">{getVoteTypeLabel(type)}</span>
-                              </Button>
-                            ))}
-                          </div>
-                          <Textarea
-                            placeholder="Justificación (mínimo 10 caracteres)..."
-                            value={voteComment}
-                            onChange={(e) => setVoteComment(e.target.value)}
-                            className="min-h-[100px]"
-                          />
-                          <div className="text-xs text-slate-500">
-                            {voteComment.length}/1000 caracteres
-                          </div>
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" onClick={() => setShowVoteDialog(false)}>
-                              Cancelar
-                            </Button>
-                            <Button 
-                              onClick={handleVote}
-                              disabled={!selectedVoteType || voteComment.length < 10 || submittingVote}
-                            >
-                              {submittingVote ? "Enviando..." : "Enviar Voto"}
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Voting Tab */}
-          <TabsContent value="voting" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <VoteIcon className="w-5 h-5 mr-2" />
-                  Votos del Consenso
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {votes.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400">
-                    <VoteIcon className="w-12 h-12 mx-auto mb-4 text-slate-600" />
-                    <p>No hay votos registrados aún</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {votes.map((vote) => (
-                      <div key={vote.id} className="flex items-start space-x-3 p-4 bg-slate-800 rounded-lg border border-slate-700">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={vote.user.image || undefined} />
-                          <AvatarFallback>{vote.user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="font-medium text-slate-200">{vote.user.name}</span>
-                            {getVoteTypeIcon(vote.voteType)}
-                            <Badge variant="outline">{getVoteTypeLabel(vote.voteType)}</Badge>
-                            {vote.objection && getObjectionStatusBadge(vote.objection.status)}
-                            <span className="text-xs text-slate-500">
-                              {formatDate(vote.createdAt)}
-                            </span>
-                          </div>
-                          <p className="text-sm text-slate-400">{vote.comment}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Comments Tab */}
-          <TabsContent value="comments" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MessageSquareIcon className="w-5 h-5 mr-2" />
-                  Comentarios del Consenso
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* New Comment */}
-                <div className="space-y-2">
-                  <Textarea
-                    placeholder="Escribe un comentario..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[100px] bg-slate-800 border-slate-700 text-slate-200"
-                  />
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">
-                      {newComment.length}/1000 caracteres
-                    </span>
-                    <Button 
-                      onClick={handleSubmitComment}
-                      disabled={!newComment.trim() || newComment.length < 5 || submittingComment}
-                    >
-                      {submittingComment ? "Enviando..." : "Enviar Comentario"}
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Comments List */}
-                {comments.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400">
-                    <MessageSquareIcon className="w-12 h-12 mx-auto mb-4 text-slate-600" />
-                    <p>No hay comentarios aún</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {comments.map((comment) => (
-                      <CommentItem
-                        key={comment.id}
-                        comment={comment}
-                        onReply={handleReply}
-                        onLike={handleLikeComment}
-                        onDislike={handleDislikeComment}
-                        currentUserId={session?.user?.id}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Admin Tab */}
-          {isAdmin && (
-            <TabsContent value="admin" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Objection Management */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <AlertTriangleIcon className="w-5 h-5 mr-2" />
-                      Gestión de Objeciones
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {pendingObjections.length === 0 ? (
-                      <div className="text-center py-4 text-slate-400">
-                        <CheckCircleIcon className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                        <p>No hay objeciones pendientes</p>
+                  <CardContent>
+                    {votes.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">
+                        <VoteIcon className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+                        <p className="font-medium">No votes registered yet</p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {pendingObjections.map((vote) => (
-                          <div key={vote.id} className="p-3 border border-slate-700 rounded-lg bg-slate-800">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-slate-200">{vote.user.name}</span>
-                              <span className="text-xs text-slate-500">
-                                {formatDate(vote.createdAt)}
-                              </span>
-                            </div>
-                            <p className="text-sm text-slate-400 mb-3">{vote.comment}</p>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleResolveObjection(vote.objection!.id, "INVALIDA")}
-                                disabled={adminLoading}
-                              >
-                                <XIcon className="w-3 h-3 mr-1" />
-                                Marcar Inválida
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleResolveObjection(vote.objection!.id, "VALIDA")}
-                                disabled={adminLoading}
-                              >
-                                <CheckIcon className="w-3 h-3 mr-1" />
-                                Marcar Válida
-                              </Button>
+                      <div className="space-y-4">
+                        {votes.map((vote) => (
+                          <div key={vote.id} className="flex items-start space-x-3 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={vote.user.image || undefined} />
+                              <AvatarFallback>{vote.user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <span className="font-medium text-gray-200">{vote.user.name}</span>
+                                {getVoteTypeIcon(vote.voteType)}
+                                <Badge variant="outline">{getVoteTypeLabel(vote.voteType)}</Badge>
+                                {vote.objection && getObjectionStatusBadge(vote.objection.status)}
+                                <span className="text-xs text-gray-500">
+                                  {formatDate(vote.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-400">{vote.comment}</p>
                             </div>
                           </div>
                         ))}
@@ -873,64 +763,242 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
 
-                {/* Admin Actions */}
-                <Card>
+              {/* Comments Tab */}
+              <TabsContent value="comments" className="space-y-6">
+                <Card className="bg-gray-900 border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <SettingsIcon className="w-5 h-5 mr-2" />
-                      Acciones de Administración
+                      <MessageSquareIcon className="w-5 h-5 mr-2" />
+                      Comments
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleNewVotingRound}
-                        disabled={adminLoading || validObjections.length === 0}
-                      >
-                        <RefreshCwIcon className="w-4 h-4 mr-2" />
-                        Iniciar Nueva Ronda
-                      </Button>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex space-x-2">
+                        <Textarea
+                          placeholder="Add a comment (minimum 5 characters)..."
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                        />
+                        <Button
+                          onClick={handleSubmitComment}
+                          disabled={newComment.length < 5 || submittingComment}
+                          className="bg-purple-600 hover:bg-purple-700 font-bold"
+                        >
+                          {submittingComment ? "Posting..." : "Post"}
+                        </Button>
+                      </div>
                       
-                      <Button
-                        variant="default"
-                        className="w-full"
-                        onClick={() => handleMarkConsensus("CONSENSED")}
-                        disabled={adminLoading || validObjections.length > 0}
-                      >
-                        <AwardIcon className="w-4 h-4 mr-2" />
-                        Marcar como Consensuado
-                      </Button>
-                      
-                      <Button
-                        variant="destructive"
-                        className="w-full"
-                        onClick={() => handleMarkConsensus("REJECTED")}
-                        disabled={adminLoading}
-                      >
-                        <XCircleIcon className="w-4 h-4 mr-2" />
-                        Rechazar Reporte
-                      </Button>
-                    </div>
-
-                    <Separator />
-
-                    <div className="text-sm text-slate-400 space-y-2">
-                      <p><strong>Notas:</strong></p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li>Solo se puede marcar como "Consensuado" si no hay objeciones válidas</li>
-                        <li>Las objeciones válidas requieren una nueva ronda de votación</li>
-                        <li>Los administradores pueden resolver objeciones pendientes</li>
-                      </ul>
+                      {comments.length === 0 ? (
+                        <div className="text-center py-8 text-gray-400">
+                          <MessageSquareIcon className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+                          <p className="font-medium">No comments yet</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {comments.map((comment) => (
+                            <CommentItem
+                              key={comment.id}
+                              comment={comment}
+                              onReply={handleReply}
+                              onLike={handleLikeComment}
+                              onDislike={handleDislikeComment}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </TabsContent>
-          )}
-        </Tabs>
+              </TabsContent>
+
+              {/* Objections Tab */}
+              <TabsContent value="objections" className="space-y-6">
+                <Card className="bg-gray-900 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <AlertTriangleIcon className="w-5 h-5 mr-2" />
+                      Objections
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {pendingObjections.length === 0 && validObjections.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">
+                        <AlertTriangleIcon className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+                        <p className="font-medium">No objections</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {pendingObjections.map((vote) => (
+                          <div key={vote.id} className="p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <Avatar className="w-6 h-6">
+                                  <AvatarImage src={vote.user.image || undefined} />
+                                  <AvatarFallback>{vote.user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium text-yellow-300">{vote.user.name}</span>
+                                <Badge variant="outline" className="text-yellow-400 border-yellow-600">Pending Review</Badge>
+                              </div>
+                              {isAdmin && (
+                                <div className="flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleResolveObjection(vote.objection!.id, "VALIDA")}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    Mark Valid
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleResolveObjection(vote.objection!.id, "INVALIDA")}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    Mark Invalid
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm text-yellow-200">{vote.comment}</p>
+                          </div>
+                        ))}
+                        
+                        {validObjections.map((vote) => (
+                          <div key={vote.id} className="p-4 bg-red-900/20 border border-red-700 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Avatar className="w-6 h-6">
+                                <AvatarImage src={vote.user.image || undefined} />
+                                <AvatarFallback>{vote.user.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium text-red-300">{vote.user.name}</span>
+                              <Badge variant="destructive">Valid Objection</Badge>
+                              {vote.objection?.resolvedBy && (
+                                <span className="text-xs text-red-400">
+                                  Resolved by {vote.objection.resolvedBy.name}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-red-200">{vote.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Voting Stats */}
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <TrendingUpIcon className="w-5 h-5 mr-2" />
+                  Voting Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 font-medium">1. CONSENT</span>
+                  <span className="font-bold text-green-400">{voteStats.aFavor}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 font-medium">2. OBJECT</span>
+                  <span className="font-bold text-yellow-400">{voteStats.objetar}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 font-medium">3. ABSTAIN</span>
+                  <span className="font-bold text-gray-400">{voteStats.abstenerse}</span>
+                </div>
+                <Separator className="border-gray-700" />
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 font-medium">Total Votes</span>
+                  <span className="font-bold text-white">{voteStats.total}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Vote Action */}
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <VoteIcon className="w-5 h-5 mr-2" />
+                  Cast Your Vote
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Dialog open={showVoteDialog} onOpenChange={setShowVoteDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 font-bold">
+                      <VoteIcon className="w-4 h-4 mr-2" />
+                      Vote
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Cast Your Vote</DialogTitle>
+                      <DialogDescription>
+                        Choose your vote type and provide justification if required.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 gap-2">
+                        {["A_FAVOR", "OBJETAR", "ABSTENERSE"].map((type) => (
+                          <Button
+                            key={type}
+                            variant={selectedVoteType === type ? "default" : "outline"}
+                            onClick={() => setSelectedVoteType(type)}
+                            className="flex items-center justify-start"
+                          >
+                            {getVoteTypeIcon(type)}
+                            <span className="ml-2">{getVoteTypeLabel(type)}</span>
+                          </Button>
+                        ))}
+                      </div>
+                      <Textarea
+                        placeholder={isCommentRequired(selectedVoteType) 
+                          ? "Justification required (minimum 10 characters)..." 
+                          : "Justification (optional)..."
+                        }
+                        value={voteComment}
+                        onChange={(e) => setVoteComment(e.target.value)}
+                        className="min-h-[100px] bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                      />
+                      <div className="text-xs text-gray-500">
+                        {voteComment.length}/1000 characters
+                        {isCommentRequired(selectedVoteType) && (
+                          <span className="text-red-400 ml-2">
+                            Minimum {getMinCommentLength(selectedVoteType)} characters required
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setShowVoteDialog(false)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleVote}
+                          disabled={
+                            !selectedVoteType || 
+                            (selectedVoteType === "OBJETAR" && voteComment.length < 10) ||
+                            submittingVote
+                          }
+                        >
+                          {submittingVote ? (creatingRound ? "Creating voting round..." : "Submitting...") : "Submit Vote"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

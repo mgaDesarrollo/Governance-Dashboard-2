@@ -5,24 +5,32 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("API: Processing vote submission");
+    
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
+      console.log("API: Unauthorized - No session or user ID");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const { reportId, voteType, comment } = body;
+    
+    console.log("API: Vote data received:", { reportId, voteType, commentLength: comment?.length });
 
     // Validaciones
-    if (!reportId || !voteType || !comment) {
+    if (!reportId || !voteType) {
+      console.log("API: Missing required fields:", { reportId, voteType });
       return NextResponse.json({ 
-        error: "Missing required fields: reportId, voteType, comment" 
+        error: "Missing required fields: reportId, voteType" 
       }, { status: 400 });
     }
 
-    if (comment.trim().length < 10) {
+    // Solo requerir comentario para OBJETAR
+    if (voteType === "OBJETAR" && (!comment || comment.trim().length < 10)) {
+      console.log("API: Insufficient comment length for objection:", comment?.trim().length);
       return NextResponse.json({ 
-        error: "Comment must be at least 10 characters long" 
+        error: "Objections require a minimum of 10 characters justification" 
       }, { status: 400 });
     }
 
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!report) {
+      console.log("API: Report not found:", reportId);
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
@@ -47,18 +56,45 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener la ronda activa
-    const activeRound = report.votingRounds[0];
+    let activeRound = report.votingRounds[0];
+    console.log("API: Active round found:", activeRound?.id);
+    
+    // Si no hay ronda activa, crear una automáticamente
     if (!activeRound) {
-      return NextResponse.json({ error: "No active voting round found" }, { status: 400 });
+      console.log("API: No active voting round found, creating new one");
+      
+      // Obtener el número de la siguiente ronda
+      const lastRound = await prisma.votingRound.findFirst({
+        where: { reportId },
+        orderBy: { roundNumber: "desc" }
+      });
+      
+      const nextRoundNumber = lastRound ? lastRound.roundNumber + 1 : 1;
+      
+      // Crear nueva ronda de votación
+      activeRound = await prisma.votingRound.create({
+        data: {
+          reportId,
+          roundNumber: nextRoundNumber,
+          status: "ACTIVA",
+          startedAt: new Date()
+        }
+      });
+      
+      // Actualizar el estado del reporte a IN_CONSENSUS
+      await prisma.quarterlyReport.update({
+        where: { id: reportId },
+        data: { consensusStatus: "IN_CONSENSUS" }
+      });
+      
+      console.log("API: Created new voting round:", activeRound.id);
     }
 
     // Verificar si el usuario ya votó en esta ronda
-    const existingVote = await prisma.consensusVote.findUnique({
+    const existingVote = await prisma.consensusVote.findFirst({
       where: {
-        userId_roundId: {
-          userId: session.user.id,
-          roundId: activeRound.id
-        }
+        userId: session.user.id,
+        roundId: activeRound.id
       }
     });
 
@@ -68,7 +104,7 @@ export async function POST(request: NextRequest) {
         where: { id: existingVote.id },
         data: {
           voteType,
-          comment,
+          comment: comment || "",
           updatedAt: new Date()
         },
         include: {
@@ -98,7 +134,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         reportId,
         voteType,
-        comment,
+        comment: comment || "",
         roundId: activeRound.id
       },
       include: {

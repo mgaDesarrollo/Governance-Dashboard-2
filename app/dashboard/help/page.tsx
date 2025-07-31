@@ -62,8 +62,8 @@ export default function HelpSupportPage() {
         <div className="flex items-center gap-3 mb-8">
           <HelpCircleIcon className="h-8 w-8 text-purple-400" />
           <div>
-            <h1 className="text-3xl font-bold text-slate-100">Help & Support</h1>
-            <p className="text-slate-400">Get help with the SingularityNET Governance Dashboard</p>
+            <h1 className="text-3xl font-bold text-white tracking-wide">Help & Support</h1>
+            <p className="text-slate-400 font-medium">Get help with the SingularityNET Governance Dashboard</p>
           </div>
         </div>
 

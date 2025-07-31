@@ -338,7 +338,7 @@ export default function EditProfilePage() {
           <div className="flex items-center gap-3">
             <UserCircle2Icon className="h-8 w-8 text-purple-400" />
             <div>
-              <CardTitle className="text-xl">Edit Your Profile</CardTitle>
+              <CardTitle className="text-xl font-bold tracking-wide">Edit Your Profile</CardTitle>
               <CardDescription className="text-slate-400">
                 Update your personal information. Your Discord username ({session?.user?.name}) cannot be changed here.
               </CardDescription>

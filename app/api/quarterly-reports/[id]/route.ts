@@ -3,10 +3,11 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     console.log("API: Starting GET request for quarterly report");
-    console.log("API: Report ID:", params.id);
+    const { id } = await params;
+    console.log("API: Report ID:", id);
     
     const session = await getServerSession(authOptions);
     console.log("API: Session:", session ? "Found" : "Not found");
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const reportId = params.id;
+    const reportId = id;
     console.log("API: Looking for report with ID:", reportId);
 
     const report = await prisma.quarterlyReport.findUnique({

@@ -316,8 +316,8 @@ export default function CollaboratorsPage() {
         <div className="flex items-center gap-2">
           <UsersIcon className="h-7 w-7 text-purple-400" />
           <div>
-            <h1 className="text-2xl font-bold">Collaborators</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-3xl font-bold text-white tracking-wide">Collaborators</h1>
+            <p className="text-sm text-slate-400 font-medium">
               {onlineCount} online • {filteredUsers.length} total
             </p>
           </div>

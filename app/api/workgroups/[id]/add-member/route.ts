@@ -3,12 +3,12 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { userId, role } = await req.json()
   if (!userId) {
     return NextResponse.json({ error: "No userId" }, { status: 400 })
   }
-  const workGroupId = context.params.id
+  const { id: workGroupId } = await context.params
   // Evita duplicados
   const exists = await prisma.workGroupMember.findFirst({
     where: { userId, workGroupId }

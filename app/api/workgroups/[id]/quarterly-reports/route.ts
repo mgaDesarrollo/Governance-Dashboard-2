@@ -1,36 +1,65 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { prisma } from "@/lib/prisma"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// GET: Listar quarterly reports de un workgroup
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+    console.log("API: Fetching quarterly reports for workgroup:", id);
+
+    // Verificar que el workgroup existe
+    const workgroup = await prisma.workGroup.findUnique({
+      where: { id }
+    });
+
+    if (!workgroup) {
+      console.log("API: Workgroup not found");
+      return NextResponse.json({ error: "Workgroup not found" }, { status: 404 });
+    }
+
+    // Obtener todos los reportes trimestrales del workgroup
     const reports = await prisma.quarterlyReport.findMany({
-      where: {
-        workGroupId: id
-      },
+      where: { workGroupId: id },
       include: {
-        workGroup: { select: { id: true, name: true } },
-        participants: { include: { user: true } },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        },
         budgetItems: true,
-        comments: { include: { user: true } }
+        votingRounds: {
+          orderBy: { roundNumber: "desc" }
+        }
       },
       orderBy: [
         { year: "desc" },
         { quarter: "desc" }
       ]
     });
-    
+
+    console.log("API: Found reports:", reports.length);
+
     return NextResponse.json(reports);
   } catch (error) {
-    console.error("Error obteniendo reportes del workgroup:", error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    console.error("Error fetching quarterly reports:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

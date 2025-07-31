@@ -5,54 +5,70 @@ import { getServerSession } from "next-auth";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
   try {
+    const { reportId } = await params;
+    console.log("API: Creating new voting round for report:", reportId);
+
+    // Verificar autenticación
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user) {
+      console.log("API: Unauthorized - No session");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { reportId } = params;
+    // Verificar que el usuario es admin o super admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
 
-    // Verificar que el reporte existe
-    const report = await prisma.quarterlyReport.findUnique({
-      where: { id: reportId },
-      include: {
-        workGroup: {
-          include: {
-            members: {
-              where: {
-                userId: session.user.id,
-                role: "admin"
-              }
-            }
-          }
+    if (!user) {
+      console.log("API: User not found");
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Verificar permisos de administrador
+    const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+    
+    // Verificar si es admin de algún workgroup
+    const workgroupMemberships = await prisma.workGroupMember.findMany({
+      where: {
+        userId: session.user.id,
+        role: {
+          in: ["ADMIN", "SUPER_ADMIN"]
         }
       }
     });
+    
+    const isWorkgroupAdmin = workgroupMemberships.length > 0;
+
+    if (!isAdmin && !isWorkgroupAdmin) {
+      console.log("API: Insufficient permissions");
+      return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+    }
+
+    // Verificar que el reporte existe
+    const report = await prisma.quarterlyReport.findUnique({
+      where: { id: reportId }
+    });
 
     if (!report) {
+      console.log("API: Report not found");
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    // Verificar que el usuario es administrador del workgroup
-    const isAdmin = report.workGroup.members.length > 0;
-    if (!isAdmin && session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Only workgroup admins can start new rounds" }, { status: 403 });
-    }
-
-    // Verificar que no hay una ronda activa
-    const activeRound = await prisma.votingRound.findFirst({
+    // Cerrar la ronda activa anterior si existe
+    await prisma.votingRound.updateMany({
       where: {
         reportId,
         status: "ACTIVA"
+      },
+      data: {
+        status: "CERRADA",
+        endedAt: new Date()
       }
     });
-
-    if (activeRound) {
-      return NextResponse.json({ error: "There is already an active round" }, { status: 400 });
-    }
 
     // Obtener el número de la siguiente ronda
     const lastRound = await prisma.votingRound.findFirst({
@@ -62,15 +78,7 @@ export async function POST(
 
     const nextRoundNumber = lastRound ? lastRound.roundNumber + 1 : 1;
 
-    // Cerrar la ronda anterior si existe
-    if (lastRound) {
-      await prisma.votingRound.update({
-        where: { id: lastRound.id },
-        data: { status: "CERRADA", endedAt: new Date() }
-      });
-    }
-
-    // Crear nueva ronda
+    // Crear nueva ronda de votación
     const newRound = await prisma.votingRound.create({
       data: {
         reportId,
@@ -80,17 +88,21 @@ export async function POST(
       }
     });
 
-    // Actualizar el estado del reporte a EN_CONSENSUS si no lo está
-    if (report.consensusStatus === "PENDING") {
-      await prisma.quarterlyReport.update({
-        where: { id: reportId },
-        data: { consensusStatus: "IN_CONSENSUS" }
-      });
-    }
+    // Actualizar el estado del reporte a IN_CONSENSUS
+    await prisma.quarterlyReport.update({
+      where: { id: reportId },
+      data: { consensusStatus: "IN_CONSENSUS" }
+    });
 
-    return NextResponse.json(newRound);
+    console.log("API: New voting round created:", newRound.id);
+
+    return NextResponse.json({ 
+      success: true, 
+      votingRound: newRound 
+    });
   } catch (error) {
-    console.error("Error creating new round:", error);
+    console.error("Error creating voting round:", error);
+    console.error("Error details:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 } 

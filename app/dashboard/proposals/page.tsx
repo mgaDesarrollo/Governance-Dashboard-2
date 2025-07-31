@@ -132,7 +132,7 @@ export default function ProposalsPage() {
             <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
-          <h1 className="text-2xl font-bold">Proposals</h1>
+          <h1 className="text-3xl font-bold text-white tracking-wide">Proposals</h1>
         </div>
 
         {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (

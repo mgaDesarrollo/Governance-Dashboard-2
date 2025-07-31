@@ -1,27 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { objectionId: string } }
+  { params }: { params: Promise<{ objectionId: string }> }
 ) {
   try {
+    const { objectionId } = await params;
+    const { status } = await request.json();
+
+    console.log("API: Updating objection status:", objectionId, "to:", status);
+
+    // Verificar autenticación
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user) {
+      console.log("API: Unauthorized - No session");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { objectionId } = params;
-    const body = await request.json();
-    const { status } = body;
+    // Verificar que el usuario es admin o super admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        workgroupMemberships: {
+          include: {
+            workgroup: true
+          }
+        }
+      }
+    });
 
-    // Validaciones
-    if (!status || !["PENDIENTE", "VALIDA", "INVALIDA"].includes(status)) {
-      return NextResponse.json({ 
-        error: "Invalid status. Must be PENDIENTE, VALIDA, or INVALIDA" 
-      }, { status: 400 });
+    if (!user) {
+      console.log("API: User not found");
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Verificar permisos de administrador
+    const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+    const isWorkgroupAdmin = user.workgroupMemberships.some(membership => 
+      membership.role === "ADMIN" || membership.role === "SUPER_ADMIN"
+    );
+
+    if (!isAdmin && !isWorkgroupAdmin) {
+      console.log("API: Insufficient permissions");
+      return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+    }
+
+    // Validar el estado
+    const validStatuses = ["VALIDA", "INVALIDA"];
+    if (!validStatuses.includes(status)) {
+      console.log("API: Invalid objection status");
+      return NextResponse.json({ error: "Invalid objection status" }, { status: 400 });
     }
 
     // Verificar que la objeción existe
@@ -30,18 +61,9 @@ export async function PUT(
       include: {
         vote: {
           include: {
-            report: {
+            votingRound: {
               include: {
-                workGroup: {
-                  include: {
-                    members: {
-                      where: {
-                        userId: session.user.id,
-                        role: "admin"
-                      }
-                    }
-                  }
-                }
+                report: true
               }
             }
           }
@@ -50,22 +72,17 @@ export async function PUT(
     });
 
     if (!objection) {
+      console.log("API: Objection not found");
       return NextResponse.json({ error: "Objection not found" }, { status: 404 });
-    }
-
-    // Verificar que el usuario es administrador del workgroup
-    const isAdmin = objection.vote.report.workGroup.members.length > 0;
-    if (!isAdmin && session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Only workgroup admins can change objection status" }, { status: 403 });
     }
 
     // Actualizar el estado de la objeción
     const updatedObjection = await prisma.objection.update({
       where: { id: objectionId },
-      data: {
+      data: { 
         status,
-        resolvedById: session.user.id,
-        resolvedAt: new Date()
+        resolvedAt: new Date(),
+        resolvedBy: { connect: { id: session.user.id } }
       },
       include: {
         vote: {
@@ -82,13 +99,19 @@ export async function PUT(
         resolvedBy: {
           select: {
             id: true,
-            name: true
+            name: true,
+            email: true
           }
         }
       }
     });
 
-    return NextResponse.json(updatedObjection);
+    console.log("API: Objection status updated successfully");
+
+    return NextResponse.json({ 
+      success: true, 
+      objection: updatedObjection 
+    });
   } catch (error) {
     console.error("Error updating objection status:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
