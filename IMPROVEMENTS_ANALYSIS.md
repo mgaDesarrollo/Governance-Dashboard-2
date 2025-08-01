@@ -278,7 +278,7 @@ const handleWebhook = async (req, res) => {
 
 1. **Implementar notificaciones en tiempo real** con WebSocket
 2. **Agregar búsqueda global** con filtros avanzados
-3. **Crear sistema de widgets configurables**
+3. //**Crear sistema de widgets configurables**
 4. **Optimizar performance** con lazy loading
 5. **Mejorar accesibilidad** con ARIA labels
 6. **Implementar analytics** para tracking de uso 

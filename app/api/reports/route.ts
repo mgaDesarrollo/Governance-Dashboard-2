@@ -36,7 +36,11 @@ export async function GET(request: NextRequest) {
 
     // Filtro por estado de consenso
     if (consensusStatus) {
-      whereClause.consensusStatus = consensusStatus
+      // Convertir el valor a mayúsculas para que coincida con el enum
+      const status = consensusStatus.toUpperCase()
+      if (status === 'PENDING' || status === 'IN_CONSENSUS' || status === 'CONSENSED') {
+        whereClause.consensusStatus = status
+      }
     }
 
     const reports = await prisma.quarterlyReport.findMany({

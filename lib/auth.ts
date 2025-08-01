@@ -106,10 +106,12 @@ export const authOptions: NextAuthOptions = {
       console.log("[NextAuth JWT] Processing token:", { 
         hasAccount: !!account, 
         hasProfile: !!profile,
-        tokenUserId: token.sub 
+        tokenUserId: token.sub,
+        hasExistingRole: !!token.role
       })
       
-      if (account && profile) {
+      // Solo procesar la base de datos durante el sign-in inicial
+      if (account && profile && !token.dbUserId) {
         const discordProfile = profile as DiscordProfile
         const superAdminDiscordId = process.env.NEXT_PUBLIC_SUPER_ADMIN_DISCORD_ID
 
@@ -162,7 +164,8 @@ export const authOptions: NextAuthOptions = {
               updateData.image = newImage || undefined
               needsUpdate = true
             }
-            if (dbUser.id === superAdminDiscordId && dbUser.role !== "SUPER_ADMIN") {
+            // Solo actualizar el rol si el usuario es super admin y no tiene el rol correcto
+            if (discordProfile.id === superAdminDiscordId && dbUser.role !== "SUPER_ADMIN") {
               updateData.role = "SUPER_ADMIN"
               needsUpdate = true
             }
@@ -176,38 +179,93 @@ export const authOptions: NextAuthOptions = {
                 where: { id: discordProfile.id },
                 data: updateData,
               })
-              console.log(`[NextAuth JWT] User data updated in DB: ${dbUser.name}`)
+              console.log(`[NextAuth JWT] User data updated in DB: ${dbUser.name}, Role: ${dbUser.role}`)
             }
           }
 
+          // Asignar datos del usuario al token solo durante el sign-in inicial
           token.dbUserId = dbUser.id
           token.role = dbUser.role
           token.name = dbUser.name
           token.email = dbUser.email
           token.picture = dbUser.image || undefined
           token.status = dbUser.status
+          
+          console.log(`[NextAuth JWT] Token updated with role: ${dbUser.role}`)
         } catch (error: any) {
           console.error("❌❌❌ [NextAuth JWT] CRITICAL ERROR processing user in DB ❌❌❌", error)
           return { ...token, error: "DatabaseProcessingError" }
         }
       }
+      
+             // Si ya tenemos datos del usuario en el token, mantenerlos
+       if (token.dbUserId && !token.role) {
+         console.log("[NextAuth JWT] Token missing role, fetching from DB...")
+         try {
+           const dbUser = await prisma.user.findUnique({
+             where: { id: token.dbUserId as string },
+             select: { role: true, name: true, email: true, image: true, status: true }
+           })
+           
+           if (dbUser) {
+             token.role = dbUser.role
+             token.name = dbUser.name
+             token.email = dbUser.email
+             token.picture = dbUser.image || undefined
+             token.status = dbUser.status
+             console.log(`[NextAuth JWT] Role restored from DB: ${dbUser.role}`)
+           }
+         } catch (error) {
+           console.error("[NextAuth JWT] Error fetching user data:", error)
+         }
+       }
+       
+       // Verificar que el rol sea consistente en cada request
+       if (token.dbUserId && token.role) {
+         console.log(`[NextAuth JWT] Token has role: ${token.role} for user: ${token.dbUserId}`)
+       }
+      
       return token
     },
     async session({ session, token }) {
       console.log("[NextAuth Session] Creating session:", { 
         hasToken: !!token, 
         hasDbUserId: !!token.dbUserId,
-        hasError: !!token.error 
+        hasError: !!token.error,
+        tokenRole: token.role,
+        sessionUserRole: (session.user as any)?.role
       })
       
-      if (token.dbUserId && session.user) {
-        session.user.id = token.dbUserId as string
-        session.user.role = token.role as UserRole
-        if (token.name) session.user.name = token.name as string
-        if (token.email) session.user.email = token.email as string
-        if (token.picture) session.user.image = token.picture as string
-        if (token.status) session.user.status = token.status as UserAvailabilityStatus
+      // Asignar todos los datos del token a la sesión de manera explícita
+      if (session.user) {
+        if (token.dbUserId) {
+          session.user.id = token.dbUserId as string
+        }
+        
+        if (token.role) {
+          session.user.role = token.role as UserRole
+        }
+        
+        if (token.name) {
+          session.user.name = token.name as string
+        }
+        
+        if (token.email) {
+          session.user.email = token.email as string
+        }
+        
+        if (token.picture) {
+          session.user.image = token.picture as string
+        }
+        
+        if (token.status) {
+          session.user.status = token.status as UserAvailabilityStatus
+        }
       }
+      
+      console.log(`[NextAuth Session] Session created with role: ${(session.user as any)?.role}`)
+      console.log(`[NextAuth Session] Full session user object:`, JSON.stringify(session.user, null, 2))
+      
       if (token.error) {
         ;(session as any).error = token.error
       }

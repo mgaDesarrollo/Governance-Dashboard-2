@@ -115,15 +115,33 @@ export default function ConsensusPage() {
       setError(null)
       
       console.log("Fetching consensus reports...")
-      const response = await fetch("/api/reports?consensusStatus=pending")
+      console.log("Session:", session)
+      
+      const response = await fetch("/api/reports?consensusStatus=PENDING", {
+        credentials: 'include'
+      })
+      
+      console.log("Response status:", response.status)
+      console.log("Response headers:", response.headers)
       
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Response error text:", errorText)
         throw new Error(`Failed to fetch reports: ${response.status}`)
       }
       
-      const data = await response.json()
-      console.log("Reports fetched:", data)
-      setReports(data)
+      const contentType = response.headers.get('content-type')
+      console.log("Content-Type:", contentType)
+      
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        console.log("Reports fetched:", data)
+        setReports(data)
+      } else {
+        const text = await response.text()
+        console.error("Unexpected response type:", text.substring(0, 200))
+        throw new Error("Unexpected response type")
+      }
     } catch (err) {
       console.error("Error fetching reports:", err)
       setError("Error loading reports")
@@ -133,6 +151,10 @@ export default function ConsensusPage() {
   }
 
   const applyFilters = () => {
+    if (!reports || !Array.isArray(reports)) {
+      setFilteredReports([])
+      return
+    }
     let filtered = [...reports]
 
     if (filters.status) {
@@ -141,6 +163,7 @@ export default function ConsensusPage() {
 
     if (filters.workGroup) {
       filtered = filtered.filter(report => 
+        report.workGroup && report.workGroup.name && 
         report.workGroup.name.toLowerCase().includes(filters.workGroup.toLowerCase())
       )
     }
@@ -156,9 +179,9 @@ export default function ConsensusPage() {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase()
       filtered = filtered.filter(report => 
-        report.workGroup.name.toLowerCase().includes(searchTerm) ||
-        report.detail.toLowerCase().includes(searchTerm) ||
-        report.createdBy.name.toLowerCase().includes(searchTerm)
+        (report.workGroup && report.workGroup.name && report.workGroup.name.toLowerCase().includes(searchTerm)) ||
+        (report.detail && report.detail.toLowerCase().includes(searchTerm)) ||
+        (report.createdBy && report.createdBy.name && report.createdBy.name.toLowerCase().includes(searchTerm))
       )
     }
 
@@ -189,6 +212,7 @@ export default function ConsensusPage() {
   }
 
   const getTotalBudget = (budgetItems: any[]) => {
+    if (!budgetItems || !Array.isArray(budgetItems)) return 0
     return budgetItems.reduce((sum, item) => sum + (item.amountUsd || 0), 0)
   }
 
@@ -203,16 +227,21 @@ export default function ConsensusPage() {
   }
 
   const getUniqueWorkGroups = () => {
-    const workGroups = reports.map(report => report.workGroup.name)
+    if (!reports || !Array.isArray(reports)) return []
+    const workGroups = reports
+      .filter(report => report.workGroup && report.workGroup.name)
+      .map(report => report.workGroup.name)
     return [...new Set(workGroups)]
   }
 
   const getUniqueYears = () => {
+    if (!reports || !Array.isArray(reports)) return []
     const years = reports.map(report => report.year)
     return [...new Set(years)].sort((a, b) => b - a)
   }
 
   const getUniqueQuarters = () => {
+    if (!reports || !Array.isArray(reports)) return []
     const quarters = reports.map(report => report.quarter)
     return [...new Set(quarters)].sort()
   }
@@ -479,7 +508,7 @@ export default function ConsensusPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-lg tracking-wide">
-                              {report.workGroup.name}
+                              {report.workGroup?.name || 'Unknown Work Group'}
                             </h3>
                             <p className="text-sm text-gray-400 font-medium">
                               {report.year} Q{report.quarter}
@@ -503,7 +532,7 @@ export default function ConsensusPage() {
                           <UsersIcon className="w-4 h-4 text-gray-400" />
                           <div>
                             <p className="text-xs text-gray-500 font-medium">Participants</p>
-                            <p className="text-sm font-bold text-white">{report.participants.length}</p>
+                            <p className="text-sm font-bold text-white">{report.participants?.length || 0}</p>
                           </div>
                         </div>
                         
@@ -521,7 +550,7 @@ export default function ConsensusPage() {
                           <UserIcon className="w-4 h-4 text-gray-400" />
                           <div>
                             <p className="text-xs text-gray-500 font-medium">Created by</p>
-                            <p className="text-sm font-bold text-white">{report.createdBy.name}</p>
+                            <p className="text-sm font-bold text-white">{report.createdBy?.name || 'Unknown User'}</p>
                           </div>
                         </div>
                         
@@ -556,7 +585,7 @@ export default function ConsensusPage() {
                         <div className="flex items-center space-x-2">
                           <UserIcon className="w-3 h-3 text-gray-400" />
                           <span className="text-xs text-gray-400 font-medium">Proposed by:</span>
-                          <span className="text-xs font-bold text-white">{report.createdBy.name}</span>
+                          <span className="text-xs font-bold text-white">{report.createdBy?.name || 'Unknown User'}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <CalendarIcon className="w-3 h-3 text-gray-400" />
@@ -566,14 +595,14 @@ export default function ConsensusPage() {
                         <div className="flex items-center space-x-2">
                           <UsersIcon className="w-3 h-3 text-gray-400" />
                           <span className="text-xs text-gray-400 font-medium">Participants:</span>
-                          <span className="text-xs font-bold text-white">{report.participants.length} members</span>
+                          <span className="text-xs font-bold text-white">{report.participants?.length || 0} members</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center space-x-4">
-                        {report.votingRounds.length > 0 && (
+                        {report.votingRounds && report.votingRounds.length > 0 && (
                           <div className="flex items-center space-x-2">
                             <VoteIcon className="w-4 h-4 text-gray-400" />
                             <span className="text-gray-400 font-medium">Round:</span>
