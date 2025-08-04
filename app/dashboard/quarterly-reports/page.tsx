@@ -300,63 +300,97 @@ export default function QuarterlyReportsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="w-full space-y-6 -m-6 p-6 -mx-6">
       {/* DEBUG: Mostrar userId de la sesión y workGroupId seleccionado */}
       <div className="text-xs text-slate-400 mb-2">
         Your userId: <span className="font-mono">{session?.user?.id}</span> | Selected workGroupId: <span className="font-mono">{form.workgroup}</span>
       </div>
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-        <div className="flex flex-wrap gap-4">
-          <div>
-            <label className="block text-xs mb-1">Workgroup</label>
-            <select
-              className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
-              value={filters.workgroup}
-              onChange={e => setFilters(f => ({ ...f, workgroup: e.target.value }))}
-            >
-              <option value="">All workgroups</option>
-              {workgroups.map((wg: any) => (
-                <option key={wg.id} value={wg.id}>{wg.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs mb-1">Year</label>
-            <select
-              className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
-              value={filters.year}
-              onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}
-            >
-              <option value="">All years</option>
-              {years.map((year: number) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs mb-1">Quarter</label>
-            <select
-              className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
-              value={filters.quarter}
-              onChange={e => setFilters(f => ({ ...f, quarter: e.target.value }))}
-            >
-              <option value="">All quarters</option>
-              <option value="Q1">Q1</option>
-              <option value="Q2">Q2</option>
-              <option value="Q3">Q3</option>
-              <option value="Q4">Q4</option>
-            </select>
+      
+      {/* Header con título y estadísticas */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-6">
+          <h1 className="text-3xl font-bold text-white tracking-wide flex items-center gap-3">
+            <FileTextIcon className="w-8 h-8 text-purple-400" />
+            Quarterly Reports
+          </h1>
+          
+          {/* Estadísticas elegantes */}
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-green-400 font-medium">Active</span>
+              <span className="text-green-300 font-bold">{filteredReports.filter((r: any) => r.status === 'IN_CONSENSUS' || r.status === 'DRAFT').length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-full">
+              <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+              <span className="text-slate-400 font-medium">Expired</span>
+              <span className="text-slate-300 font-bold">{filteredReports.filter((r: any) => r.status === 'EXPIRED').length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-600/10 border border-green-600/20 rounded-full">
+              <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+              <span className="text-green-500 font-medium">Approved</span>
+              <span className="text-green-400 font-bold">{filteredReports.filter((r: any) => r.status === 'CONSENSED').length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-blue-400 font-medium">Total</span>
+              <span className="text-blue-300 font-bold">{filteredReports.length}</span>
+            </div>
           </div>
         </div>
+
         <button onClick={() => setOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded shadow transition-all flex items-center gap-2">
           <PlusIcon className="w-5 h-5" />
           Create Report
         </button>
       </div>
-      <h1 className="text-3xl font-bold mb-6 flex items-center gap-3 text-white tracking-wide">
-        <FileTextIcon className="w-8 h-8 text-purple-400" />
-        Quarterly Reports
-      </h1>
+
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <div>
+          <label className="block text-xs mb-1">Workgroup</label>
+          <select
+            className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
+            value={filters.workgroup}
+            onChange={e => setFilters(f => ({ ...f, workgroup: e.target.value }))}
+          >
+            <option value="">All workgroups</option>
+            {workgroups.map((wg: any) => (
+              <option key={wg.id} value={wg.id}>{wg.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs mb-1">Year</label>
+          <select
+            className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
+            value={filters.year}
+            onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}
+          >
+            <option value="">All years</option>
+            {years.map((year: number) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs mb-1">Quarter</label>
+          <select
+            className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-slate-100"
+            value={filters.quarter}
+            onChange={e => setFilters(f => ({ ...f, quarter: e.target.value }))}
+          >
+            <option value="">All quarters</option>
+            <option value="Q1">Q1</option>
+            <option value="Q2">Q2</option>
+            <option value="Q3">Q3</option>
+            <option value="Q4">Q4</option>
+          </select>
+        </div>
+      </div>
       {loading ? (
         <LoadingSkeleton type="page" />
       ) : filteredReports.length === 0 ? (
@@ -365,8 +399,8 @@ export default function QuarterlyReportsPage() {
           <p className="text-slate-400 text-lg">No quarterly reports found for the selected filters.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg shadow border border-slate-700 bg-slate-800">
-          <table className="min-w-full bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+        <div className="w-full overflow-x-auto rounded-lg shadow border border-slate-700 bg-slate-800">
+          <table className="w-full bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
             <thead className="bg-slate-700">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">

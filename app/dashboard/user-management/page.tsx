@@ -27,7 +27,7 @@ interface User {
 }
 
 export default function UserManagementPage() {
-  const { user: currentUser } = useSessionWithRefresh()
+  const { user: currentUser, refreshSession } = useSessionWithRefresh()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingUser, setUpdatingUser] = useState<string | null>(null)
@@ -52,6 +52,7 @@ export default function UserManagementPage() {
   }
 
   const updateUserRole = async (userId: string, newRole: string) => {
+    console.log(`[User Management] Updating role for user ${userId} to ${newRole}`)
     setUpdatingUser(userId)
     setError("")
 
@@ -62,16 +63,29 @@ export default function UserManagementPage() {
         body: JSON.stringify({ role: newRole })
       })
 
+      console.log(`[User Management] Response status: ${response.status}`)
+
       if (response.ok) {
+        const data = await response.json()
+        console.log(`[User Management] Success response:`, data)
+        
         // Actualizar la lista de usuarios
         setUsers(prev => prev.map(user => 
-          user.id === userId ? { ...user, role: newRole } : user
+          user.id === userId ? { ...user, role: data.role } : user
         ))
+
+        // Si el usuario actualizado es el mismo que está logueado, refrescar la sesión
+        if (currentUser?.id === userId) {
+          console.log("Refreshing session due to role change...")
+          await refreshSession()
+        }
       } else {
         const data = await response.json()
+        console.log(`[User Management] Error response:`, data)
         setError(data.error || "Error updating user role")
       }
     } catch (error) {
+      console.error(`[User Management] Network error:`, error)
       setError("Network error")
     } finally {
       setUpdatingUser(null)

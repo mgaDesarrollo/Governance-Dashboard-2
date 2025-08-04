@@ -19,10 +19,14 @@ export function useSessionWithRefresh() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  // Función para actualizar la sesión
+  // Función para actualizar la sesión manualmente
   const refreshSession = async () => {
     try {
+      console.log("Refreshing session...")
+      
+      // Actualizar la sesión de NextAuth
       await update()
+      
       // Recargar la página para aplicar los cambios
       router.refresh()
     } catch (error) {
@@ -30,7 +34,7 @@ export function useSessionWithRefresh() {
     }
   }
 
-  // Función para verificar permisos de administrador
+  // Función para verificar permisos de administrador (solo cuando se solicite)
   const checkAdminPermissions = async () => {
     try {
       const response = await fetch("/api/auth/check-permissions", {
@@ -44,29 +48,18 @@ export function useSessionWithRefresh() {
       if (response.ok) {
         const userData = await response.json()
         setUser(userData)
-        
-        // Si el rol cambió, actualizar la sesión inmediatamente
-        if (session?.user?.role !== userData.role) {
-          console.log("Role changed from", session?.user?.role, "to", userData.role)
-          await refreshSession()
-        }
+        return userData
       }
     } catch (error) {
       console.error("Error checking permissions:", error)
-    } finally {
-      setLoading(false)
     }
+    return null
   }
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       setUser(session.user as User)
       setLoading(false)
-      
-      // Verificar permisos inmediatamente y luego cada 15 segundos
-      checkAdminPermissions()
-      const interval = setInterval(checkAdminPermissions, 15000)
-      return () => clearInterval(interval)
     } else if (status === "unauthenticated") {
       setUser(null)
       setLoading(false)

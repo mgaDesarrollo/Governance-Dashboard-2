@@ -68,7 +68,7 @@ export default function WorkGroupsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {loading ? (
         <LoadingSkeleton type="page" />
       ) : !selected ? (
@@ -90,7 +90,7 @@ export default function WorkGroupsPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/30">
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
@@ -212,7 +212,7 @@ export default function WorkGroupsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredWorkGroups.map((wg) => (
                   <Card 
                     key={wg.id} 

@@ -40,7 +40,7 @@ const getMenuItems = (userRole: string) => {
       icon: HomeIcon
     },
     {
-      title: "Proposals",
+      title: "Community Proposals",
       url: "/dashboard/proposals",
       icon: FileTextIcon
     },
@@ -73,8 +73,8 @@ const getMenuItems = (userRole: string) => {
 
   const adminItems = [
     {
-      title: "Check Expired Proposals",
-      url: "/dashboard/expired-proposals",
+      title: "Check Expired Quarterly Reports",
+      url: "/dashboard/admin/check-expired-quarterly-reports",
       icon: AlertTriangleIcon
     }
   ]

@@ -114,16 +114,16 @@ export default function ProposalsPage() {
 
   if (isLoading || status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-transparent">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-transparent text-slate-50 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Button
             variant="outline"
             onClick={() => router.push("/dashboard")}
@@ -132,7 +132,36 @@ export default function ProposalsPage() {
             <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl font-bold text-white tracking-wide">Proposals</h1>
+          <div className="flex items-center gap-6">
+            <h1 className="text-3xl font-bold text-white tracking-wide">Community Proposals</h1>
+            
+            {/* Estadísticas elegantes */}
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-green-400 font-medium">Active</span>
+                <span className="text-green-300 font-bold">{proposals.filter(p => p.status === 'IN_REVIEW').length}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-full">
+                <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                <span className="text-slate-400 font-medium">Expired</span>
+                <span className="text-slate-300 font-bold">{proposals.filter(p => p.status === 'EXPIRED').length}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-600/10 border border-green-600/20 rounded-full">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                <span className="text-green-500 font-medium">Approved</span>
+                <span className="text-green-400 font-bold">{proposals.filter(p => p.status === 'APPROVED').length}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span className="text-red-400 font-medium">Rejected</span>
+                <span className="text-red-300 font-bold">{proposals.filter(p => p.status === 'REJECTED').length}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (

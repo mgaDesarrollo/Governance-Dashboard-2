@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { UserCard } from "@/components/user-card"
 import { CollaboratorsFilters, type CollaboratorFilters } from "@/components/collaborators-filters"
-import { ArrowLeftIcon, UsersIcon, Loader2Icon } from "lucide-react"
+import { UsersIcon, Loader2Icon } from "lucide-react"
 import { UserProfileDialog } from "@/components/user-profile-dialog"
 import type { UserAvailabilityStatus, Workgroup } from "@prisma/client"
 
@@ -280,7 +280,7 @@ export default function CollaboratorsPage() {
 
   if (isLoading || sessionStatus === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-transparent">
         <Loader2Icon className="h-16 w-16 text-purple-500 animate-spin" />
       </div>
     )
@@ -303,24 +303,14 @@ export default function CollaboratorsPage() {
   const onlineCount = filteredUsers.filter((user) => user.isOnline).length
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <Button
-          variant="outline"
-          onClick={() => router.push("/dashboard")}
-          className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-slate-100 self-start sm:self-center"
-        >
-          <ArrowLeftIcon className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
-        <div className="flex items-center gap-2">
-          <UsersIcon className="h-7 w-7 text-purple-400" />
-          <div>
-            <h1 className="text-3xl font-bold text-white tracking-wide">Collaborators</h1>
-            <p className="text-sm text-slate-400 font-medium">
-              {onlineCount} online • {filteredUsers.length} total
-            </p>
-          </div>
+    <div className="min-h-screen bg-transparent text-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="flex items-center gap-2 mb-6">
+        <UsersIcon className="h-7 w-7 text-purple-400" />
+        <div>
+          <h1 className="text-3xl font-bold text-white tracking-wide">Collaborators</h1>
+          <p className="text-sm text-slate-400 font-medium">
+            {onlineCount} online • {filteredUsers.length} total
+          </p>
         </div>
       </div>
 

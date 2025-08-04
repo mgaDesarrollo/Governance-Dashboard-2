@@ -67,7 +67,7 @@ export function CollaboratorsFilters({
   totalCount,
   filteredCount,
 }: CollaboratorsFiltersProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
   const [skillInput, setSkillInput] = useState("")
 
   const updateFilters = (updates: Partial<CollaboratorFilters>) => {
@@ -114,7 +114,7 @@ export function CollaboratorsFilters({
   const activeFiltersCount = getActiveFiltersCount()
 
   return (
-    <Card className="bg-slate-800 border-slate-700">
+    <Card className="bg-gray-900 border-gray-700">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -153,12 +153,12 @@ export function CollaboratorsFilters({
                   placeholder="Search by name, skills, country..."
                   value={filters.search}
                   onChange={(e) => updateFilters({ search: e.target.value })}
-                  className="pl-10 bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400"
+                  className="pl-10 bg-gray-800 border-gray-600 text-slate-100 placeholder-slate-400"
                 />
               </div>
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-gray-700" />
 
             {/* Status Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,10 +169,10 @@ export function CollaboratorsFilters({
                   value={filters.status}
                   onValueChange={(value) => updateFilters({ status: value as UserAvailabilityStatus | "ALL" })}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     {statusOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="text-slate-100">
                         <div className="flex items-center gap-2">
@@ -192,10 +192,10 @@ export function CollaboratorsFilters({
                   value={filters.onlineStatus}
                   onValueChange={(value) => updateFilters({ onlineStatus: value as any })}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     {onlineStatusOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="text-slate-100">
                         {option.label}
@@ -206,7 +206,7 @@ export function CollaboratorsFilters({
               </div>
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-gray-700" />
 
             {/* Location and Workgroup */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -220,10 +220,10 @@ export function CollaboratorsFilters({
                   value={filters.country || "ALL_COUNTRIES"}
                   onValueChange={(value) => updateFilters({ country: value === "ALL_COUNTRIES" ? "" : value })}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
                     <SelectValue placeholder="All countries" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     <SelectItem value="ALL_COUNTRIES" className="text-slate-100">
                       All countries
                     </SelectItem>
@@ -246,10 +246,10 @@ export function CollaboratorsFilters({
                   value={filters.workgroup || "ALL_WORKGROUPS"}
                   onValueChange={(value) => updateFilters({ workgroup: value === "ALL_WORKGROUPS" ? "" : value })}
                 >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
                     <SelectValue placeholder="All workgroups" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     <SelectItem value="ALL_WORKGROUPS" className="text-slate-100">
                       All workgroups
                     </SelectItem>
@@ -282,7 +282,7 @@ export function CollaboratorsFilters({
                       addSkill(skillInput.trim())
                     }
                   }}
-                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400"
+                  className="bg-gray-800 border-gray-600 text-slate-100 placeholder-slate-400"
                 />
                 <Button
                   onClick={() => addSkill(skillInput.trim())}
@@ -316,7 +316,7 @@ export function CollaboratorsFilters({
               )}
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-gray-700" />
 
             {/* Additional Filters */}
             <div className="space-y-3">
@@ -352,7 +352,7 @@ export function CollaboratorsFilters({
             {/* Clear Filters */}
             {activeFiltersCount > 0 && (
               <>
-                <Separator className="bg-slate-700" />
+                <Separator className="bg-gray-700" />
                 <Button
                   variant="outline"
                   onClick={clearAllFilters}

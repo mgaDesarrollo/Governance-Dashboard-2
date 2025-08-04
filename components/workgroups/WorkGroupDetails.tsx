@@ -209,8 +209,8 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4 sm:p-6 w-full">
-      <div className="w-full max-w-none space-y-6">
+    <div className="min-h-screen bg-transparent p-4 sm:p-6 w-full">
+      <div className="w-full max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">

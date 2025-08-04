@@ -134,7 +134,7 @@ const getOnlineStatusInfo = (isOnline?: boolean, lastSeen?: string | null) => {
 }
 
 const SkillBadge: React.FC<{ skill: string }> = ({ skill }) => (
-  <Badge variant="outline" className="bg-slate-700 border-purple-500/30 text-purple-300 text-xs px-2 py-0.5">
+  <Badge variant="outline" className="bg-gray-700 border-purple-500/30 text-purple-300 text-xs px-2 py-0.5">
     <SparklesIcon className="mr-1 h-3 w-3 text-purple-400" />
     {skill}
   </Badge>
@@ -185,7 +185,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700/80 hover:border-purple-500/70 transition-all duration-300 ease-in-out shadow-lg hover:shadow-purple-500/20 overflow-hidden flex flex-col h-full">
+    <Card className="bg-gray-900 border-gray-700 hover:border-purple-500/70 transition-all duration-300 ease-in-out shadow-lg hover:shadow-purple-500/20 overflow-hidden flex flex-col h-[420px] min-h-[420px] max-h-[420px]">
       <CardHeader className="p-4">
         <div className="flex items-start space-x-3">
           <div className="relative">
@@ -244,7 +244,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-3 text-sm flex-grow">
+      <CardContent className="p-4 space-y-3 text-sm flex-1 overflow-hidden">
         {(user.country || user.languages) && (
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-slate-300">
             {user.country && (
@@ -265,13 +265,13 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
         {skillsArray.length > 0 && (
           <div>
             <h4 className="text-xs font-medium text-slate-400 mb-1.5">Skills:</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {skillsArray.slice(0, 5).map((skill, index) => (
+            <div className="flex flex-wrap gap-1.5 max-h-16 overflow-hidden">
+              {skillsArray.slice(0, 4).map((skill, index) => (
                 <SkillBadge key={index} skill={skill} />
               ))}
-              {skillsArray.length > 5 && (
-                <Badge variant="outline" className="text-xs bg-slate-700 border-slate-600">
-                  +{skillsArray.length - 5} more
+              {skillsArray.length > 4 && (
+                <Badge variant="outline" className="text-xs bg-gray-700 border-gray-600">
+                  +{skillsArray.length - 4} more
                 </Badge>
               )}
             </div>
@@ -281,19 +281,24 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
         {user.workgroups && user.workgroups.length > 0 && (
           <div>
             <h4 className="text-xs font-medium text-slate-400 mb-1.5">Workgroups:</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {user.workgroups.map((wg) => (
-                <Badge key={wg.id} variant="secondary" className="bg-slate-700/70 text-slate-300 text-xs px-2 py-0.5">
+            <div className="flex flex-wrap gap-1.5 max-h-16 overflow-hidden">
+              {user.workgroups.slice(0, 3).map((wg) => (
+                <Badge key={wg.id} variant="secondary" className="bg-gray-700/70 text-slate-300 text-xs px-2 py-0.5">
                   <BriefcaseIcon className="mr-1 h-3 w-3 text-slate-400" />
                   {wg.name}
                 </Badge>
               ))}
+              {user.workgroups.length > 3 && (
+                <Badge variant="outline" className="text-xs bg-gray-700 border-gray-600">
+                  +{user.workgroups.length - 3} more
+                </Badge>
+              )}
             </div>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="p-4 border-t border-slate-700/50 mt-auto">
+      <CardFooter className="p-4 border-t border-gray-700/50 mt-auto">
         <div className="w-full space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex space-x-1">
@@ -302,7 +307,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => onViewProfile(user.id)}
-                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 text-xs"
+                  className="text-slate-400 hover:text-purple-400 hover:bg-gray-700/50 text-xs"
                 >
                   <EyeIcon className="mr-1 h-3 w-3" />
                   View Profile
@@ -317,7 +322,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
                 className={`text-xs transition-all duration-200 ${
                   copied
                     ? "text-green-400 hover:text-green-300 bg-green-500/10 hover:bg-green-500/20"
-                    : "text-slate-400 hover:text-blue-400 hover:bg-slate-700/50"
+                    : "text-slate-400 hover:text-blue-400 hover:bg-gray-700/50"
                 }`}
                 title={copied ? "Username copied!" : `Copy @${user.name} to message on Discord`}
               >
@@ -339,7 +344,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
                   variant="ghost"
                   size="icon"
                   asChild
-                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
+                  className="text-slate-400 hover:text-purple-400 hover:bg-gray-700/50 w-8 h-8"
                 >
                   <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn">
                     <LinkedinIcon className="h-4 w-4" />
@@ -351,7 +356,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
                   variant="ghost"
                   size="icon"
                   asChild
-                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
+                  className="text-slate-400 hover:text-purple-400 hover:bg-gray-700/50 w-8 h-8"
                 >
                   <a href={user.socialLinks.github} target="_blank" rel="noopener noreferrer" title="GitHub">
                     <GithubIcon className="h-4 w-4" />
@@ -363,7 +368,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
                   variant="ghost"
                   size="icon"
                   asChild
-                  className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50 w-8 h-8"
+                  className="text-slate-400 hover:text-purple-400 hover:bg-gray-700/50 w-8 h-8"
                 >
                   <a href={user.socialLinks.x} target="_blank" rel="noopener noreferrer" title="X (Twitter)">
                     <TwitterIcon className="h-4 w-4" />
