@@ -10,6 +10,13 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  				fontFamily: {
+			'inter': ['Inter', 'system-ui', 'sans-serif'],
+			'jetbrains': ['JetBrains Mono', 'monospace'],
+			'outfit': ['Outfit', 'system-ui', 'sans-serif'],
+			'mac': ['Plus Jakarta Sans', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+			'sans': ['Plus Jakarta Sans', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
+		},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -88,6 +95,10 @@ const config: Config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
+  		},
+  		screens: {
+  			'3xl': '1600px',
+  			'4xl': '1920px'
   		}
   	}
   },

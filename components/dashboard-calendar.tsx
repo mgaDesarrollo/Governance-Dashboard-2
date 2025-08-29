@@ -55,7 +55,7 @@ const EventCard = ({ event }: { event: CalendarEvent }) => {
   }
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-slate-600 transition-colors">
+    <div className="flex items-start gap-3 p-3 rounded-lg bg-black/50 border border-slate-700 hover:border-slate-600 transition-colors">
       <div className={`p-2 rounded-lg flex-shrink-0 ${getEventColor(event.type, event.priority)}`}>
         {getEventIcon(event.type)}
       </div>
@@ -127,7 +127,7 @@ export function DashboardCalendar() {
   ]
 
   return (
-    <Card className="bg-slate-800 border-slate-700">
+    <Card className="bg-black border-slate-700">
       <CardHeader>
         <div className="flex items-center gap-2">
           <div className="p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg">

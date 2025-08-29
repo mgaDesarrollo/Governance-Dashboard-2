@@ -5,13 +5,10 @@ import type React from "react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  FileTextIcon,
-  ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
   TrendingUpIcon,
   UsersIcon,
-  VoteIcon,
   BuildingIcon,
 } from "lucide-react"
 
@@ -29,12 +26,12 @@ interface MetricCardProps {
 
 const MetricCard = ({ title, value, description, icon, trend, color }: MetricCardProps) => {
   const colorClasses = {
-    blue: "bg-blue-500/10 border-blue-500/30 text-blue-300",
-    green: "bg-green-500/10 border-green-500/30 text-green-300",
-    yellow: "bg-yellow-500/10 border-yellow-500/30 text-yellow-300",
-    red: "bg-red-500/10 border-red-500/30 text-red-300",
-    purple: "bg-purple-500/10 border-purple-500/30 text-purple-300",
-    orange: "bg-orange-500/10 border-orange-500/30 text-orange-300",
+    blue: "from-blue-600/20 to-blue-800/30 border-blue-500/50 text-blue-300",
+    green: "from-green-600/20 to-green-800/30 border-green-500/50 text-green-300",
+    yellow: "from-yellow-600/20 to-yellow-800/30 border-yellow-500/50 text-yellow-300",
+    red: "from-red-600/20 to-red-800/30 border-red-500/50 text-red-300",
+    purple: "from-purple-600/20 to-purple-800/30 border-purple-500/50 text-purple-300",
+    orange: "from-orange-600/20 to-orange-800/30 border-orange-500/50 text-orange-300",
   }
 
   const iconColorClasses = {
@@ -47,15 +44,16 @@ const MetricCard = ({ title, value, description, icon, trend, color }: MetricCar
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700 hover:border-slate-600 transition-colors">
+    <Card className="bg-black border border-slate-700 hover:border-slate-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/20 relative overflow-hidden group">
+        <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[color]} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-slate-300">{title}</CardTitle>
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+        <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} shadow-lg`}>
           <div className={`h-4 w-4 ${iconColorClasses[color]}`}>{icon}</div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-slate-100">{value}</div>
+        <div className={`text-2xl font-bold ${iconColorClasses[color]}`}>{value}</div>
         <p className="text-xs text-slate-400 mt-1">{description}</p>
         {trend && (
           <div className="flex items-center mt-2">
@@ -71,23 +69,7 @@ const MetricCard = ({ title, value, description, icon, trend, color }: MetricCar
   )
 }
 
-interface QuarterlyReport {
-  id: string
-  year: number
-  quarter: string
-  consensusStatus: "PENDING" | "IN_CONSENSUS" | "CONSENSED"
-  workGroup: {
-    name: string
-  }
-  participants: Array<{
-    user: {
-      id: string
-    }
-  }>
-  budgetItems: Array<{
-    amountUsd: number
-  }>
-}
+
 
 interface WorkGroup {
   id: string
@@ -97,7 +79,6 @@ interface WorkGroup {
 }
 
 export function DashboardMetrics() {
-  const [quarterlyReports, setQuarterlyReports] = useState<QuarterlyReport[]>([])
   const [workGroups, setWorkGroups] = useState<WorkGroup[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -105,15 +86,9 @@ export function DashboardMetrics() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [reportsRes, workgroupsRes] = await Promise.all([
-          fetch("/api/reports"),
-          fetch("/api/workgroups")
-        ])
-        
-        const reports = await reportsRes.json()
+        const workgroupsRes = await fetch("/api/workgroups")
         const workgroups = await workgroupsRes.json()
         
-        setQuarterlyReports(reports)
         setWorkGroups(workgroups)
       } catch (error) {
         console.error("Error fetching dashboard metrics:", error)
@@ -133,70 +108,52 @@ export function DashboardMetrics() {
           <h2 className="text-xl font-bold text-white tracking-wide">Dashboard Metrics</h2>
         </div>
         <p className="text-gray-400 text-sm">Loading metrics...</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-32 bg-gray-800 rounded-lg animate-pulse"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-black rounded-lg animate-pulse"></div>
           ))}
         </div>
       </div>
     )
   }
 
-  const totalReports = quarterlyReports.length
-  const pendingConsensus = quarterlyReports.filter(r => r.consensusStatus === "PENDING").length
-  const inConsensus = quarterlyReports.filter(r => r.consensusStatus === "IN_CONSENSUS").length
-  const consensedReports = quarterlyReports.filter(r => r.consensusStatus === "CONSENSED").length
   const activeWorkgroups = workGroups.filter(wg => wg.status === "Active").length
-  const totalParticipants = quarterlyReports.reduce((sum, report) => sum + report.participants.length, 0)
+  const inactiveWorkgroups = workGroups.filter(wg => wg.status === "Inactive").length
+  const totalWorkgroups = workGroups.length
+  const totalMembers = workGroups.reduce((sum, wg) => sum + parseInt(wg.totalMembers || "0"), 0)
 
   const metrics = [
     {
-      title: "Total Quarterly Reports",
-      value: totalReports,
-      description: "All quarterly reports created",
-      icon: <FileTextIcon className="h-4 w-4" />,
-      trend: { value: "+1", isPositive: true },
-      color: "blue" as const,
-    },
-    {
-      title: "Pending Consensus",
-      value: pendingConsensus,
-      description: "Reports awaiting community vote",
-      icon: <ClockIcon className="h-4 w-4" />,
-      trend: { value: "+1", isPositive: true },
-      color: "yellow" as const,
-    },
-    {
-      title: "In Consensus",
-      value: inConsensus,
-      description: "Reports currently being voted on",
-      icon: <VoteIcon className="h-4 w-4" />,
+      title: "Total Workgroups",
+      value: totalWorkgroups,
+      description: "All workgroups and guilds",
+      icon: <BuildingIcon className="h-4 w-4" />,
       trend: { value: "+0", isPositive: true },
-      color: "purple" as const,
-    },
-    {
-      title: "Consensed Reports",
-      value: consensedReports,
-      description: "Reports that reached consensus",
-      icon: <CheckCircleIcon className="h-4 w-4" />,
-      trend: { value: "+1", isPositive: true },
-      color: "green" as const,
+      color: "blue" as const,
     },
     {
       title: "Active Workgroups",
       value: activeWorkgroups,
       description: "Currently active workgroups",
-      icon: <BuildingIcon className="h-4 w-4" />,
-      trend: { value: "+1", isPositive: true },
-      color: "orange" as const,
+      icon: <CheckCircleIcon className="h-4 w-4" />,
+      trend: { value: "+0", isPositive: true },
+      color: "green" as const,
     },
     {
-      title: "Total Participants",
-      value: totalParticipants,
-      description: "Community members participating",
+      title: "Inactive Workgroups",
+      value: inactiveWorkgroups,
+      description: "Currently inactive workgroups",
+      icon: <XCircleIcon className="h-4 w-4" />,
+      trend: { value: "+0", isPositive: true },
+      color: "red" as const,
+    },
+    {
+      title: "Total Members",
+      value: totalMembers,
+      description: "Community members across all groups",
       icon: <UsersIcon className="h-4 w-4" />,
       trend: { value: "+0", isPositive: true },
-      color: "blue" as const,
+      color: "purple" as const,
     },
   ]
 
@@ -207,7 +164,7 @@ export function DashboardMetrics() {
         <h2 className="text-xl font-bold text-white tracking-wide">Dashboard Metrics</h2>
       </div>
       <p className="text-gray-400 text-sm">Key performance indicators and statistics</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
           <MetricCard key={index} {...metric} />
         ))}

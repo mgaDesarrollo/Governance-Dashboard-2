@@ -41,22 +41,22 @@ export default function HelpSupportPage() {
 
   if (isLoadingPage || status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-purple-500"></div>
       </div>
     )
   }
 
   if (status === "unauthenticated" || !session?.user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-black">
         <p className="text-white">Redirecting...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50 p-6">
+    <div className="min-h-screen bg-black text-slate-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
@@ -69,7 +69,7 @@ export default function HelpSupportPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-800 border-slate-700 hover:border-purple-600/50 transition-colors">
+          <Card className="bg-black border-slate-700 hover:border-purple-600/50 transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BookOpenIcon className="h-5 w-5 text-blue-400" />
@@ -80,13 +80,13 @@ export default function HelpSupportPage() {
               <p className="text-slate-300 text-sm mb-4">
                 Access comprehensive guides and documentation for the governance platform.
               </p>
-              <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-black">
                 View Docs <ExternalLinkIcon className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700 hover:border-purple-600/50 transition-colors">
+          <Card className="bg-black border-slate-700 hover:border-purple-600/50 transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MessageCircleIcon className="h-5 w-5 text-green-400" />
@@ -97,13 +97,13 @@ export default function HelpSupportPage() {
               <p className="text-slate-300 text-sm mb-4">
                 Join our Discord community for real-time help and discussions.
               </p>
-              <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-black">
                 Join Discord <ExternalLinkIcon className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700 hover:border-purple-600/50 transition-colors">
+          <Card className="bg-black border-slate-700 hover:border-purple-600/50 transition-colors">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MailIcon className="h-5 w-5 text-yellow-400" />
@@ -112,7 +112,7 @@ export default function HelpSupportPage() {
             </CardHeader>
             <CardContent>
               <p className="text-slate-300 text-sm mb-4">Need direct assistance? Contact our support team via email.</p>
-              <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Button variant="outline" className="w-full border-slate-600 text-slate-300 hover:bg-black">
                 Send Email <ExternalLinkIcon className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
@@ -120,7 +120,7 @@ export default function HelpSupportPage() {
         </div>
 
         {/* FAQ Section */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-2xl text-slate-100">Frequently Asked Questions</CardTitle>
             <CardDescription className="text-slate-400">
@@ -218,7 +218,7 @@ export default function HelpSupportPage() {
         </Card>
 
         {/* Getting Started Guide */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-2xl text-slate-100">Getting Started Guide</CardTitle>
             <CardDescription className="text-slate-400">
@@ -255,7 +255,7 @@ export default function HelpSupportPage() {
         </Card>
 
         {/* Contact Information */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-2xl text-slate-100">Need More Help?</CardTitle>
             <CardDescription className="text-slate-400">

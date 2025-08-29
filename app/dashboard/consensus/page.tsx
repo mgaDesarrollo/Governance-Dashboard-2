@@ -291,14 +291,14 @@ export default function ConsensusPage() {
               Consensus System
             </h1>
             <p className="text-gray-400 font-medium">
-              Vote and comment on quarterly reports that require community consensus
+      
             </p>
           </div>
         </div>
         
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <FileTextIcon className="w-5 h-5 text-purple-400" />
@@ -310,7 +310,7 @@ export default function ConsensusPage() {
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <TargetIcon className="w-5 h-5 text-yellow-400" />
@@ -324,7 +324,7 @@ export default function ConsensusPage() {
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <TrendingUpIcon className="w-5 h-5 text-blue-400" />
@@ -338,7 +338,7 @@ export default function ConsensusPage() {
             </CardContent>
           </Card>
           
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <CheckCircleIcon className="w-5 h-5 text-green-400" />
@@ -357,7 +357,7 @@ export default function ConsensusPage() {
       <Separator className="border-gray-700" />
 
       {/* Filters Section */}
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="bg-black border-gray-700">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -396,19 +396,19 @@ export default function ConsensusPage() {
               <div className="relative">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="Search..."
+                  placeholder="Search reports..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                  className="pl-10 bg-black border-gray-600 text-white placeholder-gray-400"
                 />
               </div>
 
               {/* Status Filter */}
               <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
-                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectContent className="bg-black border-gray-600">
                   <SelectItem value="">All statuses</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="IN_CONSENSUS">In Consensus</SelectItem>
@@ -418,10 +418,10 @@ export default function ConsensusPage() {
 
               {/* Work Group Filter */}
               <Select value={filters.workGroup} onValueChange={(value) => setFilters({ ...filters, workGroup: value })}>
-                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white">
                   <SelectValue placeholder="Work Group" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectContent className="bg-black border-gray-600">
                   <SelectItem value="">All groups</SelectItem>
                   {getUniqueWorkGroups().map((workGroup) => (
                     <SelectItem key={workGroup} value={workGroup}>{workGroup}</SelectItem>
@@ -431,10 +431,10 @@ export default function ConsensusPage() {
 
               {/* Year Filter */}
               <Select value={filters.year} onValueChange={(value) => setFilters({ ...filters, year: value })}>
-                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white">
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectContent className="bg-black border-gray-600">
                   <SelectItem value="">All years</SelectItem>
                   {getUniqueYears().map((year) => (
                     <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
@@ -444,10 +444,10 @@ export default function ConsensusPage() {
 
               {/* Quarter Filter */}
               <Select value={filters.quarter} onValueChange={(value) => setFilters({ ...filters, quarter: value })}>
-                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                <SelectTrigger className="bg-black border-gray-600 text-white">
                   <SelectValue placeholder="Quarter" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectContent className="bg-black border-gray-600">
                   <SelectItem value="">All quarters</SelectItem>
                   {getUniqueQuarters().map((quarter) => (
                     <SelectItem key={quarter} value={quarter}>Q{quarter}</SelectItem>
@@ -461,9 +461,9 @@ export default function ConsensusPage() {
 
       {/* Reports List */}
       {filteredReports.length === 0 ? (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardContent className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-6">
               <FileTextIcon className="w-8 h-8 text-gray-500" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2 tracking-wide">
@@ -471,16 +471,11 @@ export default function ConsensusPage() {
             </h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto font-medium">
               {reports.length === 0 
-                ? "Currently there are no quarterly reports that require community consensus."
+                ? "Currently there are no reports that require community consensus."
                 : "Try adjusting the filters to see more results."
               }
             </p>
-            <Button 
-              onClick={() => router.push("/dashboard/quarterly-reports")}
-              className="bg-purple-600 hover:bg-purple-700 font-bold"
-            >
-              View All Reports
-            </Button>
+
           </CardContent>
         </Card>
       ) : (
@@ -496,7 +491,7 @@ export default function ConsensusPage() {
           
           <div className="grid gap-6">
             {filteredReports.map((report) => (
-              <Card key={report.id} className="bg-gray-900 border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg">
+              <Card key={report.id} className="bg-black border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1 space-y-4">
@@ -579,7 +574,7 @@ export default function ConsensusPage() {
                       </p>
                     </div>
                     
-                    <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                    <div className="bg-black/50 rounded-lg p-3 border border-gray-700">
                       <h5 className="font-bold text-white text-sm mb-2 tracking-wide">Proposal Details</h5>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">

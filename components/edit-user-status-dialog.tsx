@@ -75,7 +75,7 @@ export function EditUserStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700 text-slate-50">
+      <DialogContent className="sm:max-w-md bg-black border-slate-700 text-slate-50">
         <DialogHeader>
           <DialogTitle className="text-slate-100">Edit User Status</DialogTitle>
         </DialogHeader>

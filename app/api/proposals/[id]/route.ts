@@ -49,11 +49,35 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             createdAt: "desc",
           },
         },
+        workgroup: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            status: true,
+          },
+        },
       },
     })
 
     if (!proposal) {
       return NextResponse.json({ error: "Proposal not found" }, { status: 404 })
+    }
+
+    // Obtener información de los workgroups asociados si existen
+    let associatedWorkGroups = []
+    if (proposal.workGroupIds && proposal.workGroupIds.length > 0) {
+      associatedWorkGroups = await prisma.workGroup.findMany({
+        where: {
+          id: { in: proposal.workGroupIds }
+        },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          status: true,
+        }
+      })
     }
 
     // Check if the current user has voted
@@ -64,6 +88,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({
       ...proposal,
+      associatedWorkGroups,
       userVote: userVote?.type || null,
       userHasCommented: !!userComment,
     })
@@ -119,7 +144,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         return NextResponse.json({ error: "Cannot edit proposal that is not in review" }, { status: 400 })
       }
 
-      const { title, description, expiresAt } = body
+      const { title, description, expiresAt, attachment, proposalType, budgetItems, workGroupIds } = body
 
       const updatedProposal = await prisma.proposal.update({
         where: { id: proposalId },
@@ -127,6 +152,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           title,
           description,
           expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+          attachment: attachment || undefined,
+          proposalType: proposalType || undefined,
+          budgetItems: budgetItems || undefined,
+          workGroupIds: workGroupIds || undefined,
           updatedAt: new Date(),
         },
       })

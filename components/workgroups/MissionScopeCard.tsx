@@ -9,7 +9,7 @@ interface Props {
 const MissionScopeCard: React.FC<Props> = ({ missionStatement, goalsAndFocus }) => (
   <div className="w-full space-y-6">
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+      <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center border border-gray-700">
         <CompassIcon className="w-5 h-5 text-gray-300" />
       </div>
       <div>
@@ -25,7 +25,7 @@ const MissionScopeCard: React.FC<Props> = ({ missionStatement, goalsAndFocus }) 
           <TargetIcon className="w-4 h-4 text-gray-400" />
           <span className="text-sm font-medium text-gray-300">Mission Statement</span>
         </div>
-        <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+        <div className="p-4 bg-black/50 rounded-lg border border-gray-700">
           <p className="text-sm text-gray-200 leading-relaxed">
             {missionStatement}
           </p>
@@ -40,7 +40,7 @@ const MissionScopeCard: React.FC<Props> = ({ missionStatement, goalsAndFocus }) 
         </div>
         <div className="space-y-2">
           {goalsAndFocus.map((goal, i) => (
-            <div key={i} className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div key={i} className="flex items-start gap-2 p-3 bg-black/50 rounded-lg border border-gray-700">
               <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
               <p className="text-sm text-gray-200">{goal}</p>
             </div>

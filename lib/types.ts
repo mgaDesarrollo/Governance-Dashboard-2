@@ -38,6 +38,9 @@ export interface ProposalComment {
   content: string
   createdAt: string
   user: ProposalAuthor
+  replies?: ProposalComment[] // Respuestas anidadas
+  likes?: string[] // Array de IDs de usuarios que dieron like
+  dislikes?: string[] // Array de IDs de usuarios que dieron dislike
 }
 
 export interface ProposalVote {
@@ -66,6 +69,19 @@ export interface Proposal {
   }
   userVote?: VoteTypeEnum | null
   userHasCommented?: boolean
+  
+  // Nuevos campos
+  proposalType?: string
+  budgetItems?: any // JSON de items presupuestarios
+  workGroupIds?: string[]
+  workgroup?: {
+    id: string
+    name: string
+    type: string
+    status: string
+  } | null
+  attachment?: string | null
+  consensusDate?: string | null
 }
 
 declare module "next-auth" {

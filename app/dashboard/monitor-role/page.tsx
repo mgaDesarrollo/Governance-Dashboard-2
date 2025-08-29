@@ -99,7 +99,7 @@ export default function MonitorRolePage() {
   return (
     <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center justify-between">
               <span>Monitor de Rol en Tiempo Real</span>
@@ -126,7 +126,7 @@ export default function MonitorRolePage() {
               <div>
                 <h3 className="text-white font-bold mb-2">Estado Actual:</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-black p-4 rounded-lg">
                     <h4 className="text-gray-300 font-semibold mb-2">Sesión</h4>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
@@ -135,12 +135,12 @@ export default function MonitorRolePage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-400">Usuario:</span>
-                        <span className="text-white">{session?.user?.name || 'No disponible'}</span>
+                        <span className="text-white">{session?.user?.name || 'No disponible'}</span>}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-black p-4 rounded-lg">
                     <h4 className="text-gray-300 font-semibold mb-2">Estado del Monitoreo</h4>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
@@ -170,7 +170,7 @@ export default function MonitorRolePage() {
                   <h3 className="text-white font-bold mb-4">Historial de Verificaciones:</h3>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {roleChecks.map((check, index) => (
-                      <div key={index} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                      <div key={index} className="bg-black p-4 rounded-lg border border-gray-700">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-gray-400 text-sm">
                             {new Date(check.timestamp).toLocaleTimeString()}

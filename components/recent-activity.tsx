@@ -255,7 +255,7 @@ export function RecentActivity() {
 
   if (loading) {
     return (
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-black border-slate-700">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -285,7 +285,7 @@ export function RecentActivity() {
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700">
+    <Card className="bg-black border-slate-700">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

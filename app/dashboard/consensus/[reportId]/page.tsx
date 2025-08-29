@@ -455,15 +455,15 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
       <div className="min-h-screen bg-black p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
+            <div className="h-8 bg-black rounded w-1/4 mb-6"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <div className="h-64 bg-gray-700 rounded"></div>
-                <div className="h-32 bg-gray-700 rounded"></div>
+                <div className="h-64 bg-black rounded"></div>
+                <div className="h-32 bg-black rounded"></div>
               </div>
               <div className="space-y-6">
-                <div className="h-48 bg-gray-700 rounded"></div>
-                <div className="h-32 bg-gray-700 rounded"></div>
+                <div className="h-48 bg-black rounded"></div>
+                <div className="h-32 bg-black rounded"></div>
               </div>
             </div>
           </div>
@@ -543,7 +543,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-gray-900 border-gray-700">
+              <TabsList className="grid w-full grid-cols-4 bg-black border-gray-700">
                 <TabsTrigger value="overview" className="text-gray-300 hover:text-white">Overview</TabsTrigger>
                 <TabsTrigger value="voting" className="text-gray-300 hover:text-white">Voting</TabsTrigger>
                 <TabsTrigger value="comments" className="text-gray-300 hover:text-white">Comments</TabsTrigger>
@@ -552,7 +552,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
               {/* Overview Tab */}
               <TabsContent value="overview" className="space-y-6">
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-black border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileTextIcon className="w-5 h-5 mr-2" />
@@ -641,7 +641,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-black border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <UserIcon className="w-5 h-5 mr-2" />
@@ -689,7 +689,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-black border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <DollarSignIcon className="w-5 h-5 mr-2" />
@@ -702,7 +702,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                     ) : (
                       <div className="space-y-3">
                         {report.budgetItems.map((item) => (
-                          <div key={item.id} className="flex justify-between items-center p-3 bg-gray-800 rounded-lg border border-gray-700">
+                          <div key={item.id} className="flex justify-between items-center p-3 bg-black rounded-lg border border-gray-700">
                             <div>
                               <h4 className="font-bold text-white text-sm tracking-wide">{item.name}</h4>
                               <p className="text-gray-400 text-xs font-medium">{item.description}</p>
@@ -724,7 +724,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
               {/* Voting Tab */}
               <TabsContent value="voting" className="space-y-6">
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-black border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <VoteIcon className="w-5 h-5 mr-2" />
@@ -740,7 +740,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                     ) : (
                       <div className="space-y-4">
                         {votes.map((vote) => (
-                          <div key={vote.id} className="flex items-start space-x-3 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                          <div key={vote.id} className="flex items-start space-x-3 p-4 bg-black rounded-lg border border-gray-700">
                             <Avatar className="w-8 h-8">
                               <AvatarImage src={vote.user.image || undefined} />
                               <AvatarFallback>{vote.user.name.charAt(0)}</AvatarFallback>
@@ -767,7 +767,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
               {/* Comments Tab */}
               <TabsContent value="comments" className="space-y-6">
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-black border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <MessageSquareIcon className="w-5 h-5 mr-2" />
@@ -781,7 +781,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                           placeholder="Add a comment (minimum 5 characters)..."
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
-                          className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                          className="flex-1 bg-black border-gray-600 text-white placeholder-gray-400"
                         />
                         <Button
                           onClick={handleSubmitComment}
@@ -817,7 +817,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
 
               {/* Objections Tab */}
               <TabsContent value="objections" className="space-y-6">
-                <Card className="bg-gray-900 border-gray-700">
+                <Card className="bg-black border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <AlertTriangleIcon className="w-5 h-5 mr-2" />
@@ -895,7 +895,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Voting Stats */}
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <TrendingUpIcon className="w-5 h-5 mr-2" />
@@ -924,7 +924,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
             </Card>
 
             {/* Vote Action */}
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <VoteIcon className="w-5 h-5 mr-2" />
@@ -967,7 +967,7 @@ export default function ConsensusReportDetailPage({ params }: { params: Promise<
                         }
                         value={voteComment}
                         onChange={(e) => setVoteComment(e.target.value)}
-                        className="min-h-[100px] bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                        className="min-h-[100px] bg-black border-gray-600 text-white placeholder-gray-400"
                       />
                       <div className="text-xs text-gray-500">
                         {voteComment.length}/1000 characters

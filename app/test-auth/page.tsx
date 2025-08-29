@@ -52,7 +52,7 @@ export default function TestAuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6">
+    <div className="min-h-screen bg-black p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-slate-200 mb-2">
@@ -63,7 +63,7 @@ export default function TestAuthPage() {
           </p>
         </div>
 
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-200">Estado de la Sesión</CardTitle>
           </CardHeader>
@@ -109,7 +109,7 @@ export default function TestAuthPage() {
                 </Alert>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="bg-slate-700 border-slate-600">
+                  <Card className="bg-black border-slate-600">
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-2 mb-2">
                         <UserIcon className="w-4 h-4 text-slate-400" />
@@ -119,7 +119,7 @@ export default function TestAuthPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-slate-700 border-slate-600">
+                  <Card className="bg-black border-slate-600">
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-2 mb-2">
                         <MailIcon className="w-4 h-4 text-slate-400" />
@@ -129,7 +129,7 @@ export default function TestAuthPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-slate-700 border-slate-600">
+                  <Card className="bg-black border-slate-600">
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-2 mb-2">
                         <ShieldIcon className="w-4 h-4 text-slate-400" />
@@ -139,7 +139,7 @@ export default function TestAuthPage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-slate-700 border-slate-600">
+                  <Card className="bg-black border-slate-600">
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-2 mb-2">
                         <UserIcon className="w-4 h-4 text-slate-400" />
@@ -163,7 +163,7 @@ export default function TestAuthPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-200">Información de Debug</CardTitle>
           </CardHeader>
@@ -207,7 +207,7 @@ export default function TestAuthPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-200">URLs de Discord OAuth</CardTitle>
           </CardHeader>

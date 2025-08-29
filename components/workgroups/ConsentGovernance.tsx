@@ -17,7 +17,7 @@ const ConsentGovernance: React.FC<Props> = ({
 }) => (
   <div className="w-full space-y-6">
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+      <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center border border-gray-700">
         <CheckCircleIcon className="w-5 h-5 text-gray-300" />
       </div>
       <div>
@@ -36,7 +36,7 @@ const ConsentGovernance: React.FC<Props> = ({
         {ongoingDecisions.length > 0 ? (
           <div className="space-y-2">
             {ongoingDecisions.map((decision, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div key={i} className="flex items-center justify-between p-3 bg-black/50 rounded-lg border border-gray-700">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-white">{decision.title}</p>
                   <p className="text-xs text-gray-400">Due: {decision.dueDate}</p>
@@ -53,7 +53,7 @@ const ConsentGovernance: React.FC<Props> = ({
             ))}
           </div>
         ) : (
-          <div className="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+          <div className="p-3 bg-black/30 rounded-lg border border-gray-700">
             <p className="text-sm text-gray-500">No ongoing decisions</p>
           </div>
         )}
@@ -65,7 +65,7 @@ const ConsentGovernance: React.FC<Props> = ({
           <BarChartIcon className="w-4 h-4 text-gray-400" />
           <span className="text-sm font-medium text-gray-300">Participation Metrics</span>
         </div>
-        <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+        <div className="p-3 bg-black/50 rounded-lg border border-gray-700">
           <p className="text-sm text-gray-200">
             {participationMetrics || "No participation metrics available"}
           </p>

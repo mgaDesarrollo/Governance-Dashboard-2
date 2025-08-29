@@ -185,7 +185,7 @@ export function UserCard({ user, onViewProfile }: UserCardProps) {
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-700 hover:border-purple-500/70 transition-all duration-300 ease-in-out shadow-lg hover:shadow-purple-500/20 overflow-hidden flex flex-col h-[420px] min-h-[420px] max-h-[420px]">
+    <Card className="bg-black border-gray-700 hover:border-purple-500/70 transition-all duration-300 ease-in-out shadow-lg hover:shadow-purple-500/20 overflow-hidden flex flex-col h-[420px] min-h-[420px] max-h-[420px] w-full">
       <CardHeader className="p-4">
         <div className="flex items-start space-x-3">
           <div className="relative">

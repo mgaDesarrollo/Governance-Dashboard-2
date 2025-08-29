@@ -67,7 +67,7 @@ export function CollaboratorsFilters({
   totalCount,
   filteredCount,
 }: CollaboratorsFiltersProps) {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
   const [skillInput, setSkillInput] = useState("")
 
   const updateFilters = (updates: Partial<CollaboratorFilters>) => {
@@ -88,7 +88,7 @@ export function CollaboratorsFilters({
   }
 
   const addSkill = (skill: string) => {
-    if (skill && !filters.skills.includes(skill)) {
+    if (skill && filters.skills.indexOf(skill) === -1) {
       updateFilters({ skills: [...filters.skills, skill] })
     }
     setSkillInput("")
@@ -114,7 +114,7 @@ export function CollaboratorsFilters({
   const activeFiltersCount = getActiveFiltersCount()
 
   return (
-    <Card className="bg-gray-900 border-gray-700">
+    <Card className="bg-black border-gray-700">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -143,39 +143,35 @@ export function CollaboratorsFilters({
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleContent>
-          <CardContent className="space-y-4">
-            {/* Search */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-300">Search</Label>
-              <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search by name, skills, country..."
-                  value={filters.search}
-                  onChange={(e) => updateFilters({ search: e.target.value })}
-                  className="pl-10 bg-gray-800 border-gray-600 text-slate-100 placeholder-slate-400"
-                />
+          <CardContent className="p-2">
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Search */}
+              <div className="min-w-[160px]">
+                <Label className="text-xs font-medium text-slate-300">Buscar</Label>
+                <div className="relative">
+                  <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                  <Input
+                    placeholder="Nombre, skills, país..."
+                    value={filters.search}
+                    onChange={(e) => updateFilters({ search: e.target.value })}
+                    className="pl-7 py-1 bg-black border-gray-600 text-xs text-slate-100 placeholder-slate-400 h-7"
+                  />
+                </div>
               </div>
-            </div>
-
-            <Separator className="bg-gray-700" />
-
-            {/* Status Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Availability Status */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-300">Availability Status</Label>
+              {/* Status */}
+              <div className="min-w-[120px]">
+                <Label className="text-xs font-medium text-slate-300">Estado</Label>
                 <Select
                   value={filters.status}
                   onValueChange={(value) => updateFilters({ status: value as UserAvailabilityStatus | "ALL" })}
                 >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
+                  <SelectTrigger className="bg-black border-gray-600 text-xs text-slate-100 h-7">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectContent className="bg-black border-gray-600">
                     {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-slate-100">
-                        <div className="flex items-center gap-2">
+                      <SelectItem key={option.value} value={option.value} className="text-slate-100 text-xs">
+                        <div className="flex items-center gap-1">
                           {option.icon}
                           {option.label}
                         </div>
@@ -184,60 +180,52 @@ export function CollaboratorsFilters({
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Online Status */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-300">Online Status</Label>
+              <div className="min-w-[120px]">
+                <Label className="text-xs font-medium text-slate-300">Online</Label>
                 <Select
                   value={filters.onlineStatus}
                   onValueChange={(value) => updateFilters({ onlineStatus: value as any })}
                 >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
+                  <SelectTrigger className="bg-black border-gray-600 text-xs text-slate-100 h-7">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectContent className="bg-black border-gray-600">
                     {onlineStatusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-slate-100">
+                      <SelectItem key={option.value} value={option.value} className="text-slate-100 text-xs">
                         {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <Separator className="bg-gray-700" />
-
-            {/* Location and Workgroup */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Country */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-300 flex items-center gap-1">
-                  <MapPinIcon className="h-4 w-4" />
-                  Country
+              <div className="min-w-[120px]">
+                <Label className="text-xs font-medium text-slate-300 flex items-center gap-1">
+                  <MapPinIcon className="h-3 w-3" />
+                  País
                 </Label>
                 <Select
                   value={filters.country || "ALL_COUNTRIES"}
                   onValueChange={(value) => updateFilters({ country: value === "ALL_COUNTRIES" ? "" : value })}
                 >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
-                    <SelectValue placeholder="All countries" />
+                  <SelectTrigger className="bg-black border-gray-600 text-xs text-slate-100 h-7">
+                    <SelectValue placeholder="Todos" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="ALL_COUNTRIES" className="text-slate-100">
-                      All countries
+                  <SelectContent className="bg-black border-gray-600">
+                    <SelectItem value="ALL_COUNTRIES" className="text-slate-100 text-xs">
+                      Todos
                     </SelectItem>
                     {availableCountries.map((country) => (
-                      <SelectItem key={country} value={country} className="text-slate-100">
+                      <SelectItem key={country} value={country} className="text-slate-100 text-xs">
                         {country}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               {/* Workgroup */}
-              <div className="space-y-2">
+              <div className="min-w-[120px]">
                 <Label className="text-sm font-medium text-slate-300 flex items-center gap-1">
                   <BriefcaseIcon className="h-4 w-4" />
                   Workgroup
@@ -246,10 +234,10 @@ export function CollaboratorsFilters({
                   value={filters.workgroup || "ALL_WORKGROUPS"}
                   onValueChange={(value) => updateFilters({ workgroup: value === "ALL_WORKGROUPS" ? "" : value })}
                 >
-                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
+                  <SelectTrigger className="bg-black border-gray-600 text-slate-100">
                     <SelectValue placeholder="All workgroups" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectContent className="bg-black border-gray-600">
                     <SelectItem value="ALL_WORKGROUPS" className="text-slate-100">
                       All workgroups
                     </SelectItem>
@@ -282,7 +270,7 @@ export function CollaboratorsFilters({
                       addSkill(skillInput.trim())
                     }
                   }}
-                  className="bg-gray-800 border-gray-600 text-slate-100 placeholder-slate-400"
+                  className="bg-black border-gray-600 text-slate-100 placeholder-slate-400"
                 />
                 <Button
                   onClick={() => addSkill(skillInput.trim())}

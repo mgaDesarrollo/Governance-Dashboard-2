@@ -80,8 +80,8 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-slate-800 border-slate-700">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-black border-slate-700">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <DiscordIcon className="w-8 h-8 text-white" />
@@ -118,7 +118,7 @@ export default function SignInPage() {
           </Button>
 
           {debugInfo && (
-            <div className="bg-slate-700 p-3 rounded-lg">
+            <div className="bg-black p-3 rounded-lg">
               <p className="text-sm text-slate-300 mb-2">Debug Info:</p>
               <pre className="text-xs text-slate-400 overflow-auto">
                 {JSON.stringify(debugInfo, null, 2)}

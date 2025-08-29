@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { GlobalSearch } from "@/components/global-search"
+import { Toaster } from "@/components/ui/toaster"
 import Image from "next/image"
 import {
   LayoutDashboardIcon,
@@ -54,11 +55,7 @@ const getMenuItems = (userRole: string) => {
       url: "/dashboard/workgroups",
       icon: BarChart3Icon
     },
-          {
-        title: "Quarterly Reports",
-        url: "/dashboard/quarterly-reports",
-        icon: FileTextIcon
-      },
+
     {
       title: "Consensus",
       url: "/dashboard/consensus",
@@ -72,11 +69,7 @@ const getMenuItems = (userRole: string) => {
   ]
 
   const adminItems = [
-    {
-      title: "Check Expired Quarterly Reports",
-      url: "/dashboard/admin/check-expired-quarterly-reports",
-      icon: AlertTriangleIcon
-    }
+
   ]
 
   const superAdminItems = [
@@ -186,11 +179,57 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-black text-white flex">
+      <div className="min-h-screen bg-black text-white flex font-mac">
         <Sidebar className="border-gray-700">
           <SidebarHeader className="border-b border-gray-700">
-            <div className="flex items-center gap-2 px-2 py-3 border-b border-gray-700/50">
-              <LayoutDashboardIcon className="h-8 w-8 text-purple-400" />
+            <div className="flex items-center gap-3 px-2 py-3 border-b border-gray-700/50">
+              {/* Logo personalizado */}
+              <div className="relative w-10 h-10">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-full h-full"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Fondo dividido diagonalmente */}
+                  <defs>
+                    <linearGradient id="diagonalGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#1e3a8a" /> {/* Azul oscuro */}
+                      <stop offset="100%" stopColor="#166534" /> {/* Verde oscuro */}
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Fondo del logo */}
+                  <rect width="100" height="100" rx="12" fill="url(#diagonalGradient)" />
+                  
+                  {/* Martillo (gavel) */}
+                  <g fill="white">
+                    {/* Cabeza del martillo */}
+                    <rect x="15" y="25" width="20" height="8" rx="2" />
+                    {/* Mango del martillo */}
+                    <rect x="25" y="33" width="4" height="25" rx="2" />
+                    {/* Bloque de sonido */}
+                    <rect x="18" y="58" width="14" height="4" rx="1" />
+                  </g>
+                  
+                  {/* Flecha curva */}
+                  <path
+                    d="M 20 70 Q 35 50 60 40 L 65 35 L 60 45 Q 45 55 30 65 Z"
+                    fill="white"
+                  />
+                  
+                  {/* Globo/Esfera */}
+                  <g fill="none" stroke="white" strokeWidth="2">
+                    {/* Círculo principal */}
+                    <circle cx="70" cy="70" r="15" />
+                    {/* Líneas de la cuadrícula */}
+                    <line x1="55" y1="70" x2="85" y2="70" />
+                    <line x1="70" y1="55" x2="70" y2="85" />
+                    <line x1="60" y1="60" x2="80" y2="80" />
+                    <line x1="80" y1="60" x2="60" y2="80" />
+                  </g>
+                </svg>
+              </div>
+              
               <div className="flex flex-col">
                 <h1 className="text-lg font-bold text-white tracking-wide">Governance</h1>
                 <p className="text-xs text-gray-400 font-medium">Dashboard</p>
@@ -198,7 +237,7 @@ export default function DashboardLayout({
             </div>
 
             {/* User information with profile image */}
-            <div className="flex items-center gap-3 p-3 text-sm bg-gray-900/50 rounded-lg mx-2">
+            <div className="flex items-center gap-3 p-3 text-sm bg-black/50 rounded-lg mx-2">
               <Avatar className="h-8 w-8 border-2 border-purple-500/30">
                 <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
                 <AvatarFallback className="bg-purple-600/20 text-purple-300 text-xs font-semibold">
@@ -234,7 +273,7 @@ export default function DashboardLayout({
                       <SidebarMenuButton
                         asChild
                         isActive={currentPath === item.url}
-                        className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300 data-[active=true]:border-purple-500/50"
+                        className="text-gray-300 hover:text-white hover:bg-black data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300 data-[active=true]:border-purple-500/50"
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
@@ -257,7 +296,7 @@ export default function DashboardLayout({
                         <SidebarMenuButton
                           asChild
                           isActive={currentPath === item.url}
-                          className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                          className="text-gray-300 hover:text-white hover:bg-black data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
                         >
                           <a href={item.url} className="flex items-center gap-2">
                             <item.icon className="h-4 w-4" />
@@ -281,7 +320,7 @@ export default function DashboardLayout({
                         <SidebarMenuButton
                           asChild
                           isActive={currentPath === item.url}
-                          className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                          className="text-gray-300 hover:text-white hover:bg-black data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
                         >
                           <a href={item.url} className="flex items-center gap-2">
                             <item.icon className="h-4 w-4" />
@@ -304,7 +343,7 @@ export default function DashboardLayout({
                       <SidebarMenuButton
                         asChild
                         isActive={currentPath === item.url}
-                        className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                        className="text-gray-300 hover:text-white hover:bg-black data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
@@ -326,7 +365,7 @@ export default function DashboardLayout({
                       <SidebarMenuButton
                         asChild
                         isActive={currentPath === item.url}
-                        className="text-gray-300 hover:text-white hover:bg-gray-800 data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
+                        className="text-gray-300 hover:text-white hover:bg-black data-[active=true]:bg-purple-600/20 data-[active=true]:text-purple-300"
                       >
                         <a href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
@@ -371,7 +410,8 @@ export default function DashboardLayout({
                   src="/logo.png"
                   alt="SingularityNET Logo"
                   width={160}
-                  height={50}
+                  height={32}
+                  className="object-contain"
                   className="object-contain w-32 sm:w-40"
                   style={{ height: "auto" }}
                   priority
@@ -383,22 +423,23 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <GlobalSearch />
               
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-800/30 rounded-lg border border-gray-700/30 backdrop-blur-sm">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-black/30 rounded-lg border border-gray-700/30 backdrop-blur-sm">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-xs text-gray-300 font-medium">Live</span>
               </div>
               
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-800/30 rounded-lg border border-gray-700/30 backdrop-blur-sm">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-black/30 rounded-lg border border-gray-700/30 backdrop-blur-sm">
                 <span className="text-xs text-gray-300 font-medium">Dashboard</span>
               </div>
             </div>
           </header>
 
-          <main className="flex-1 p-6">
+          <main className="flex-1 flex items-center justify-center p-6">
             {children}
           </main>
         </SidebarInset>
       </div>
+      <Toaster />
     </SidebarProvider>
   )
 } 

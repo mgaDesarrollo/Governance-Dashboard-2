@@ -1,5 +1,6 @@
 import { type NextAuthOptions } from "next-auth"
 import DiscordProvider from "next-auth/providers/discord"
+import GitHubProvider from "next-auth/providers/github"
 import { prisma } from "@/lib/prisma"
 import type { UserRole, UserAvailabilityStatus } from "@prisma/client"
 
@@ -57,6 +58,11 @@ export const authOptions: NextAuthOptions = {
         } 
       },
     }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      // Puedes agregar scopes personalizados si lo necesitas
+    }),
   ],
   debug: true, // Enable debug mode to see detailed logs
   // Remove custom pages to use default NextAuth pages
@@ -94,7 +100,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+  async signIn({ user, account, profile, email, credentials }: any) {
       console.log("[NextAuth SignIn] Attempting sign in:", { 
         userId: user?.id, 
         provider: account?.provider,
@@ -102,7 +108,7 @@ export const authOptions: NextAuthOptions = {
       })
       return true
     },
-    async jwt({ token, account, profile, user }) {
+  async jwt({ token, account, profile, user }: any) {
       console.log("[NextAuth JWT] Processing token:", { 
         hasAccount: !!account, 
         hasProfile: !!profile,
@@ -227,7 +233,7 @@ export const authOptions: NextAuthOptions = {
       
       return token
     },
-    async session({ session, token }) {
+  async session({ session, token }: any) {
       console.log("[NextAuth Session] Creating session:", { 
         hasToken: !!token, 
         hasDbUserId: !!token.dbUserId,
@@ -273,10 +279,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
-    async signIn(message) {
+  async signIn(message: any) {
       console.log("[NextAuth Event] signIn:", message.user?.name || message.user?.email, message.account?.provider)
     },
-    async signOut(message) {
+  async signOut(message: any) {
       console.log("[NextAuth Event] signOut session:", message.session?.user?.name)
     },
   },

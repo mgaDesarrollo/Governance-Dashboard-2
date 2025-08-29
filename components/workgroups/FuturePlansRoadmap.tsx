@@ -16,7 +16,7 @@ const FuturePlansRoadmap: React.FC<Props> = ({
 }) => (
   <div className="w-full space-y-6">
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+      <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center border border-gray-700">
         <CompassIcon className="w-5 h-5 text-gray-300" />
       </div>
       <div>
@@ -35,14 +35,14 @@ const FuturePlansRoadmap: React.FC<Props> = ({
         {nextSteps.length > 0 ? (
           <div className="space-y-2">
             {nextSteps.map((step, i) => (
-              <div key={i} className="flex items-center gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div key={i} className="flex items-start gap-2 p-3 bg-black/50 rounded-lg border border-gray-700">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                 <span className="text-sm text-gray-200">{step}</span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+          <div className="p-3 bg-black/30 rounded-lg border border-gray-700">
             <p className="text-sm text-gray-500">No next steps defined</p>
           </div>
         )}
@@ -57,14 +57,14 @@ const FuturePlansRoadmap: React.FC<Props> = ({
         {openCalls.length > 0 ? (
           <div className="space-y-2">
             {openCalls.map((call, i) => (
-              <div key={i} className="flex items-center gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div key={i} className="flex items-start gap-2 p-3 bg-black/50 rounded-lg border border-gray-700">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                 <span className="text-sm text-gray-200">{call}</span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+          <div className="p-3 bg-black/30 rounded-lg border border-gray-700">
             <p className="text-sm text-gray-500">No open calls</p>
           </div>
         )}
@@ -78,7 +78,7 @@ const FuturePlansRoadmap: React.FC<Props> = ({
           <CompassIcon className="w-4 h-4 text-gray-400" />
           <span className="text-sm font-medium text-gray-300">Roadmap</span>
         </div>
-        <div className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+        <div className="p-3 bg-black/50 rounded-lg border border-gray-700">
           <a
             href={milestoneTimelineLink}
             target="_blank"
@@ -100,7 +100,7 @@ const FuturePlansRoadmap: React.FC<Props> = ({
         </div>
         <div className="space-y-2">
           {nextCycleProposalIdeas.map((idea, i) => (
-            <div key={i} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div key={i} className="flex items-center justify-between p-3 bg-black/50 rounded-lg border border-gray-700">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                 <span className="text-sm text-gray-200">{idea}</span>

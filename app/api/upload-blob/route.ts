@@ -1,86 +1,137 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { put, del } from "@vercel/blob"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { StorageService } from "@/lib/storage-service"
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const session = await getServerSession(authOptions)
-  if (!session || !session.user || !session.user.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const { searchParams } = new URL(request.url)
-  const filename = searchParams.get("filename")
-  const uploadType = searchParams.get("uploadType") // 'avatar' o 'cv'
-
-  if (!filename || !request.body) {
-    return NextResponse.json({ error: "No filename or file body provided" }, { status: 400 })
-  }
-
-  let contentType: string | undefined
-  let allowedExtensions: string[] = []
-  let pathPrefix = "misc/" // Default prefix
-
-  if (uploadType === "avatar") {
-    contentType = request.headers.get("content-type") || "image/*" // El cliente debería enviar el tipo exacto
-    allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
-    pathPrefix = `users/${session.user.id}/avatars/`
-  } else if (uploadType === "cv") {
-    contentType = request.headers.get("content-type") || "application/pdf"
-    allowedExtensions = [".pdf"]
-    pathPrefix = `users/${session.user.id}/cvs/`
-  } else {
-    return NextResponse.json({ error: "Invalid upload type specified" }, { status: 400 })
-  }
-
-  const fileExtension = filename.slice(filename.lastIndexOf(".")).toLowerCase()
-  if (!allowedExtensions.includes(fileExtension)) {
-    return NextResponse.json(
-      { error: `Invalid file type for ${uploadType}. Allowed: ${allowedExtensions.join(", ")}` },
-      { status: 400 },
-    )
-  }
-
-  // Crear un nombre de archivo único para evitar colisiones y problemas de caché
-  // Usar el nombre original del archivo sanitizado + timestamp/hash
-  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, "_")
-  const uniqueFilename = `${pathPrefix}${Date.now()}-${sanitizedFilename}`
-
   try {
-    const blob = await put(uniqueFilename, request.body, {
-      access: "public", // Los avatares y CVs suelen ser públicos
-      contentType: contentType, // Es importante pasar el contentType correcto
-      // addRandomSuffix: true, // Vercel Blob añade un sufijo aleatorio por defecto, lo cual es bueno.
-    })
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-    return NextResponse.json(blob) // Devuelve { url, pathname, contentType, contentDisposition }
+    // Verificar que es ADMIN o SUPER_ADMIN
+    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const formData = await request.formData()
+    const file = formData.get("file") as File
+    const uploadType = formData.get("uploadType") as string || "proposal"
+
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 })
+    }
+
+    console.log('Starting file upload for user:', session.user.id, 'with role:', session.user.role)
+
+    const storageService = new StorageService(session.user.id)
+
+    // Configurar opciones según el tipo de subida
+    const uploadOptions: {
+      type: 'image' | 'document' | 'all'
+      maxSize: number
+      folder?: string
+    } = {
+      type: 'all',
+      maxSize: 5 * 1024 * 1024 // 5MB por defecto
+    }
+
+    switch (uploadType) {
+      case "avatar":
+        uploadOptions.type = "image"
+        uploadOptions.maxSize = 2 * 1024 * 1024 // 2MB para avatares
+        uploadOptions.folder = `users/${session.user.id}/avatars`
+        break
+      case "cv":
+        uploadOptions.type = "document"
+        uploadOptions.maxSize = 10 * 1024 * 1024 // 10MB para CVs
+        uploadOptions.folder = `users/${session.user.id}/documents`
+        break
+      case "proposal":
+        uploadOptions.type = "all"
+        uploadOptions.folder = `proposals/${session.user.id}`
+        break
+      default:
+        return NextResponse.json({ error: "Invalid upload type" }, { status: 400 })
+    }
+
+    console.log('Upload options:', uploadOptions)
+
+    // Subir archivo
+    const result = await storageService.uploadFile(file, uploadOptions)
+
+    console.log('File uploaded successfully:', result.path)
+
+    // Generar URL firmada para acceso inmediato
+    const signedUrl = await storageService.getSignedUrl(result.path)
+
+    return NextResponse.json({
+      success: true,
+      url: result.url,
+      signedUrl,
+      path: result.path
+    })
   } catch (error: any) {
-    console.error(`Error uploading ${uploadType} to Vercel Blob:`, error)
-    return NextResponse.json({ error: `Failed to upload ${uploadType}`, details: error.message }, { status: 500 })
+    console.error("Error uploading file:", {
+      message: error.message,
+      stack: error.stack,
+      error
+    });
+    
+    // Si es un error de Supabase, loguear los detalles
+    if (error.error) {
+      console.error("Supabase error details:", error.error);
+    }
+    
+    // Verificar si es un error de RLS
+    if (error.message && error.message.includes('row-level security policy')) {
+      console.error("RLS Policy Error - This indicates the Supabase policies are not configured correctly");
+      console.error("Please run: npm run setup-supabase");
+    }
+    
+    return NextResponse.json({ 
+      error: error.message || "Failed to upload file",
+      details: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        error: error.error,
+        suggestion: error.message.includes('row-level security policy') 
+          ? "Run 'npm run setup-supabase' to fix RLS policies" 
+          : undefined
+      } : undefined
+    }, { status: 500 })
   }
 }
 
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
-  const session = await getServerSession(authOptions)
-  if (!session || !session.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const { searchParams } = new URL(request.url)
-  const blobUrl = searchParams.get("url")
-
-  if (!blobUrl) {
-    return NextResponse.json({ error: "No blob URL provided for deletion" }, { status: 400 })
-  }
-
-  // Validar que la URL sea de Vercel Blob y pertenezca al usuario (opcional pero recomendado)
-  // ej. if (!blobUrl.startsWith('https://[your-blob-id].public.blob.vercel-storage.com/users/' + session.user.id)) { ... }
-
   try {
-    await del(blobUrl)
-    return NextResponse.json({ success: true, message: "File deleted successfully" })
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const filePath = searchParams.get("path")
+
+    if (!filePath) {
+      return NextResponse.json({ error: "No file path provided for deletion" }, { status: 400 })
+    }
+
+    const storageService = new StorageService()
+    await storageService.deleteFile(filePath)
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "File deleted successfully" 
+    })
   } catch (error: any) {
-    console.error("Error deleting Vercel Blob file:", error)
-    return NextResponse.json({ error: "Failed to delete file", details: error.message }, { status: 500 })
+    console.error("Error deleting file:", error)
+    return NextResponse.json({ 
+      error: error.message || "Failed to delete file" 
+    }, { status: 500 })
   }
 }

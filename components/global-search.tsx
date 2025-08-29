@@ -265,7 +265,7 @@ export function GlobalSearch() {
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <div className="relative w-full max-w-2xl mx-4">
-            <Card className="bg-gray-900 border-gray-700 shadow-2xl">
+            <Card className="bg-black border-gray-700 shadow-2xl">
               <CardContent className="p-0">
                 {/* Input de búsqueda */}
                 <div className="flex items-center gap-2 p-4 border-b border-gray-700">
@@ -309,7 +309,7 @@ export function GlobalSearch() {
                           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                             index === selectedIndex
                               ? "bg-purple-600/20 border border-purple-500/50"
-                              : "hover:bg-gray-800/50 border border-transparent"
+                              : "hover:bg-black/50 border border-transparent"
                           }`}
                         >
                           <div className={`p-2 rounded-lg ${getTypeColor(result.type)}`}>
@@ -356,7 +356,7 @@ export function GlobalSearch() {
                 </div>
 
                 {/* Footer */}
-                <div className="p-3 border-t border-gray-700 bg-gray-800/50">
+                <div className="p-3 border-t border-gray-700 bg-black/50">
                   <div className="flex items-center justify-between text-xs text-gray-400">
                     <span>Use ↑↓ to navigate, Enter to select</span>
                     <span>Press Esc to close</span>

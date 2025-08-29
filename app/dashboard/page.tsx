@@ -13,7 +13,7 @@ import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RecentActivity } from "@/components/recent-activity"
-import { QuickActions } from "@/components/quick-actions"
+import { QuickActions } from "@/components/dashboard/quick-actions"
 import { DashboardMetrics } from "@/components/dashboard-metrics"
 import { DashboardCalendar } from "@/components/dashboard-calendar"
 
@@ -80,7 +80,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Welcome Section */}
         <div className="lg:col-span-2">
-          <Card className="bg-gradient-to-br from-gray-900 to-gray-900/80 border-gray-700 relative overflow-hidden">
+          <Card className="bg-gradient-to-br from-black to-black/80 border-2 border-purple-600 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent" />
             <CardContent className="p-6 relative">
               <div className="flex items-center gap-4 mb-4">
@@ -168,7 +168,7 @@ export default function DashboardPage() {
           )}
 
           {userRole !== "ADMIN" && userRole !== "CORE_CONTRIBUTOR" && userRole !== "SUPER_ADMIN" && (
-            <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border-gray-600/50 h-full">
+            <Card className="bg-gradient-to-br from-black/50 to-black/30 border-gray-600/50 h-full">
               <CardContent className="p-6 flex flex-col justify-center h-full">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-gray-600/20 rounded-lg">
@@ -186,23 +186,106 @@ export default function DashboardPage() {
       </div>
 
       {/* Dashboard Metrics */}
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-        <DashboardMetrics />
+      <div className="bg-gray-900 border-2 border-blue-500 rounded-lg p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/5 to-pink-500/10 opacity-20"></div>
+        <div className="relative">
+          <DashboardMetrics />
+        </div>
       </div>
 
       {/* Quick Actions and Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+        {/* Columna Izquierda - Quick Actions */}
+        <div className="bg-black rounded-lg overflow-hidden">
           <QuickActions userRole={userRole} />
         </div>
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-          <RecentActivity />
+        
+        {/* Columna Derecha - Reorganizada */}
+        <div className="space-y-6">
+          {/* 1. Quick Start */}
+          <div className="bg-gray-900 border-2 border-cyan-600 rounded-lg p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-cyan-600/5 to-blue-500/10 opacity-20"></div>
+            <div className="relative">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <HomeIcon className="h-5 w-5 mr-2 text-cyan-400" />
+                Quick Start
+              </h3>
+              <p className="text-gray-400 text-sm">Acceso rápido a las funciones principales del dashboard</p>
+              {/* Aquí puedes agregar contenido específico de Quick Start */}
+            </div>
+          </div>
+          
+          {/* 2. Consensus Tracking */}
+          <div className="bg-gray-900 border-2 border-amber-600 rounded-lg p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-amber-600/5 to-orange-500/10 opacity-20"></div>
+            <div className="relative">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400 mr-2">
+                  <path d="M12 2v4"></path>
+                  <path d="M12 18v4"></path>
+                  <path d="m4.93 4.93 2.83 2.83"></path>
+                  <path d="m16.24 16.24 2.83 2.83"></path>
+                  <path d="M2 12h4"></path>
+                  <path d="M18 12h4"></path>
+                  <path d="m4.93 19.07 2.83-2.83"></path>
+                  <path d="m16.24 7.76 2.83-2.83"></path>
+                </svg>
+                Consensus Tracking
+              </h3>
+              <p className="text-gray-400 text-sm">Seguimiento del consenso en las propuestas activas</p>
+              {/* Aquí puedes agregar el componente ConsensusTracking */}
+            </div>
+          </div>
+          
+          {/* 3. Timeline */}
+          <div className="bg-gray-900 border-2 border-indigo-600 rounded-lg p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-indigo-600/5 to-violet-500/10 opacity-20"></div>
+            <div className="relative">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400 mr-2">
+                  <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"></path>
+                  <path d="M12 7v5l3 3"></path>
+                </svg>
+                Timeline
+              </h3>
+              <p className="text-gray-400 text-sm">Línea de tiempo de las propuestas y eventos</p>
+              {/* Aquí puedes agregar el componente ProposalTimeline */}
+            </div>
+          </div>
+          
+          {/* 4. Status Management */}
+          <div className="bg-gray-900 border-2 border-rose-600 rounded-lg p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-rose-600/5 to-pink-500/10 opacity-20"></div>
+            <div className="relative">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-400 mr-2">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                  <path d="m9 12 2 2 4-4"></path>
+                </svg>
+                Status Management
+              </h3>
+              <p className="text-gray-400 text-sm">Gestión del estado de las propuestas y usuarios</p>
+              {/* Aquí puedes agregar contenido de Status Management */}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Calendar */}
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-        <DashboardCalendar />
+      <div className="bg-gray-900 border-2 border-purple-500 rounded-lg p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/5 to-red-500/10 opacity-20"></div>
+        <div className="relative">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400 mr-2">
+              <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+              <line x1="16" x2="16" y1="2" y2="6"></line>
+              <line x1="8" x2="8" y1="2" y2="6"></line>
+              <line x1="3" x2="21" y1="10" y2="10"></line>
+            </svg>
+            Calendar
+          </h3>
+          <DashboardCalendar />
+        </div>
       </div>
     </div>
   )

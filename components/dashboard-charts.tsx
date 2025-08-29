@@ -71,7 +71,7 @@ export function DashboardCharts() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Proposal Status Pie Chart */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <div className="flex items-center gap-2">
               <PieChartIcon className="h-5 w-5 text-blue-400" />
@@ -105,7 +105,7 @@ export function DashboardCharts() {
         </Card>
 
         {/* Monthly Activity Bar Chart */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <div className="flex items-center gap-2">
               <BarChart3Icon className="h-5 w-5 text-green-400" />
@@ -131,7 +131,7 @@ export function DashboardCharts() {
         </Card>
 
         {/* Participation Trend Area Chart */}
-        <Card className="bg-slate-800 border-slate-700 lg:col-span-2">
+        <Card className="bg-black border-slate-700 lg:col-span-2">
           <CardHeader>
             <div className="flex items-center gap-2">
               <TrendingUpIcon className="h-5 w-5 text-purple-400" />

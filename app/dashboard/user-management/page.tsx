@@ -161,7 +161,7 @@ export default function UserManagementPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <UsersIcon className="w-5 h-5 text-purple-400" />
@@ -173,7 +173,7 @@ export default function UserManagementPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <CrownIcon className="w-5 h-5 text-yellow-400" />
@@ -187,7 +187,7 @@ export default function UserManagementPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <ShieldIcon className="w-5 h-5 text-blue-400" />
@@ -201,7 +201,7 @@ export default function UserManagementPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <UserIcon className="w-5 h-5 text-gray-400" />
@@ -230,46 +230,74 @@ export default function UserManagementPage() {
       )}
 
       {/* Users List */}
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="bg-black border-gray-700">
         <CardHeader>
           <h3 className="text-xl font-bold text-white">Manage User Roles</h3>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
+              <div 
+                key={user.id} 
+                className="group relative bg-black border border-slate-700/50 rounded-none p-6 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 backdrop-blur-sm font-mac flex flex-col h-full"
+              >
+                {/* User Avatar and Role Icon */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                    {user.image ? (
+                      <img
+                        src={user.image}
+                        alt={user.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <UserIcon className="h-6 w-6 text-white" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
                     {getRoleIcon(user.role)}
-                    <div>
-                      <p className="font-medium text-white">{user.name}</p>
-                      <p className="text-sm text-gray-400">{user.email}</p>
-                    </div>
+                    {getStatusBadge(user.status)}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
+                {/* User Info */}
+                <div className="mb-4 flex-1">
+                  <h3 className="text-lg font-bold text-white line-clamp-2 mb-2 group-hover:text-purple-200 transition-colors">
+                    {user.name}
+                  </h3>
+                  <p className="text-sm text-slate-300 mb-3">
+                    {user.email}
+                  </p>
+                  
+                  {/* Role Badge */}
+                  <div className="mb-3">
                     {getRoleBadge(user.role)}
-                    {getStatusBadge(user.status)}
                   </div>
+                </div>
 
-                  <div className="flex items-center space-x-2">
+                {/* Role Selector */}
+                <div className="border-t border-slate-700/50 pt-4 mt-auto">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-400 font-medium">Change Role:</span>
                     <select
                       value={user.role}
                       onChange={(e) => updateUserRole(user.id, e.target.value)}
                       disabled={updatingUser === user.id}
-                      className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="bg-black border border-slate-600 rounded-none px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     >
                       <option value="USER">User</option>
                       <option value="ADMIN">Admin</option>
                       <option value="SUPER_ADMIN">Super Admin</option>
                     </select>
-
-                    {updatingUser === user.id && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-400"></div>
-                    )}
                   </div>
+                  
+                  {/* Loading Indicator */}
+                  {updatingUser === user.id && (
+                    <div className="flex items-center justify-center mt-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-400"></div>
+                      <span className="text-xs text-slate-400 ml-2">Updating...</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

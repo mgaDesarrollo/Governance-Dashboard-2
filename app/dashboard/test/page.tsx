@@ -10,19 +10,16 @@ export default function TestPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading session...</p>
-        </div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     )
   }
 
-  if (status === "unauthenticated") {
+  if (!session) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <Card className="w-full max-w-md bg-slate-800 border-slate-700">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Card className="w-full max-w-md bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-200">No Autenticado</CardTitle>
           </CardHeader>
@@ -38,9 +35,9 @@ export default function TestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6">
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-slate-800 border-slate-700">
+    <div className="min-h-screen bg-black p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card className="bg-black border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-200">Test de Autenticación</CardTitle>
           </CardHeader>

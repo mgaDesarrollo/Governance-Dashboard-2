@@ -97,8 +97,8 @@ export default function AuthErrorPage() {
   const errorDetails = getErrorDetails(error)
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-slate-800 border-slate-700">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-black border-slate-700">
         <CardHeader className="text-center">
           <AlertCircleIcon className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <CardTitle className="text-slate-200">{errorDetails.title}</CardTitle>
@@ -108,15 +108,15 @@ export default function AuthErrorPage() {
             <AlertDescription>{errorDetails.description}</AlertDescription>
           </Alert>
           
-          <div className="bg-slate-700 p-3 rounded-lg">
+          <div className="bg-black p-3 rounded-lg">
             <p className="text-sm text-slate-300 mb-2">Solución:</p>
             <p className="text-sm text-slate-400">{errorDetails.solution}</p>
           </div>
 
           {error && (
-            <div className="bg-slate-700 p-3 rounded-lg">
+            <div className="bg-black p-3 rounded-lg">
               <p className="text-sm text-slate-300 mb-2">Código de Error:</p>
-              <code className="text-xs text-red-400 bg-slate-800 px-2 py-1 rounded">
+              <code className="text-xs text-red-400 bg-black px-2 py-1 rounded">
                 {error}
               </code>
             </div>

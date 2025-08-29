@@ -86,7 +86,7 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
     <div className="w-full space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+          <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center border border-gray-700">
             <UsersIcon className="w-5 h-5 text-gray-300" />
           </div>
           <div>
@@ -113,17 +113,17 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
             <span className="text-sm font-medium text-gray-300">Current Members</span>
           </div>
           {membersLoading ? (
-            <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div className="p-4 bg-black/50 rounded-lg border border-gray-700">
               <p className="text-sm text-gray-400">Loading members...</p>
             </div>
           ) : members.length === 0 ? (
-            <div className="p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+            <div className="p-4 bg-black/30 rounded-lg border border-gray-700">
               <p className="text-sm text-gray-500">No members yet.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {members.map((m) => (
-                <div key={m.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div key={m.id} className="flex items-center gap-3 p-3 bg-black/50 rounded-lg border border-gray-700">
                   <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
                     <UserIcon className="w-4 h-4 text-gray-300" />
                   </div>
@@ -148,7 +148,7 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
           </div>
           <div className="space-y-2">
             {roles.map((role, i) => (
-              <div key={i} className="flex items-center gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+              <div key={i} className="flex items-center gap-2 p-3 bg-black/50 rounded-lg border border-gray-700">
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                 <span className="text-sm text-gray-200">{role}</span>
               </div>
@@ -160,7 +160,7 @@ const MembershipDetails: React.FC<Props> = ({ totalMembers, roles, memberDirecto
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <Card className="bg-gray-900 border-gray-700 max-w-md w-full mx-4">
+          <Card className="bg-black border-gray-700 max-w-md w-full mx-4">
             <CardHeader>
               <CardTitle className="text-white">Add Member to WorkGroup</CardTitle>
             </CardHeader>

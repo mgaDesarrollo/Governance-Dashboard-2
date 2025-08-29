@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+const { PrismaClient } = require("@prisma/client")
 
 const prisma = new PrismaClient()
 
@@ -31,10 +31,20 @@ async function main() {
   console.log("Starting to seed workgroups...")
   for (const name of workgroupNames) {
     try {
-      const workgroup = await prisma.workgroup.upsert({
+      const workgroup = await prisma.workGroup.upsert({
         where: { name },
         update: {}, // No updates needed if it exists
-        create: { name, description: `Official ${name}` }, // Puedes añadir descripciones más detalladas
+        create: { 
+          name, 
+          type: "Guild",
+          dateOfCreation: new Date(),
+          status: "Active",
+          missionStatement: `Official ${name} workgroup`,
+          goalsAndFocus: ["Collaboration", "Innovation", "Community"],
+          totalMembers: "0",
+          roles: ["Member", "Contributor"],
+          memberDirectoryLink: ""
+        },
       })
       console.log(`Upserted workgroup: ${workgroup.name} (ID: ${workgroup.id})`)
     } catch (error) {

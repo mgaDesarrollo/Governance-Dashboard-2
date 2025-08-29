@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -15,7 +14,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { CalendarIcon, EditIcon } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CalendarIcon, EditIcon, XIcon } from "lucide-react"
 import type { Proposal } from "@/lib/types"
 
 interface EditProposalDialogProps {
@@ -29,8 +29,22 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
   const [title, setTitle] = useState(proposal.title)
   const [description, setDescription] = useState(proposal.description)
   const [expiresAt, setExpiresAt] = useState(new Date(proposal.expiresAt).toISOString().slice(0, 16))
+  const [proposalType, setProposalType] = useState<"COMMUNITY_PROPOSAL" | "QUARTERLY_REPORT">(
+    (proposal.proposalType as "COMMUNITY_PROPOSAL" | "QUARTERLY_REPORT") || "COMMUNITY_PROPOSAL"
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Reset form when proposal changes
+  useEffect(() => {
+    if (proposal) {
+      setTitle(proposal.title)
+      setDescription(proposal.description)
+      setExpiresAt(new Date(proposal.expiresAt).toISOString().slice(0, 16))
+      setProposalType((proposal.proposalType as "COMMUNITY_PROPOSAL" | "QUARTERLY_REPORT") || "COMMUNITY_PROPOSAL")
+      setError(null)
+    }
+  }, [proposal])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,7 +65,7 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
       setError(null)
 
       const response = await fetch(`/api/proposals/${proposal.id}`, {
-        method: "PATCH", // Cambiado de PUT a PATCH
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -59,6 +73,7 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
           title: title.trim(),
           description: description.trim(),
           expiresAt: expirationDate.toISOString(),
+          proposalType,
         }),
       })
 
@@ -69,7 +84,7 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
 
       const updatedProposal = await response.json()
       onSuccess(updatedProposal)
-      onOpenChange(false) // Cerrar el modal después del éxito
+      onOpenChange(false)
     } catch (err: any) {
       setError(err.message || "An error occurred while updating the proposal")
     } finally {
@@ -77,23 +92,21 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
     }
   }
 
-  const resetForm = () => {
-    setTitle(proposal.title)
-    setDescription(proposal.description)
-    setExpiresAt(new Date(proposal.expiresAt).toISOString().slice(0, 16))
-    setError(null)
-  }
-
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && !isSubmitting) {
-      resetForm()
+      // Reset form when closing
+      setTitle(proposal.title)
+      setDescription(proposal.description)
+      setExpiresAt(new Date(proposal.expiresAt).toISOString().slice(0, 16))
+      setProposalType((proposal.proposalType as "COMMUNITY_PROPOSAL" | "QUARTERLY_REPORT") || "COMMUNITY_PROPOSAL")
+      setError(null)
     }
     onOpenChange(newOpen)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-2xl bg-slate-800 border-slate-700 text-slate-50">
+      <DialogContent className="sm:max-w-2xl bg-black border-slate-700 text-slate-50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-slate-100">
             <EditIcon className="h-5 w-5" />
@@ -105,6 +118,7 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-slate-200">
               Title
@@ -120,6 +134,7 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
             />
           </div>
 
+          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-slate-200">
               Description
@@ -135,6 +150,27 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
             />
           </div>
 
+          {/* Proposal Type */}
+          <div className="space-y-2">
+            <Label htmlFor="proposalType" className="text-slate-200">
+              Proposal Type
+            </Label>
+            <Select value={proposalType} onValueChange={(value: "COMMUNITY_PROPOSAL" | "QUARTERLY_REPORT") => setProposalType(value)}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-50 focus:border-purple-500">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-slate-600">
+                <SelectItem value="COMMUNITY_PROPOSAL" className="text-slate-200 hover:bg-slate-700">
+                  Community Proposal
+                </SelectItem>
+                <SelectItem value="QUARTERLY_REPORT" className="text-slate-200 hover:bg-slate-700">
+                  Quarterly Report
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Expiration Date */}
           <div className="space-y-2">
             <Label htmlFor="expiresAt" className="text-slate-200 flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
@@ -151,10 +187,14 @@ export function EditProposalDialog({ proposal, open, onOpenChange, onSuccess }: 
             />
           </div>
 
+          {/* Error Display */}
           {error && (
-            <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded-md">{error}</div>
+            <div className="bg-red-900/30 border border-red-700 text-red-300 px-4 py-3 rounded-md">
+              {error}
+            </div>
           )}
 
+          {/* Footer */}
           <DialogFooter className="gap-2">
             <Button
               type="button"

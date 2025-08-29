@@ -56,6 +56,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
     fetchCounts()
   }, [])
 
+  // Colores más vibrantes para las acciones rápidas
   const actions = [
     {
       id: "notifications",
@@ -63,7 +64,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       description: "Check your latest updates and alerts",
       icon: <BellIcon className="h-5 w-5" />,
       href: "/dashboard/notifications",
-      color: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/30 text-yellow-300",
+      color: "bg-gradient-to-br from-yellow-600/20 to-yellow-800/30 hover:from-yellow-600/30 hover:to-yellow-800/40 border-yellow-500/50 text-yellow-300",
       iconColor: "text-yellow-400",
       adminOnly: false,
       badge: notificationCount > 0 ? `${notificationCount} New` : undefined,
@@ -74,7 +75,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       description: "Review proposals awaiting your vote",
       icon: <FileTextIcon className="h-5 w-5" />,
       href: "/dashboard/proposals?filter=pending",
-      color: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-300",
+      color: "bg-gradient-to-br from-blue-600/20 to-blue-800/30 hover:from-blue-600/30 hover:to-blue-800/40 border-blue-500/50 text-blue-300",
       iconColor: "text-blue-400",
       adminOnly: false,
       badge: pendingCount > 0 ? `${pendingCount} Pending` : undefined,
@@ -85,7 +86,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       description: "View reports currently being voted on",
       icon: <VoteIcon className="h-5 w-5" />,
       href: "/dashboard/consensus",
-      color: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-300",
+      color: "bg-gradient-to-br from-purple-600/20 to-purple-800/30 hover:from-purple-600/30 hover:to-purple-800/40 border-purple-500/50 text-purple-300",
       iconColor: "text-purple-400",
       adminOnly: false,
       badge: votingCount > 0 ? `${votingCount} Active` : undefined,
@@ -96,7 +97,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       description: "Edit your profile information and preferences",
       icon: <UserIcon className="h-5 w-5" />,
       href: "/dashboard/profile",
-      color: "bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-green-300",
+      color: "bg-gradient-to-br from-green-600/20 to-green-800/30 hover:from-green-600/30 hover:to-green-800/40 border-green-500/50 text-green-300",
       iconColor: "text-green-400",
       adminOnly: false,
     },
@@ -106,7 +107,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       description: "Start a new governance proposal",
       icon: <PlusIcon className="h-5 w-5" />,
       href: "/dashboard/proposals/create",
-      color: "bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-300",
+      color: "bg-gradient-to-br from-orange-600/20 to-orange-800/30 hover:from-orange-600/30 hover:to-orange-800/40 border-orange-500/50 text-orange-300",
       iconColor: "text-orange-400",
       adminOnly: true,
       badge: "Admin",
@@ -117,7 +118,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
       description: "Complete governance analytics and insights",
       icon: <BarChart3Icon className="h-5 w-5" />,
       href: "/dashboard/analytics",
-      color: "bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/30 text-indigo-300",
+      color: "bg-gradient-to-br from-indigo-600/20 to-indigo-800/30 hover:from-indigo-600/30 hover:to-indigo-800/40 border-indigo-500/50 text-indigo-300",
       iconColor: "text-indigo-400",
       adminOnly: false,
     },
@@ -132,25 +133,22 @@ export function QuickActions({ userRole }: QuickActionsProps) {
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <ZapIcon className="h-5 w-5 text-yellow-400" />
-          <CardTitle className="text-xl">Quick Actions</CardTitle>
-        </div>
+    <Card className="bg-transparent border-2 border-yellow-600 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/10 via-amber-600/5 to-orange-600/10 opacity-20"></div>
+      <CardHeader className="pb-3 relative">
         <CardDescription className="text-slate-400">Fast access to common tasks</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filteredActions.map((action) => (
             <Button
               key={action.id}
               variant="outline"
-              className={`h-auto p-4 justify-start border ${action.color} hover:scale-[1.02] transition-all duration-200 overflow-hidden`}
+              className={`h-auto p-4 justify-start border-2 ${action.color} hover:scale-[1.02] hover:shadow-lg hover:shadow-${action.iconColor.replace('text-', '')}/20 transition-all duration-200 overflow-hidden relative`}
               onClick={() => handleActionClick(action.href)}
             >
               <div className="flex items-start gap-3 w-full min-w-0">
-                <div className={`flex-shrink-0 ${action.iconColor} mt-0.5`}>{action.icon}</div>
+                <div className={`flex-shrink-0 ${action.iconColor} mt-0.5 p-1.5 rounded-full bg-transparent`}>{action.icon}</div>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-start justify-between mb-1 gap-2">
                     <h4 className="font-medium text-sm truncate flex-1">{action.title}</h4>
@@ -175,9 +173,9 @@ export function QuickActions({ userRole }: QuickActionsProps) {
         </div>
 
         {userRole !== "ADMIN" && userRole !== "SUPER_ADMIN" && (
-          <div className="mt-4 p-3 bg-slate-700/30 border border-slate-600/50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <SettingsIcon className="h-4 w-4" />
+          <div className="mt-4 p-3 bg-gradient-to-br from-amber-800/20 to-red-800/20 border border-amber-600/40 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-amber-300">
+              <SettingsIcon className="h-4 w-4 text-amber-400" />
               <span>Some actions require admin privileges</span>
             </div>
           </div>

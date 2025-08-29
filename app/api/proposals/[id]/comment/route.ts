@@ -12,7 +12,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const proposalId = params.id
-    const { content } = await request.json()
+    const { content, parentId } = await request.json()
 
     if (!content || content.trim() === "") {
       return NextResponse.json({ error: "Comment content is required" }, { status: 400 })
@@ -27,18 +27,29 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Proposal not found" }, { status: 404 })
     }
 
-    // Check if user has already commented on this proposal
-    const existingComment = await prisma.comment.findUnique({
-      where: {
-        userId_proposalId: {
-          userId: session.user.id,
-          proposalId,
+    // Si es una respuesta a un comentario, verificar que el comentario padre existe
+    if (parentId) {
+      const parentComment = await prisma.comment.findUnique({
+        where: { id: parentId },
+      })
+      
+      if (!parentComment) {
+        return NextResponse.json({ error: "Parent comment not found" }, { status: 404 })
+      }
+    } else {
+      // Solo para comentarios principales, verificar que el usuario no haya comentado antes
+      const existingComment = await prisma.comment.findUnique({
+        where: {
+          userId_proposalId: {
+            userId: session.user.id,
+            proposalId,
+          },
         },
-      },
-    })
+      })
 
-    if (existingComment) {
-      return NextResponse.json({ error: "You have already commented on this proposal" }, { status: 400 })
+      if (existingComment) {
+        return NextResponse.json({ error: "You have already commented on this proposal" }, { status: 400 })
+      }
     }
 
     // Create the comment
@@ -47,6 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         content,
         userId: session.user.id,
         proposalId,
+        parentId: parentId || null,
       },
       include: {
         user: {
@@ -78,13 +90,30 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const proposalId = params.id
 
     const comments = await prisma.comment.findMany({
-      where: { proposalId },
+      where: { 
+        proposalId,
+        parentId: null // Solo comentarios principales, no respuestas
+      },
       include: {
         user: {
           select: {
             id: true,
             name: true,
             image: true,
+          },
+        },
+        replies: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
           },
         },
       },

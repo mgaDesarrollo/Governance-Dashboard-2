@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id                          String                       @id
+  id                          String                       @id @default(cuid())
   name                        String
   email                       String?
   image                       String?
@@ -28,9 +28,7 @@ model User {
   resolvedObjections          Objection[]
   professionalProfile         ProfessionalProfile?
   proposals                   Proposal[]
-  createdQuarterlyReports     QuarterlyReport[]            @relation("CreatedQuarterlyReports")
-  quarterlyReportComments     QuarterlyReportComment[]
-  quarterlyReportParticipants QuarterlyReportParticipant[]
+
   socialLinks                 SocialLinks?
   votes                       Vote[]
   joinRequests                WorkGroupJoinRequest[]
@@ -83,6 +81,14 @@ model Proposal {
   author        User           @relation(fields: [authorId], references: [id])
   workgroup     WorkGroup?     @relation(fields: [workgroupId], references: [id])
   votes         Vote[]
+  attachment    String?
+  
+  // Nuevos campos
+  proposalType  String         @default("COMMUNITY_PROPOSAL")
+  quarter       String?        // Trimestre para reportes trimestrales (Q1, Q2, Q3, Q4)
+  budgetItems   Json?          // Array de items presupuestarios
+  workGroupIds  String[]       // Array de IDs de workgroups asociados
+  consensusDate DateTime?      // Fecha cuando se alcanzó consenso
 
   @@index([authorId])
   @@index([workgroupId])
@@ -104,18 +110,28 @@ model Vote {
 }
 
 model Comment {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   userId     String
   proposalId String
-  proposal   Proposal @relation(fields: [proposalId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  parentId   String?   // ID del comentario padre (para respuestas)
+  proposal   Proposal  @relation(fields: [proposalId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+  
+  // Relaciones para respuestas
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies    Comment[] @relation("CommentReplies")
+  
+  // Campos para likes y dislikes
+  likes      String[]  @default([])  // Array de IDs de usuarios que dieron like
+  dislikes   String[]  @default([])  // Array de IDs de usuarios que dieron dislike
 
   @@unique([userId, proposalId])
   @@index([userId])
   @@index([proposalId])
+  @@index([parentId])
 }
 
 model WorkGroup {
@@ -132,7 +148,7 @@ model WorkGroup {
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
   proposals           Proposal[]
-  quarterlyReports    QuarterlyReport[]
+
   joinRequests        WorkGroupJoinRequest[]
   members             WorkGroupMember[]
   users               User[]                 @relation("UserWorkgroups")
@@ -160,82 +176,34 @@ model WorkGroupJoinRequest {
   workGroup   WorkGroup @relation(fields: [workGroupId], references: [id])
 }
 
-model QuarterlyReport {
-  id                String                       @id @default(uuid())
-  workGroupId       String
-  year              Int
-  quarter           String
-  detail            String
-  theoryOfChange    String
-  plans             String
-  createdById       String
-  createdAt         DateTime                     @default(now())
-  updatedAt         DateTime                     @updatedAt
-  challenges        Json
-  consensusStatus   ConsensusStatus              @default(PENDING)
-  consensusComments ConsensusComment[]
-  consensusVotes    ConsensusVote[]
-  createdBy         User                         @relation("CreatedQuarterlyReports", fields: [createdById], references: [id])
-  workGroup         WorkGroup                    @relation(fields: [workGroupId], references: [id])
-  budgetItems       QuarterlyReportBudgetItem[]
-  comments          QuarterlyReportComment[]
-  participants      QuarterlyReportParticipant[]
-  votingRounds      VotingRound[]
-}
 
-model QuarterlyReportParticipant {
-  id                String          @id @default(uuid())
-  quarterlyReportId String
-  userId            String
-  quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
-  user              User            @relation(fields: [userId], references: [id])
-}
 
-model QuarterlyReportBudgetItem {
-  id                String          @id @default(uuid())
-  quarterlyReportId String
-  name              String
-  description       String
-  amountUsd         Float
-  quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
-}
 
-model QuarterlyReportComment {
-  id                String          @id @default(uuid())
-  quarterlyReportId String
-  userId            String
-  content           String
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  quarterlyReport   QuarterlyReport @relation(fields: [quarterlyReportId], references: [id])
-  user              User            @relation(fields: [userId], references: [id])
 
-  @@unique([quarterlyReportId, userId])
-}
+
+
+
 
 model ConsensusVote {
   id        String            @id @default(uuid())
   userId    String
-  reportId  String
   voteType  ConsensusVoteType
   comment   String
   roundId   String
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
-  report    QuarterlyReport   @relation(fields: [reportId], references: [id])
+
   round     VotingRound       @relation(fields: [roundId], references: [id])
   user      User              @relation(fields: [userId], references: [id])
   objection Objection?
 
   @@unique([userId, roundId])
-  @@index([reportId])
   @@index([roundId])
 }
 
 model ConsensusComment {
   id              String             @id @default(uuid())
   userId          String
-  reportId        String
   parentCommentId String?
   content         String
   likes           String[]
@@ -244,10 +212,9 @@ model ConsensusComment {
   updatedAt       DateTime           @updatedAt
   parentComment   ConsensusComment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
   replies         ConsensusComment[] @relation("CommentReplies")
-  report          QuarterlyReport    @relation(fields: [reportId], references: [id])
+
   user            User               @relation(fields: [userId], references: [id])
 
-  @@index([reportId])
   @@index([parentCommentId])
 }
 
@@ -267,16 +234,12 @@ model Objection {
 
 model VotingRound {
   id          String            @id @default(uuid())
-  reportId    String
   roundNumber Int
   status      VotingRoundStatus @default(ACTIVA)
   startedAt   DateTime          @default(now())
   endedAt     DateTime?
   votes       ConsensusVote[]
-  report      QuarterlyReport   @relation(fields: [reportId], references: [id])
 
-  @@unique([reportId, roundNumber])
-  @@index([reportId])
   @@index([status])
 }
 

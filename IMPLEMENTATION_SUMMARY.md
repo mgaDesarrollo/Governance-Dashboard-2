@@ -1,228 +1,176 @@
-# Resumen de Implementaciones Completadas
+# Resumen de Implementación - Nuevas Funcionalidades de Propuestas
 
-## ✅ **Funcionalidades Implementadas**
+## Cambios Realizados
 
-### 🎯 **1. Búsqueda Global**
+### 1. Base de Datos (Schema Prisma)
+- ✅ Agregado campo `proposalType` (String) con valor por defecto "COMMUNITY_PROPOSAL"
+- ✅ Agregado campo `budgetItems` (Json) para almacenar items presupuestarios
+- ✅ Agregado campo `workGroupIds` (String[]) para almacenar IDs de workgroups asociados
+- ✅ Agregado campo `consensusDate` (DateTime?) para fecha de consenso
+- ✅ Migración creada: `20250821012016_add_proposal_fields`
+- ✅ Migración creada: `20250821014353_add_consensus_date`
 
-#### **Componente Principal:**
-- ✅ **`components/global-search.tsx`** - Búsqueda completa con modal
-- ✅ **Navegación con teclado** - ↑↓ para navegar, Enter para seleccionar
-- ✅ **Atajo de teclado** - ⌘K para abrir búsqueda
-- ✅ **Debouncing** - 300ms para evitar requests excesivos
-- ✅ **Resultados categorizados** - Reports, Workgroups, Users
-- ✅ **Loading states** - Skeleton y spinners
-- ✅ **Error handling** - Manejo de errores de API
+### 2. API Endpoints
 
-#### **APIs Creadas:**
-- ✅ **`/api/reports?search=`** - Búsqueda en reports con filtros
-- ✅ **`/api/workgroups?search=`** - Búsqueda en workgroups
-- ✅ **`/api/users?search=`** - Búsqueda en usuarios
+#### POST /api/proposals (Crear Propuesta)
+- ✅ Actualizado para manejar `proposalType`, `budgetItems`, y `workGroupIds`
+- ✅ Validaciones mejoradas para los nuevos campos
+- ✅ Almacenamiento en base de datos de todos los campos
 
-#### **Características:**
-```tsx
-// Búsqueda en tiempo real
-const debouncedSearch = useMemo(
-  () => debounce((query: string) => searchData(query), 300),
-  []
-)
+#### GET /api/proposals/[id] (Obtener Propuesta)
+- ✅ Incluye información del workgroup principal
+- ✅ Incluye `associatedWorkGroups` con detalles de todos los workgroups asociados
+- ✅ Mantiene compatibilidad con campos existentes
 
-// Navegación con teclado
-useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    switch (e.key) {
-      case "ArrowDown":
-        setSelectedIndex(prev => prev < results.length - 1 ? prev + 1 : prev)
-        break
-      case "ArrowUp":
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1)
-        break
-      case "Enter":
-        if (selectedIndex >= 0) handleResultClick(results[selectedIndex])
-        break
-    }
-  }
-}, [])
-```
+#### PATCH /api/proposals/[id] (Actualizar Propuesta)
+- ✅ Actualizado para manejar todos los nuevos campos
+- ✅ Permite edición de `proposalType`, `budgetItems`, y `workGroupIds`
 
-### 🔐 **2. Sistema de Permisos Mejorado**
+### 3. Tipos TypeScript
+- ✅ Interfaz `Proposal` actualizada con nuevos campos
+- ✅ Campo `attachment` agregado a la interfaz
+- ✅ Tipos para `budgetItems` y `workGroupIds`
 
-#### **Hook Personalizado:**
-- ✅ **`hooks/use-session.ts`** - Manejo de sesión con actualización automática
-- ✅ **Verificación automática** - Cada 30 segundos
-- ✅ **Actualización en tiempo real** - Sin necesidad de recargar
-- ✅ **Refresh automático** - Cuando cambian los permisos
+### 4. Componentes de UI
 
-#### **API de Verificación:**
-- ✅ **`/api/auth/check-permissions`** - Verifica permisos actualizados
-- ✅ **`lib/auth.ts`** - Configuración de NextAuth
+#### Página de Creación de Propuestas
+- ✅ Ya incluye campos para `proposalType`, `budgetItems`, y `workGroupIds`
+- ✅ Componente `BudgetItems` integrado
+- ✅ Componente `WorkGroupSelector` integrado
+- ✅ Envío de todos los campos al endpoint
 
-#### **Beneficios:**
-```tsx
-// Verificación automática de permisos
-const checkAdminPermissions = async () => {
-  const response = await fetch("/api/auth/check-permissions")
-  const userData = await response.json()
-  
-  if (session?.user?.role !== userData.role) {
-    await refreshSession() // Actualiza automáticamente
-  }
-}
+#### Página de Detalle de Propuestas
+- ✅ Muestra tipo de propuesta con badge visual
+- ✅ Muestra items presupuestarios con tabla detallada
+- ✅ Muestra presupuesto total calculado
+- ✅ Muestra workgroups asociados con badges
+- ✅ Mantiene funcionalidad existente de archivos adjuntos
 
-// Intervalo de verificación
-useEffect(() => {
-  const interval = setInterval(checkAdminPermissions, 30000)
-  return () => clearInterval(interval)
-}, [])
-```
+#### Diálogo de Edición
+- ✅ Incluye todos los nuevos campos editables
+- ✅ Integración con `BudgetItems` y `WorkGroupSelector`
+- ✅ Actualización de todos los campos en la base de datos
 
-### 🎨 **3. Header Transparente y Mejorado**
+#### Timeline de Propuestas
+- ✅ Componente visual de timeline implementado
+- ✅ Muestra fechas de creación, actualización, consenso y cierre
+- ✅ Indicadores visuales de estado (completado, actual, próximo)
+- ✅ Integrado en la página de detalle de propuestas
+- ✅ Campo `consensusDate` agregado al schema de base de datos
+- ✅ Espaciado correcto con componentes superiores
 
-#### **Características Implementadas:**
-- ✅ **Fondo transparente** - `bg-transparent` con `backdrop-blur-sm`
-- ✅ **Logo centrado** - Tamaño aumentado a 160x50
-- ✅ **Búsqueda integrada** - Componente GlobalSearch en header
-- ✅ **Indicadores mejorados** - "Live" y "Dashboard" con mejor diseño
-- ✅ **Sin icono de casa** - Eliminado según solicitud
+#### Sistema de Consenso Mejorado
+- ✅ Componente "Consensus Tracking" con pestañas
+- ✅ Pestaña de votación con validaciones específicas:
+  - Voto positivo: comentario opcional
+  - Voto negativo: comentario obligatorio
+  - Abstención: comentario obligatorio
+- ✅ Pestaña de comentarios y respuestas
+- ✅ Sistema de likes/dislikes para comentarios
+- ✅ Funcionalidad de respuesta a comentarios
+- ✅ Interfaz mejorada para administradores
 
-#### **Código del Header:**
-```tsx
-<header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-700/50 px-6 bg-transparent backdrop-blur-sm">
-  <SidebarTrigger className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700/50" />
-  <Separator orientation="vertical" className="mr-2 h-4 bg-gray-600" />
-  
-  {/* Logo centrado */}
-  <div className="flex-1 flex justify-center">
-    <Image src="/logo.png" width={160} height={50} priority />
-  </div>
-  
-  {/* Búsqueda global */}
-  <div className="flex items-center gap-4">
-    <GlobalSearch />
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800/30 rounded-lg">
-      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-      <span className="text-xs text-gray-300 font-medium">Live</span>
-    </div>
-  </div>
-</header>
-```
+#### Editor de Texto Enriquecido
+- ✅ Funcionalidad de colores implementada
+- ✅ Selector de colores predefinidos (12 colores)
+- ✅ Formato de texto mejorado (negrita, cursiva, etc.)
+- ✅ Alineación de texto
+- ✅ Enlaces y listas
+- ✅ **NUEVO:** Headings (H1, H2, H3)
+- ✅ **NUEVO:** Indentación y outdentación
+- ✅ **NUEVO:** Contador de caracteres y palabras
+- ✅ Sin dependencias problemáticas de Tiptap
 
-### 📊 **4. Análisis de Performance Completo**
+#### Gestión de Archivos
+- ✅ Descarga de archivos mejorada
+- ✅ Detección automática de tipos de archivo
+- ✅ Iconos específicos por tipo de archivo
+- ✅ Manejo de errores robusto
+- ✅ Descarga con nombres de archivo originales
 
-#### **Documento Creado:**
-- ✅ **`PERFORMANCE_ANALYSIS.md`** - Análisis detallado de optimizaciones
-- ✅ **Métricas actuales** - FCP, LCP, TTI, Bundle Size
-- ✅ **Optimizaciones propuestas** - Lazy Loading, SWR, Virtualización
-- ✅ **Plan de implementación** - 4 fases con prioridades
-- ✅ **Herramientas de monitoreo** - Lighthouse CI, Web Vitals
+#### Página de Collaborators Mejorada
+- ✅ Layout más ancho y espacioso
+- ✅ Cards más grandes (320px mínimo)
+- ✅ Mejor espaciado entre elementos
+- ✅ Iconos y textos más grandes
+- ✅ Grid responsive mejorado
 
-#### **Optimizaciones Identificadas:**
-```tsx
-// Lazy Loading de componentes
-const LazyDashboardMetrics = lazy(() => import('./dashboard-metrics'))
-const LazyQuickActions = lazy(() => import('./quick-actions'))
+#### Cards de Propuestas Mejoradas
+- ✅ **NUEVO:** Tipo de propuesta visible
+- ✅ **NUEVO:** Presupuesto total mostrado
+- ✅ **NUEVO:** WorkGroups asociados con badges
+- ✅ **NUEVO:** Indicador de archivo adjunto
+- ✅ Cards más anchas (380px mínimo)
+- ✅ Mejor organización de información
+- ✅ Badges informativos adicionales
 
-// Caching con SWR
-const { data: reports, error } = useSWR('/api/reports', fetcher, {
-  refreshInterval: 30000,
-  revalidateOnFocus: true
-})
+### 5. Funcionalidades Implementadas
 
-// Virtualización para listas grandes
-import { FixedSizeList as List } from 'react-window'
-```
+#### Tipo de Propuesta
+- ✅ Selección entre "Community Proposal" y "Quarterly Report"
+- ✅ Almacenamiento en base de datos
+- ✅ Visualización en detalle y edición
 
-## 🚀 **Funcionalidades Avanzadas**
+#### Items Presupuestarios
+- ✅ Formulario completo con descripción, cantidad, unidad, precio unitario
+- ✅ Cálculo automático de totales
+- ✅ Almacenamiento como JSON en base de datos
+- ✅ Visualización tabular en detalle de propuesta
+- ✅ Cálculo y muestra del presupuesto total
 
-### **Búsqueda Global:**
-- **Búsqueda en tiempo real** en reports, workgroups y usuarios
-- **Navegación con teclado** (↑↓ para navegar, Enter para seleccionar)
-- **Atajo de teclado** ⌘K para abrir búsqueda
-- **Debouncing automático** (300ms) para evitar requests excesivos
-- **Modal responsive** con backdrop blur
-- **Resultados categorizados** con iconos y badges de estado
-- **Límite de 8 resultados** para mejor performance
+#### WorkGroups Asociados
+- ✅ Selector múltiple de workgroups
+- ✅ Búsqueda y filtrado de workgroups
+- ✅ Almacenamiento de IDs en base de datos
+- ✅ Visualización con badges en detalle de propuesta
+- ✅ Información detallada de workgroups asociados
 
-### **Sistema de Permisos:**
-- **Hook personalizado** `useSessionWithRefresh` para manejo de sesión
-- **Verificación automática** de permisos cada 30 segundos
-- **Actualización en tiempo real** sin necesidad de salir y entrar
-- **API de verificación** `/api/auth/check-permissions`
-- **Refresh automático** cuando cambian los permisos
+## Estado de la Implementación
 
-### **Header Mejorado:**
-- **Fondo transparente** con backdrop blur
-- **Logo más grande** y centrado
-- **Búsqueda integrada** en el header
-- **Indicadores mejorados** con mejor diseño
-- **Sin icono de casa** según solicitud
+### ✅ Completado
+- Schema de base de datos
+- Migraciones ✅ **COMPLETADO EXITOSAMENTE**
+- Endpoints de API
+- Tipos TypeScript
+- Componentes de UI
+- Funcionalidad de creación
+- Funcionalidad de visualización
+- Funcionalidad de edición
 
-## 📈 **Métricas de Mejora**
+### ✅ Resuelto
+- Problemas de permisos de Windows con Prisma ✅ **RESUELTO**
+- Regeneración del cliente Prisma ✅ **COMPLETADO**
+- Migración de base de datos ✅ **COMPLETADA**
 
-### **Performance Esperada:**
-| Métrica | Antes | Después | Mejora |
-|---------|-------|---------|--------|
-| **FCP** | 1.8s | 0.9s | 50% |
-| **LCP** | 2.2s | 1.3s | 41% |
-| **TTI** | 3.1s | 1.8s | 42% |
-| **Bundle Size** | 450KB | 280KB | 38% |
-| **API Response** | 200ms | 120ms | 40% |
+### 🎯 Próximos Pasos
+1. ✅ **Migración completada** - Base de datos sincronizada
+2. ✅ **Cliente Prisma regenerado** - Tipos actualizados
+3. Probar creación de propuestas con nuevos campos
+4. Verificar visualización correcta en detalle
+5. Probar funcionalidad de edición
+6. Validar integridad de datos en base de datos
 
-### **UX Mejorada:**
-- ✅ **Búsqueda instantánea** - Sin delays perceptibles
-- ✅ **Permisos automáticos** - No requiere recarga manual
-- ✅ **Navegación fluida** - Con atajos de teclado
-- ✅ **Diseño moderno** - Header transparente y elegante
+## Notas Técnicas
 
-## 🔧 **Archivos Creados/Modificados**
+- Los `budgetItems` se almacenan como JSON para flexibilidad
+- Los `workGroupIds` se almacenan como array de strings
+- Se mantiene compatibilidad con propuestas existentes
+- La implementación es escalable para futuras mejoras
+- Todos los campos nuevos son opcionales para mantener compatibilidad
 
-### **Nuevos Archivos:**
-- ✅ `components/global-search.tsx` - Búsqueda global completa
-- ✅ `hooks/use-session.ts` - Hook de sesión mejorado
-- ✅ `lib/auth.ts` - Configuración de NextAuth
-- ✅ `app/api/auth/check-permissions/route.ts` - API de verificación
-- ✅ `PERFORMANCE_ANALYSIS.md` - Análisis de optimizaciones
-- ✅ `IMPLEMENTATION_SUMMARY.md` - Este resumen
+## Archivos Modificados
 
-### **Archivos Modificados:**
-- ✅ `app/dashboard/layout.tsx` - Header transparente y búsqueda
-- ✅ `app/api/reports/route.ts` - Búsqueda en reports
-- ✅ `app/api/workgroups/route.ts` - Búsqueda en workgroups
-- ✅ `app/api/users/route.ts` - Búsqueda en usuarios
+1. `prisma/schema.prisma` - Schema de base de datos
+2. `app/api/proposals/route.ts` - Endpoint de creación
+3. `app/api/proposals/[id]/route.ts` - Endpoint de detalle y edición
+4. `lib/types.ts` - Tipos TypeScript
+5. `app/dashboard/proposals/[id]/page.tsx` - Página de detalle
+6. `components/edit-proposal-dialog.tsx` - Diálogo de edición
+7. `components/rich-text-editor.tsx` - Editor de texto enriquecido
+8. `components/proposal-timeline.tsx` - Componente de timeline
+9. `components/consensus-tracking.tsx` - Sistema de seguimiento de consenso
 
-## 🎯 **Próximos Pasos Recomendados**
+## Archivos de Migración Creados
 
-### **Fase 1 (Semana 1): Optimizaciones Críticas**
-1. **Implementar lazy loading** de componentes pesados
-2. **Configurar SWR** para caching inteligente
-3. **Optimizar imágenes** con formatos modernos
-
-### **Fase 2 (Semana 2): Caching y Performance**
-4. **Implementar Service Worker** para cache offline
-5. **Agregar índices** a la base de datos
-6. **Optimizar consultas** Prisma
-
-### **Fase 3 (Semana 3): Optimizaciones Avanzadas**
-7. **Virtualización** de listas grandes
-8. **Code splitting** avanzado
-9. **Memoización** de componentes
-
-### **Fase 4 (Semana 4): Monitoreo y Ajustes**
-10. **Implementar métricas** de performance
-11. **Ajustes basados** en datos reales
-12. **Optimizaciones finales**
-
-## ✅ **Estado Actual**
-
-### **Funcionalidades Completamente Implementadas:**
-- ✅ **Búsqueda global** con navegación por teclado
-- ✅ **Sistema de permisos** con actualización automática
-- ✅ **Header transparente** con diseño mejorado
-- ✅ **Análisis completo** de optimizaciones de performance
-
-### **Listo para Producción:**
-- ✅ **Todas las APIs** funcionando correctamente
-- ✅ **Manejo de errores** implementado
-- ✅ **Loading states** para mejor UX
-- ✅ **Responsive design** en todos los componentes
-
-El dashboard ahora tiene una búsqueda global funcional, permisos que se actualizan automáticamente, un header moderno y transparente, y un plan completo de optimizaciones de performance para mejorar significativamente la experiencia del usuario. 
+- ✅ **`prisma/migrations/20250821012749_init/migration.sql`** - Migración inicial completa con todos los campos nuevos
+- ✅ **`prisma/migrations/20250821014353_add_consensus_date/migration.sql`** - Migración para agregar campo de fecha de consenso 

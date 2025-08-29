@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   ArrowLeftIcon,
   FileTextIcon,
@@ -22,15 +24,36 @@ import {
   XCircleIcon,
   AlertCircleIcon,
   TimerIcon,
+  SearchIcon,
+  FilterIcon,
+  XIcon,
 } from "lucide-react"
 import type { Proposal, ProposalStatusType } from "@/lib/types"
+
+interface ProposalFilters {
+  search: string
+  status: string
+  proposalType: string
+  author: string
+  dateRange: string
+}
 
 export default function ProposalsPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const [proposals, setProposals] = useState<Proposal[]>([])
+  const [filteredProposals, setFilteredProposals] = useState<Proposal[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<string>("all")
+  const [filters, setFilters] = useState<ProposalFilters>({
+    search: "",
+    status: "all",
+    proposalType: "all",
+    author: "",
+    dateRange: "all"
+  })
+  const [showFilters, setShowFilters] = useState(false)
+  const [workGroups, setWorkGroups] = useState<Array<{id: string, name: string}>>([])
 
   const fetchProposals = async (status?: ProposalStatusType) => {
     try {
@@ -44,11 +67,41 @@ export default function ProposalsPage() {
 
       const data = await response.json()
       setProposals(data.proposals)
+      setFilteredProposals(data.proposals)
+      
+      // Obtener workgroups si hay propuestas con workgroups
+      const allWorkGroupIds = data.proposals
+        .filter((p: Proposal) => p.workGroupIds && p.workGroupIds.length > 0)
+        .flatMap((p: Proposal) => p.workGroupIds)
+      
+      if (allWorkGroupIds.length > 0) {
+        fetchWorkGroups(allWorkGroupIds)
+      }
     } catch (error) {
       console.error("Error fetching proposals:", error)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const fetchWorkGroups = async (workGroupIds: string[]) => {
+    try {
+      const response = await fetch('/api/workgroups')
+      if (response.ok) {
+        const allWorkGroups = await response.json()
+        const filteredWorkGroups = allWorkGroups.filter((wg: any) => 
+          workGroupIds.indexOf(wg.id) !== -1
+        )
+        setWorkGroups(filteredWorkGroups)
+      }
+    } catch (error) {
+      console.error("Error fetching workgroups:", error)
+    }
+  }
+
+  const getWorkGroupName = (workGroupId: string) => {
+    const workGroup = workGroups.find(wg => wg.id === workGroupId)
+    return workGroup ? workGroup.name : workGroupId
   }
 
   useEffect(() => {
@@ -65,6 +118,75 @@ export default function ProposalsPage() {
       fetchProposals(activeTab as ProposalStatusType)
     }
   }, [status, router, activeTab])
+
+  // Aplicar filtros
+  useEffect(() => {
+    let filtered = [...proposals]
+
+    // Filtro de búsqueda
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase()
+      filtered = filtered.filter(proposal =>
+        proposal.title.toLowerCase().includes(searchLower) ||
+        proposal.description.toLowerCase().includes(searchLower) ||
+        proposal.author.name.toLowerCase().includes(searchLower) ||
+        (proposal.proposalType && proposal.proposalType.toLowerCase().includes(searchLower))
+      )
+    }
+
+    // Filtro de estado
+    if (filters.status !== "all") {
+      filtered = filtered.filter(proposal => proposal.status === filters.status)
+    }
+
+    // Filtro de tipo de propuesta
+    if (filters.proposalType !== "all") {
+      filtered = filtered.filter(proposal => proposal.proposalType === filters.proposalType)
+    }
+
+    // Filtro de autor
+    if (filters.author) {
+      filtered = filtered.filter(proposal =>
+        proposal.author.name.toLowerCase().includes(filters.author.toLowerCase())
+      )
+    }
+
+    // Filtro de rango de fechas
+    if (filters.dateRange !== "all") {
+      const now = new Date()
+      const oneDay = 24 * 60 * 60 * 1000
+      const oneWeek = 7 * oneDay
+      const oneMonth = 30 * oneDay
+
+      filtered = filtered.filter(proposal => {
+        const createdDate = new Date(proposal.createdAt)
+        const timeDiff = now.getTime() - createdDate.getTime()
+
+        switch (filters.dateRange) {
+          case "today":
+            return timeDiff < oneDay
+          case "week":
+            return timeDiff < oneWeek
+          case "month":
+            return timeDiff < oneMonth
+          default:
+            return true
+        }
+      })
+    }
+
+    setFilteredProposals(filtered)
+  }, [proposals, filters])
+
+  const clearFilters = () => {
+    setFilters({
+      search: "",
+      status: "all",
+      proposalType: "all",
+      author: "",
+      dateRange: "all"
+    })
+  }
 
   const getStatusBadge = (status: ProposalStatusType) => {
     switch (status) {
@@ -100,164 +222,359 @@ export default function ProposalsPage() {
   const getStatusIcon = (status: ProposalStatusType) => {
     switch (status) {
       case "IN_REVIEW":
-        return <AlertCircleIcon className="h-5 w-5 text-yellow-500" />
+        return <ClockIcon className="h-4 w-4 text-yellow-500" />
       case "APPROVED":
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />
+        return <CheckCircleIcon className="h-4 w-4 text-green-500" />
       case "REJECTED":
-        return <XCircleIcon className="h-5 w-5 text-red-500" />
+        return <XCircleIcon className="h-4 w-4 text-red-500" />
       case "EXPIRED":
-        return <TimerIcon className="h-5 w-5 text-slate-400" />
+        return <TimerIcon className="h-4 w-4 text-slate-400" />
       default:
-        return null
+        return <FileTextIcon className="h-4 w-4 text-slate-400" />
     }
   }
 
   if (isLoading || status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-transparent">
+      <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/dashboard")}
-            className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-slate-100"
-          >
-            <ArrowLeftIcon className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <div className="flex items-center gap-6">
-            <h1 className="text-3xl font-bold text-white tracking-wide">Community Proposals</h1>
+         <div className="min-h-screen bg-black text-slate-50 p-4 sm:p-6 lg:p-8 xl:p-12 font-mac">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/dashboard")}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800"
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-4xl font-bold text-white tracking-wide">Proposals</h1>
+              <p className="text-lg text-slate-400 font-medium">
+                Manage and track community proposals
+              </p>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 border border-blue-600/20 rounded-full">
+              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+              <span className="text-blue-400 font-medium">Total</span>
+              <span className="text-blue-300 font-bold">{proposals.length}</span>
+            </div>
             
-            {/* Estadísticas elegantes */}
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-green-400 font-medium">Active</span>
-                <span className="text-green-300 font-bold">{proposals.filter(p => p.status === 'IN_REVIEW').length}</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-600/10 border border-yellow-600/20 rounded-full">
+              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+              <span className="text-yellow-400 font-medium">In Review</span>
+              <span className="text-yellow-300 font-bold">{proposals.filter(p => p.status === 'IN_REVIEW').length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-600/10 border border-green-600/20 rounded-full">
+              <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+              <span className="text-green-400 font-medium">Approved</span>
+              <span className="text-green-300 font-bold">{proposals.filter(p => p.status === 'APPROVED').length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span className="text-red-400 font-medium">Rejected</span>
+              <span className="text-red-300 font-bold">{proposals.filter(p => p.status === 'REJECTED').length}</span>
+            </div>
+          </div>
+
+          {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (
+            <Button
+              onClick={() => router.push("/dashboard/proposals/create")}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Proposal
+            </Button>
+          )}
+        </div>
+
+        {/* Filtros */}
+        <div className="mb-8">
+          <div className="bg-black border border-slate-700 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <FilterIcon className="h-5 w-5" />
+                Filters
+              </h3>
+              <Button
+                variant="ghost"
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-slate-400 hover:text-white"
+              >
+                {showFilters ? <XIcon className="h-4 w-4" /> : <FilterIcon className="h-4 w-4" />}
+              </Button>
+            </div>
+
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Búsqueda */}
+                <div className="relative">
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search proposals..."
+                    value={filters.search}
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    className="pl-10 bg-black border-slate-600 text-white placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* Estado */}
+                <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                  <SelectTrigger className="bg-black border-slate-600 text-white">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-slate-600">
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                    <SelectItem value="APPROVED">Approved</SelectItem>
+                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                    <SelectItem value="EXPIRED">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Tipo de Propuesta */}
+                <Select value={filters.proposalType} onValueChange={(value) => setFilters({ ...filters, proposalType: value })}>
+                  <SelectTrigger className="bg-black border-slate-600 text-white">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-slate-600">
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="COMMUNITY_PROPOSAL">Community Proposal</SelectItem>
+                    <SelectItem value="QUARTERLY_REPORT">Quarterly Report</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Autor */}
+                <Input
+                  placeholder="Author name..."
+                  value={filters.author}
+                  onChange={(e) => setFilters({ ...filters, author: e.target.value })}
+                  className="bg-black border-slate-600 text-white placeholder:text-slate-400"
+                />
+
+                {/* Rango de Fechas */}
+                <Select value={filters.dateRange} onValueChange={(value) => setFilters({ ...filters, dateRange: value })}>
+                  <SelectTrigger className="bg-black border-slate-600 text-white">
+                    <SelectValue placeholder="Date Range" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-slate-600">
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-full">
-                <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
-                <span className="text-slate-400 font-medium">Expired</span>
-                <span className="text-slate-300 font-bold">{proposals.filter(p => p.status === 'EXPIRED').length}</span>
+            )}
+
+            {/* Botones de filtros */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-400">
+                  Showing {filteredProposals.length} of {proposals.length} proposals
+                </span>
               </div>
-              
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-600/10 border border-green-600/20 rounded-full">
-                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                <span className="text-green-500 font-medium">Approved</span>
-                <span className="text-green-400 font-bold">{proposals.filter(p => p.status === 'APPROVED').length}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-red-400 font-medium">Rejected</span>
-                <span className="text-red-300 font-bold">{proposals.filter(p => p.status === 'REJECTED').length}</span>
-              </div>
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              >
+                Clear Filters
+              </Button>
             </div>
           </div>
         </div>
 
-        {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (
-          <Button
-            onClick={() => router.push("/dashboard/proposals/create")}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Proposal
-          </Button>
-        )}
-      </div>
+        {/* Tabs */}
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-5 mb-6 bg-black border border-slate-700">
+            <TabsTrigger value="all" className="data-[state=active]:bg-slate-700">All</TabsTrigger>
+            <TabsTrigger value="IN_REVIEW" className="data-[state=active]:bg-slate-700">In Review</TabsTrigger>
+            <TabsTrigger value="APPROVED" className="data-[state=active]:bg-slate-700">Approved</TabsTrigger>
+            <TabsTrigger value="REJECTED" className="data-[state=active]:bg-slate-700">Rejected</TabsTrigger>
+            <TabsTrigger value="EXPIRED" className="data-[state=active]:bg-slate-700">Expired</TabsTrigger>
+          </TabsList>
 
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 mb-6 bg-slate-800">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="IN_REVIEW">In Review</TabsTrigger>
-          <TabsTrigger value="APPROVED">Approved</TabsTrigger>
-          <TabsTrigger value="REJECTED">Rejected</TabsTrigger>
-          <TabsTrigger value="EXPIRED">Expired</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-0">
-          {proposals.length === 0 ? (
-            <Card className="bg-slate-800 border-slate-700">
-              <CardContent className="pt-6 text-center">
-                <FileTextIcon className="mx-auto h-12 w-12 text-slate-500 mb-4" />
-                <p className="text-slate-400">No proposals found</p>
-                {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (
-                  <Button
-                    onClick={() => router.push("/dashboard/proposals/create")}
-                    className="mt-4 bg-purple-600 hover:bg-purple-700 text-white"
+          <TabsContent value={activeTab} className="mt-0">
+            {filteredProposals.length === 0 ? (
+              <Card className="bg-black border-slate-700">
+                <CardContent className="pt-6 text-center">
+                  <FileTextIcon className="mx-auto h-12 w-12 text-slate-500 mb-4" />
+                  <p className="text-slate-400">No proposals found</p>
+                  {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (
+                    <Button
+                      onClick={() => router.push("/dashboard/proposals/create")}
+                      className="mt-4 bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <PlusIcon className="mr-2 h-4 w-4" />
+                      Create Your First Proposal
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {filteredProposals.map((proposal) => (
+                  <div
+                    key={proposal.id}
+                    onClick={() => router.push(`/dashboard/proposals/${proposal.id}`)}
+                    className="group relative bg-black border border-slate-700/50 rounded-none p-8 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 backdrop-blur-sm font-mac flex flex-col h-full min-h-[500px]"
                   >
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Create Your First Proposal
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {proposals.map((proposal) => (
-                <Card
-                  key={proposal.id}
-                  className="bg-slate-800 border-slate-700 hover:border-purple-600/50 transition-colors cursor-pointer"
-                  onClick={() => router.push(`/dashboard/proposals/${proposal.id}`)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg text-slate-200 line-clamp-2">{proposal.title}</CardTitle>
-                      {getStatusBadge(proposal.status)}
-                    </div>
-                    <CardDescription className="flex items-center gap-1 text-slate-400">
-                      <UserIcon className="h-3 w-3" />
-                      {proposal.author.name}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-300 line-clamp-3 mb-4">{proposal.description}</p>
-                    <div className="flex items-center justify-between text-xs text-slate-400">
-                      <div className="flex items-center gap-1">
-                        <ClockIcon className="h-3 w-3" />
-                        <span>{formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true })}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <ClockIcon className="h-3 w-3" />
-                        <span>Expires: {format(new Date(proposal.expiresAt), "MMM d, yyyy")}</span>
+                    {/* Status and Type Row - Top */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(proposal.status)}
+                        {proposal.proposalType && (
+                          <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/50 text-xs font-medium">
+                            {proposal.proposalType === "COMMUNITY_PROPOSAL" ? "Community Proposal" : "Quarterly Report"}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                  </CardContent>
-                  <CardFooter className="pt-0 border-t border-slate-700 flex justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1 text-green-400">
-                        <ThumbsUpIcon className="h-4 w-4" />
-                        <span>{proposal.positiveVotes}</span>
+
+                    {/* Title */}
+                    <h3 className="text-xl font-bold text-white line-clamp-2 mb-6 group-hover:text-purple-200 transition-colors">
+                      {proposal.title}
+                    </h3>
+                    
+                    {/* Author Info */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                        {proposal.author.image ? (
+                          <img
+                            src={proposal.author.image}
+                            alt={proposal.author.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <UserIcon className="h-5 w-5 text-white" />
+                        )}
                       </div>
-                      <div className="flex items-center gap-1 text-red-400">
-                        <ThumbsDownIcon className="h-4 w-4" />
-                        <span>{proposal.negativeVotes}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <HandIcon className="h-4 w-4" />
-                        <span>{proposal.abstainVotes}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-medium text-slate-200 truncate">
+                          {proposal.author.name}
+                        </p>
+                        <p className="text-sm text-sky-300">
+                          {formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true })}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400">
-                      <MessageSquareIcon className="h-4 w-4" />
-                      <span>{proposal._count?.comments || 0}</span>
+
+                    {/* Content Section */}
+                    <div className="space-y-5 mb-8 flex-1">
+                      {/* Description - Clean text only */}
+                      <p className="text-base text-gray-300 line-clamp-4 leading-relaxed">
+                        {proposal.description && typeof proposal.description === 'string' 
+                          ? proposal.description.replace(/[#*<>]/g, '').trim() 
+                          : 'No description available'}
+                      </p>
+
+                      {/* WorkGroups - Better organized */}
+                      {proposal.workGroupIds && proposal.workGroupIds.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                            <span className="text-sm font-medium text-slate-400 uppercase tracking-wide">WorkGroups</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {proposal.workGroupIds.slice(0, 3).map((workGroupId: string) => (
+                              <Badge 
+                                key={workGroupId} 
+                                variant="outline" 
+                                className="bg-white/10 text-white border-white/30 text-sm font-medium px-3 py-1.5"
+                              >
+                                {getWorkGroupName(workGroupId)}
+                              </Badge>
+                            ))}
+                            {proposal.workGroupIds.length > 3 && (
+                              <Badge variant="outline" className="bg-slate-600/20 text-slate-300 border-slate-500/30 text-sm">
+                                +{proposal.workGroupIds.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Budget Info - Compact and clean */}
+                      {proposal.budgetItems && Array.isArray(proposal.budgetItems) && proposal.budgetItems.length > 0 && (
+                        <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20">
+                          <span className="text-sm text-green-400 font-medium">Total Budget</span>
+                          <span className="text-base font-bold text-green-300">
+                            ${proposal.budgetItems.reduce((sum: number, item: any) => sum + (item.total || 0), 0).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Attachment Indicator - Only if exists */}
+                      {proposal.attachment && (
+                        <div className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                          <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <span className="text-base">📎</span>
+                          </div>
+                          <span className="text-sm text-slate-300">Attachment available</span>
+                        </div>
+                      )}
                     </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+
+                    {/* Footer Section - Always at bottom */}
+                    <div className="border-t border-slate-700/50 pt-6 mt-auto">
+                      {/* Expiration Date */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                          <ClockIcon className="h-4 w-4" />
+                          <span>Expires {format(new Date(proposal.expiresAt), "MMM d, yyyy")}</span>
+                        </div>
+                      </div>
+
+                      {/* Stats Row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-5">
+                          {/* Positive Votes */}
+                          <div className="flex items-center gap-2">
+                            <ThumbsUpIcon className="h-5 w-5 text-green-400" />
+                            <span className="text-base font-semibold text-green-400">{proposal.positiveVotes || 0}</span>
+                          </div>
+
+                          {/* Negative Votes */}
+                          <div className="flex items-center gap-2">
+                            <ThumbsDownIcon className="h-5 w-5 text-red-400" />
+                            <span className="text-base font-semibold text-red-400">{proposal.negativeVotes || 0}</span>
+                          </div>
+
+                          {/* Abstain Votes */}
+                          <div className="flex items-center gap-2">
+                            <HandIcon className="h-5 w-5 text-yellow-400" />
+                            <span className="text-base font-semibold text-yellow-400">{proposal.abstainVotes || 0}</span>
+                          </div>
+                        </div>
+
+                        {/* Comments */}
+                        <div className="flex items-center gap-2">
+                          <MessageSquareIcon className="h-5 w-5 text-blue-400" />
+                          <span className="text-base font-semibold text-blue-400">{proposal._count?.comments || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

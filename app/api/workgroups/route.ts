@@ -52,14 +52,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        quarterlyReports: {
-          select: {
-            id: true,
-            year: true,
-            quarter: true,
-            consensusStatus: true
-          }
-        }
+
       },
       orderBy: {
         createdAt: "desc"

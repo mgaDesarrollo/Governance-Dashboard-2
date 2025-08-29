@@ -20,17 +20,9 @@ import {
   FileTextIcon,
   UserPlusIcon
 } from "lucide-react"
-import { LoadingSkeleton } from "@/components/ui/loading-skeleton"
+import { LoadingSkeleton, SimpleLoading } from "@/components/ui/loading-skeleton"
 
 interface AnalyticsData {
-  quarterlyReports: {
-    total: number
-    pending: number
-    inConsensus: number
-    consensed: number
-    byQuarter: { quarter: string; count: number }[]
-    byWorkGroup: { workGroup: string; count: number }[]
-  }
   workGroups: {
     total: number
     active: number
@@ -43,19 +35,7 @@ interface AnalyticsData {
     newThisMonth: number
     byRole: { role: string; count: number }[]
   }
-  budget: {
-    total: number
-    average: number
-    byWorkGroup: { workGroup: string; amount: number }[]
-  }
   activity: {
-    recentReports: {
-      id: string
-      title: string
-      workGroup: string
-      status: string
-      createdAt: string
-    }[]
     topWorkGroups: {
       id: string
       name: string
@@ -92,7 +72,7 @@ export default function AnalyticsPage() {
   }, [])
 
   if (loading) {
-    return <LoadingSkeleton type="page" />
+    return <SimpleLoading size="lg" className="min-h-[400px]" />
   }
 
   if (!analyticsData) {
@@ -144,31 +124,9 @@ export default function AnalyticsPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <FileTextIcon className="w-5 h-5 text-blue-400" />
-              <div>
-                <p className="text-sm text-gray-400 font-medium">Total Reports</p>
-                <p className="text-2xl font-bold text-white">{analyticsData.quarterlyReports.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircleIcon className="w-5 h-5 text-green-400" />
-              <div>
-                <p className="text-sm text-gray-400 font-medium">Consensed</p>
-                <p className="text-2xl font-bold text-white">{analyticsData.quarterlyReports.consensed}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-purple-500/30">
+        <Card className="bg-black border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <UsersIcon className="w-5 h-5 text-purple-400" />
@@ -180,60 +138,17 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSignIcon className="w-5 h-5 text-orange-400" />
-              <div>
-                <p className="text-sm text-gray-400 font-medium">Total Budget</p>
-                <p className="text-2xl font-bold text-white">${(analyticsData.budget.total / 1000).toFixed(1)}K</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       <Separator className="border-gray-700" />
 
       {/* Detailed Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quarterly Reports Status */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <PieChartIcon className="w-5 h-5 text-purple-400" />
-              <h3 className="text-lg font-bold text-white tracking-wide">Quarterly Reports Status</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Pending</span>
-                </div>
-                <Badge variant="outline" className="text-blue-400">{analyticsData.quarterlyReports.pending}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm text-gray-300">In Consensus</span>
-                </div>
-                <Badge variant="outline" className="text-yellow-400">{analyticsData.quarterlyReports.inConsensus}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Consensed</span>
-                </div>
-                <Badge variant="outline" className="text-green-400">{analyticsData.quarterlyReports.consensed}</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Work Groups Overview */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <div className="flex items-center space-x-2">
               <BuildingIcon className="w-5 h-5 text-blue-400" />
@@ -258,30 +173,10 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        {/* Budget Distribution */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <DollarSignIcon className="w-5 h-5 text-green-400" />
-              <h3 className="text-lg font-bold text-white tracking-wide">Budget Distribution</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {analyticsData.budget.byWorkGroup.slice(0, 5).map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300 truncate">{item.workGroup}</span>
-                  <Badge variant="outline" className="text-green-400">
-                    ${(item.amount / 1000).toFixed(1)}K
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Participant Demographics */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <div className="flex items-center space-x-2">
               <UsersIcon className="w-5 h-5 text-purple-400" />
@@ -303,33 +198,10 @@ export default function AnalyticsPage() {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Reports */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <ActivityIcon className="w-5 h-5 text-blue-400" />
-              <h3 className="text-lg font-bold text-white tracking-wide">Recent Reports</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {analyticsData.activity.recentReports.map((report, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-white truncate">{report.title}</p>
-                    <p className="text-xs text-gray-400">{report.workGroup}</p>
-                  </div>
-                  <Badge className={getStatusBadgeColor(report.status)}>
-                    {report.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Top Work Groups */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <div className="flex items-center space-x-2">
               <BuildingIcon className="w-5 h-5 text-green-400" />
@@ -339,7 +211,7 @@ export default function AnalyticsPage() {
           <CardContent>
             <div className="space-y-3">
               {analyticsData.activity.topWorkGroups.map((workgroup, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div key={index} className="flex items-center justify-between p-3 bg-black/50 rounded-lg border border-gray-700">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-white truncate">{workgroup.name}</p>
                     <p className="text-xs text-gray-400">{workgroup.status}</p>
@@ -356,36 +228,10 @@ export default function AnalyticsPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quarterly Reports by Quarter */}
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <TrendingUpIcon className="w-5 h-5 text-blue-400" />
-              <h3 className="text-lg font-bold text-white tracking-wide">Reports by Quarter</h3>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {analyticsData.quarterlyReports.byQuarter.map((quarter, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">{quarter.quarter}</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-20 bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full" 
-                        style={{ width: `${(quarter.count / Math.max(...analyticsData.quarterlyReports.byQuarter.map(q => q.count))) * 100}%` }}
-                      ></div>
-                    </div>
-                    <Badge variant="outline" className="text-blue-400">{quarter.count}</Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Work Groups by Type */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <div className="flex items-center space-x-2">
               <ActivityIcon className="w-5 h-5 text-green-400" />
@@ -415,7 +261,7 @@ export default function AnalyticsPage() {
 
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <UserPlusIcon className="w-5 h-5 text-purple-400" />
@@ -427,19 +273,9 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900 border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSignIcon className="w-5 h-5 text-green-400" />
-              <div>
-                <p className="text-sm text-gray-400 font-medium">Avg Budget/Report</p>
-                <p className="text-2xl font-bold text-white">${(analyticsData.budget.average / 1000).toFixed(1)}K</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-gray-900 border-gray-700">
+
+        <Card className="bg-black border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <TargetIcon className="w-5 h-5 text-orange-400" />

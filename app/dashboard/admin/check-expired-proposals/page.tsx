@@ -39,7 +39,7 @@ export default function CheckExpiredProposalsPage() {
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     )
@@ -53,11 +53,11 @@ export default function CheckExpiredProposalsPage() {
   // Only ADMIN and SUPER_ADMIN can access this page
   if (session?.user?.role !== "ADMIN" && session?.user?.role !== "SUPER_ADMIN") {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-50 p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-black text-slate-50 p-4 sm:p-6 lg:p-8">
         <Button
           variant="outline"
           onClick={() => router.push("/dashboard")}
-          className="mb-6 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-slate-100"
+          className="mb-6 bg-black border-slate-700 hover:bg-black text-slate-300 hover:text-slate-100"
         >
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
           Back to Dashboard
@@ -75,17 +75,17 @@ export default function CheckExpiredProposalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-black text-slate-50 p-4 sm:p-6 lg:p-8">
       <Button
         variant="outline"
         onClick={() => router.push("/dashboard")}
-        className="mb-6 bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-slate-100"
+        className="mb-6 bg-black border-slate-700 hover:bg-black text-slate-300 hover:text-slate-100"
       >
         <ArrowLeftIcon className="mr-2 h-4 w-4" />
         Back to Dashboard
       </Button>
 
-      <Card className="bg-slate-800 border-slate-700 max-w-3xl mx-auto">
+      <Card className="bg-black border-slate-700 max-w-3xl mx-auto">
         <CardHeader>
           <div className="flex items-center gap-2">
             <TimerIcon className="h-6 w-6 text-purple-400" />

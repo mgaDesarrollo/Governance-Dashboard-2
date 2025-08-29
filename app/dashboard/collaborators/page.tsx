@@ -8,7 +8,7 @@ import { UserCard } from "@/components/user-card"
 import { CollaboratorsFilters, type CollaboratorFilters } from "@/components/collaborators-filters"
 import { UsersIcon, Loader2Icon } from "lucide-react"
 import { UserProfileDialog } from "@/components/user-profile-dialog"
-import type { UserAvailabilityStatus, Workgroup } from "@prisma/client"
+import type { UserAvailabilityStatus } from "@prisma/client"
 
 // Definir el tipo para los usuarios que se obtienen del API
 type PublicProfileUser = {
@@ -26,7 +26,7 @@ type PublicProfileUser = {
     tagline?: string | null
     linkCv?: string | null
   } | null
-  workgroups?: Pick<Workgroup, "id" | "name">[] | null
+  workgroups?: { id: string; name: string }[] | null
   socialLinks?: {
     linkedin?: string | null
     github?: string | null
@@ -40,35 +40,30 @@ const generateMockOnlineStatus = (users: PublicProfileUser[]): PublicProfileUser
     const random = Math.random()
 
     if (random < 0.3) {
-      // 30% online
       return {
         ...user,
         isOnline: true,
         lastSeen: new Date().toISOString(),
       }
     } else if (random < 0.5) {
-      // 20% recently active (last 5 minutes)
       return {
         ...user,
         isOnline: false,
         lastSeen: new Date(Date.now() - Math.random() * 5 * 60 * 1000).toISOString(),
       }
     } else if (random < 0.7) {
-      // 20% active in last hour
       return {
         ...user,
         isOnline: false,
         lastSeen: new Date(Date.now() - Math.random() * 60 * 60 * 1000).toISOString(),
       }
     } else if (random < 0.9) {
-      // 20% active in last day
       return {
         ...user,
         isOnline: false,
         lastSeen: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
       }
     } else {
-      // 10% offline for days
       return {
         ...user,
         isOnline: false,
@@ -99,56 +94,22 @@ const applyFilters = (users: PublicProfileUser[], filters: CollaboratorFilters):
       return false
     }
 
-    // Online status filter
-    if (filters.onlineStatus !== "ALL") {
-      if (filters.onlineStatus === "ONLINE" && !user.isOnline) return false
-      if (filters.onlineStatus === "OFFLINE" && user.isOnline) return false
-      if (filters.onlineStatus === "RECENTLY_ACTIVE") {
-        if (user.isOnline) return true
-        if (!user.lastSeen) return false
-        const lastSeenDate = new Date(user.lastSeen)
-        const now = new Date()
-        const diffInMinutes = Math.floor((now.getTime() - lastSeenDate.getTime()) / (1000 * 60))
-        if (diffInMinutes > 60) return false // Only recently active (last hour)
-      }
-    }
-
     // Country filter
     if (filters.country && user.country !== filters.country) {
       return false
     }
 
     // Workgroup filter
-    if (filters.workgroup) {
-      const hasWorkgroup = user.workgroups?.some((wg) => wg.name === filters.workgroup)
+    if (filters.workgroup && user.workgroups) {
+      const hasWorkgroup = user.workgroups.some((wg) => wg.id === filters.workgroup)
       if (!hasWorkgroup) return false
     }
 
     // Skills filter
-    if (filters.skills.length > 0) {
-      const userSkills = user.skills?.split(",").map((s) => s.trim().toLowerCase()) || []
-      const hasAllSkills = filters.skills.every((skill) =>
-        userSkills.some((userSkill) => userSkill.includes(skill.toLowerCase())),
-      )
-      if (!hasAllSkills) return false
-    }
-
-    // CV filter
-    if (filters.hasCV === true && !user.professionalProfile?.linkCv) {
-      return false
-    }
-    if (filters.hasCV === false && user.professionalProfile?.linkCv) {
-      return false
-    }
-
-    // Social links filter
-    if (filters.hasSocialLinks === true) {
-      const hasSocial = user.socialLinks?.linkedin || user.socialLinks?.github || user.socialLinks?.x
-      if (!hasSocial) return false
-    }
-    if (filters.hasSocialLinks === false) {
-      const hasSocial = user.socialLinks?.linkedin || user.socialLinks?.github || user.socialLinks?.x
-      if (hasSocial) return false
+    if (filters.skills.length > 0 && user.skills) {
+      const userSkills = user.skills.toLowerCase().split(",").map((s) => s.trim())
+      const hasSkill = filters.skills.some((skill) => userSkills.indexOf(skill.toLowerCase()) !== -1)
+      if (!hasSkill) return false
     }
 
     return true
@@ -156,70 +117,30 @@ const applyFilters = (users: PublicProfileUser[], filters: CollaboratorFilters):
 }
 
 export default function CollaboratorsPage() {
-  const router = useRouter()
   const { data: session, status: sessionStatus } = useSession()
+  const router = useRouter()
   const [users, setUsers] = useState<PublicProfileUser[]>([])
   const [filteredUsers, setFilteredUsers] = useState<PublicProfileUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
-
-  // Filter state
   const [filters, setFilters] = useState<CollaboratorFilters>({
     search: "",
     status: "ALL",
-    onlineStatus: "ALL",
     country: "",
     workgroup: "",
     skills: [],
-    hasCV: null,
-    hasSocialLinks: null,
   })
 
-  // Derived data for filter options - Fixed TypeScript error
-  const availableCountries = Array.from(
-    new Set(users.map((u) => u.country).filter((country): country is string => Boolean(country))),
-  ).sort()
-
-  const availableWorkgroups = Array.from(new Set(users.flatMap((u) => u.workgroups?.map((wg) => wg.name) || []))).sort()
-
-  const availableSkills = Array.from(
-    new Set(
-      users.flatMap(
-        (u) =>
-          u.skills
-            ?.split(",")
-            .map((s) => s.trim())
-            .filter(Boolean) || [],
-      ),
-    ),
-  ).sort()
+  // Estados para filtros
+  const [availableCountries, setAvailableCountries] = useState<string[]>([])
+  const [availableWorkgroups, setAvailableWorkgroups] = useState<{ id: string; name: string }[]>([])
+  const [availableSkills, setAvailableSkills] = useState<string[]>([])
 
   useEffect(() => {
-    if (sessionStatus === "loading") return
     if (sessionStatus === "unauthenticated") {
-      router.replace("/")
+      router.push("/")
       return
-    }
-
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch("/api/public-profiles")
-        if (!response.ok) {
-          throw new Error("Failed to fetch collaborators")
-        }
-        const data = await response.json()
-
-        // Agregar datos mock de estado online
-        const usersWithOnlineStatus = generateMockOnlineStatus(data)
-
-        setUsers(usersWithOnlineStatus)
-      } catch (error) {
-        console.error("Error fetching collaborators:", error)
-      } finally {
-        setIsLoading(false)
-      }
     }
 
     if (sessionStatus === "authenticated") {
@@ -227,38 +148,63 @@ export default function CollaboratorsPage() {
     }
   }, [sessionStatus, router])
 
-  // Apply filters whenever users or filters change
   useEffect(() => {
     const filtered = applyFilters(users, filters)
     setFilteredUsers(filtered)
   }, [users, filters])
 
-  // Actualizar estado online cada 30 segundos (simulación)
-  useEffect(() => {
-    if (users.length === 0) return
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/public-profiles")
+      if (response.ok) {
+        const data = await response.json()
+        const usersWithMockStatus = generateMockOnlineStatus(data)
+        setUsers(usersWithMockStatus)
 
+        // Extraer datos para filtros
+        const countries = [...new Set(data.map((u: PublicProfileUser) => u.country).filter(Boolean))]
+        const workgroups = data
+          .flatMap((u: PublicProfileUser) => u.workgroups || [])
+          .filter((wg, index, arr) => arr.findIndex((w) => w.id === wg.id) === index)
+        const skills = [...new Set(data.flatMap((u: PublicProfileUser) => u.skills?.split(",").map((s) => s.trim()) || []))]
+
+        setAvailableCountries(countries)
+        setAvailableWorkgroups(workgroups)
+        setAvailableSkills(skills)
+      } else {
+        console.error("Failed to fetch users")
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Simular cambios de estado online
+  useEffect(() => {
     const interval = setInterval(() => {
       setUsers((prevUsers) => {
         const updatedUsers = prevUsers.map((user) => {
           const random = Math.random()
 
-          // 10% de probabilidad de cambiar estado
-          if (random < 0.1) {
-            if (user.isOnline) {
-              // Usuario online puede desconectarse
+          if (user.isOnline) {
+            // Usuario online puede desconectarse (10% de probabilidad)
+            if (random < 0.1) {
               return {
                 ...user,
                 isOnline: false,
                 lastSeen: new Date().toISOString(),
               }
-            } else {
-              // Usuario offline puede conectarse (5% de probabilidad)
-              if (random < 0.05) {
-                return {
-                  ...user,
-                  isOnline: true,
-                  lastSeen: new Date().toISOString(),
-                }
+            }
+          } else {
+            // Usuario offline puede conectarse (5% de probabilidad)
+            if (random < 0.05) {
+              return {
+                ...user,
+                isOnline: true,
+                lastSeen: new Date().toISOString(),
               }
             }
           }
@@ -280,8 +226,11 @@ export default function CollaboratorsPage() {
 
   if (isLoading || sessionStatus === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-transparent">
-        <Loader2Icon className="h-16 w-16 text-purple-500 animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="text-center">
+          <Loader2Icon className="h-12 w-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">Loading collaborators...</p>
+        </div>
       </div>
     )
   }
@@ -303,44 +252,47 @@ export default function CollaboratorsPage() {
   const onlineCount = filteredUsers.filter((user) => user.isOnline).length
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="flex items-center gap-2 mb-6">
-        <UsersIcon className="h-7 w-7 text-purple-400" />
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-wide">Collaborators</h1>
-          <p className="text-sm text-slate-400 font-medium">
+    <div className="min-h-screen bg-black text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header simplificado */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <UsersIcon className="h-8 w-8 text-purple-400" />
+            <h1 className="text-3xl font-bold">Collaborators</h1>
+          </div>
+          <p className="text-slate-400">
             {onlineCount} online • {filteredUsers.length} total
           </p>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="mb-6">
-        <CollaboratorsFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          availableCountries={availableCountries}
-          availableWorkgroups={availableWorkgroups}
-          availableSkills={availableSkills}
-          totalCount={users.length}
-          filteredCount={filteredUsers.length}
-        />
-      </div>
+        {/* Filtros simplificados */}
+        <div className="mb-6">
+          <CollaboratorsFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            availableCountries={availableCountries}
+            availableWorkgroups={availableWorkgroups}
+            availableSkills={availableSkills}
+            totalCount={users.length}
+            filteredCount={filteredUsers.length}
+          />
+        </div>
 
-      {/* Results */}
-      {sortedUsers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sortedUsers.map((user) => (
-            <UserCard key={user.id} user={user} onViewProfile={handleViewProfile} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-10">
-          <UsersIcon className="mx-auto h-16 w-16 text-slate-600 mb-4" />
-          <p className="text-xl text-slate-400 mb-2">No collaborators found</p>
-          <p className="text-sm text-slate-500">Try adjusting your filters or search criteria</p>
-        </div>
-      )}
+        {/* Grid responsivo de colaboradores */}
+        {sortedUsers.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {sortedUsers.map((user) => (
+              <UserCard key={user.id} user={user} onViewProfile={handleViewProfile} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <UsersIcon className="mx-auto h-16 w-16 text-slate-600 mb-4" />
+            <p className="text-xl text-slate-400 mb-2">No collaborators found</p>
+            <p className="text-slate-500">Try adjusting your filters</p>
+          </div>
+        )}
+      </div>
 
       <UserProfileDialog userId={selectedUserId} open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen} />
     </div>

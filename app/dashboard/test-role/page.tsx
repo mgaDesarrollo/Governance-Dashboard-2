@@ -26,7 +26,7 @@ export default function TestRolePage() {
         <p className="text-gray-400">Test page for role management functionality</p>
       </div>
 
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="bg-black border-gray-700">
         <CardHeader>
           <CardTitle className="text-white">Current User Information</CardTitle>
         </CardHeader>

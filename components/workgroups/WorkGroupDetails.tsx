@@ -39,6 +39,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 
 const tabs = [
   { key: 'general', label: 'General', icon: PinIcon },
@@ -215,7 +216,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+              <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center border border-gray-700">
                 <BuildingIcon className="w-6 h-6 text-gray-300" />
               </div>
               <div>
@@ -239,7 +240,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
           
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black border-gray-700">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
                   <UsersIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -251,7 +252,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black border-gray-700">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
                   <TargetIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -263,7 +264,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black border-gray-700">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
                   <TrendingUpIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -275,7 +276,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-black border-gray-700">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2">
                   <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
@@ -294,7 +295,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
         <Separator className="border-gray-700" />
 
         {/* Navigation Tabs */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <div className="flex items-center space-x-2">
               <SettingsIcon className="w-5 h-5 text-gray-400" />
@@ -314,7 +315,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     className={`flex items-center gap-2 transition-all duration-200 ${
                       activeTab === tab.key
                         ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg'
-                        : 'text-gray-400 hover:text-white border-gray-600 hover:border-gray-500 hover:bg-gray-800'
+                        : 'text-gray-400 hover:text-white border-gray-600 hover:border-gray-500 hover:bg-black'
                     }`}
                   >
                     <IconComponent className="w-4 h-4" />
@@ -331,7 +332,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
         <div className="space-y-6 w-full">
           {/* MODO EDICIÓN EN PÁGINA */}
           {editOpen ? (
-            <Card className="bg-gray-900 border-gray-700 w-full">
+            <Card className="bg-black border-gray-700 w-full">
               <CardHeader>
                 <h3 className="text-xl font-bold text-white">Edit Workgroup</h3>
               </CardHeader>
@@ -397,7 +398,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
               {/* General Tab */}
               {activeTab === 'general' && (
                 <div className="space-y-6 w-full">
-                  <Card className="bg-gray-900 border-gray-700 w-full">
+                  <Card className="bg-black border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Basic Information</h3>
                     </CardHeader>
@@ -412,7 +413,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gray-900 border-gray-700 w-full">
+                  <Card className="bg-black border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Mission & Scope</h3>
                     </CardHeader>
@@ -424,7 +425,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gray-900 border-gray-700 w-full">
+                  <Card className="bg-black border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Membership</h3>
                     </CardHeader>
@@ -442,7 +443,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Activity & Reports Tab */}
               {activeTab === 'activity' && (
-                <Card className="bg-gray-900 border-gray-700 w-full">
+                <Card className="bg-black border-gray-700 w-full">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-bold text-white">Quarterly Reports</h3>
@@ -468,7 +469,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     ) : (
                       <div className="space-y-4">
                         {reports.map((report: any) => (
-                          <Card key={report.id} className="bg-gray-800 border-gray-700 hover:border-purple-500/50 transition-all duration-200">
+                          <Card key={report.id} className="bg-black border-gray-700 hover:border-purple-500/50 transition-all duration-200">
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between">
                                 <div>
@@ -498,7 +499,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Budget Tab */}
               {activeTab === 'budget' && (
-                <Card className="bg-gray-900 border-gray-700 w-full">
+                <Card className="bg-black border-gray-700 w-full">
                   <CardHeader>
                     <h3 className="text-xl font-bold text-white">Budget & Resources</h3>
                   </CardHeader>
@@ -519,7 +520,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
               {/* Links & Governance Tab */}
               {activeTab === 'links' && (
                 <div className="space-y-6 w-full">
-                  <Card className="bg-gray-900 border-gray-700 w-full">
+                  <Card className="bg-black border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Connections & Dependencies</h3>
                     </CardHeader>
@@ -532,7 +533,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gray-900 border-gray-700 w-full">
+                  <Card className="bg-black border-gray-700 w-full">
                     <CardHeader>
                       <h3 className="text-xl font-bold text-white">Consent & Governance</h3>
                     </CardHeader>
@@ -550,7 +551,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
               {/* Future & Roadmap Tab */}
               {activeTab === 'future' && (
-                <Card className="bg-gray-900 border-gray-700 w-full">
+                <Card className="bg-black border-gray-700 w-full">
                   <CardHeader>
                     <h3 className="text-xl font-bold text-white">Future & Roadmap</h3>
                   </CardHeader>
@@ -569,7 +570,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
 
           {/* Join Requests Section */}
           {joinRequests.length > 0 && (
-            <Card className="bg-gray-900 border-gray-700 w-full">
+            <Card className="bg-black border-gray-700 w-full">
               <CardHeader>
                 <h3 className="text-xl font-bold text-white">Pending Join Requests</h3>
               </CardHeader>
@@ -579,7 +580,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                 ) : (
                   <div className="space-y-2">
                     {joinRequests.map(req => (
-                      <div key={req.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-2">
+                      <div key={req.id} className="flex items-center justify-between bg-black rounded-lg px-4 py-2">
                         <div>
                           <span className="font-semibold text-white">{req.user?.name}</span>
                           <span className="ml-2 text-gray-400 text-xs">{req.user?.email}</span>
@@ -606,7 +607,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
       {/* Join Modal */}
       {joinOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <Card className="bg-gray-900 border-gray-700 max-w-md w-full">
+          <Card className="bg-black border-gray-700 max-w-md w-full">
             <CardHeader>
               <h3 className="text-xl font-bold text-white">Request to join this WorkGroup</h3>
             </CardHeader>
@@ -639,7 +640,7 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
       {/* Report Detail Modal */}
       {detailModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <Card className="bg-gray-900 border-gray-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <Card className="bg-black border-gray-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-white">Quarterly Report Details</h3>
@@ -676,19 +677,19 @@ const WorkGroupDetails: React.FC<Props> = ({ workGroup }) => {
                 </div>
                 <div className="md:col-span-2">
                   <span className="font-semibold text-purple-200">Detail:</span>
-                  <div className="bg-gray-800 rounded-lg px-4 py-2 mt-1 border border-gray-700 whitespace-pre-line text-white">
+                  <div className="bg-black rounded-lg px-4 py-2 mt-1 border border-gray-700 whitespace-pre-line text-white">
                     {detailModal.report?.detail || "No detail provided"}
                   </div>
                 </div>
                 <div className="md:col-span-2">
                   <span className="font-semibold text-purple-200">Theory of Change / Objective:</span>
-                  <div className="bg-gray-800 rounded-lg px-4 py-2 mt-1 border border-gray-700 whitespace-pre-line text-white">
+                  <div className="bg-black rounded-lg px-4 py-2 mt-1 border border-gray-700 whitespace-pre-line text-white">
                     {detailModal.report?.theoryOfChange || "No theory of change provided"}
                   </div>
                 </div>
                 <div className="md:col-span-2">
                   <span className="font-semibold text-purple-200">Plans for Next Quarter:</span>
-                  <div className="bg-gray-800 rounded-lg px-4 py-2 mt-1 border border-gray-700 whitespace-pre-line text-white">
+                  <div className="bg-black rounded-lg px-4 py-2 mt-1 border border-gray-700 whitespace-pre-line text-white">
                     {detailModal.report?.plans || "No plans provided"}
                   </div>
                 </div>

@@ -111,7 +111,7 @@ export default function DebugUserPage() {
         <p className="text-gray-400">Debugging user information and permissions</p>
       </div>
 
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="bg-black border-gray-700">
         <CardHeader>
           <CardTitle className="text-white">Target User Information</CardTitle>
         </CardHeader>
@@ -151,7 +151,7 @@ export default function DebugUserPage() {
         </CardContent>
       </Card>
 
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="bg-black border-gray-700">
         <CardHeader>
           <CardTitle className="text-white">Current User Information</CardTitle>
         </CardHeader>
@@ -176,7 +176,7 @@ export default function DebugUserPage() {
       </Card>
 
       {debugData.canUpdate && (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-black border-gray-700">
           <CardHeader>
             <CardTitle className="text-white">Test Role Update</CardTitle>
           </CardHeader>

@@ -39,8 +39,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
-      <Card className="w-full max-w-md bg-slate-800 border-slate-700 text-slate-50">
+    <div className="flex items-center justify-center min-h-screen bg-black p-4">
+      <Card className="w-full max-w-md bg-black border-slate-700 text-slate-50">
         <CardHeader className="text-center">
         <Image
             src="/logo.png" // Ruta relativa a la carpeta `public`
@@ -49,7 +49,7 @@ export default function LoginPage() {
             height={40} // El alto de tu imagen es 128, manteniendo la proporción (200 / (640/128) = 40)
             className="mx-auto mb-4 object-contain" // Centra la imagen y añade margen inferior
           />
-          <div className="mx-auto bg-slate-700 p-3 rounded-full w-fit mb-4">
+          <div className="mx-auto bg-black p-3 rounded-full w-fit mb-4">
             <BotIcon className="h-12 w-12 text-purple-400" />
           </div>
           <CardTitle className="text-2xl font-bold">Governance</CardTitle>

@@ -68,7 +68,7 @@ export default function WorkGroupsPage() {
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 p-4 sm:p-6 lg:p-8 xl:p-12 max-w-none">
       {loading ? (
         <LoadingSkeleton type="page" />
       ) : !selected ? (
@@ -90,7 +90,7 @@ export default function WorkGroupsPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
               <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/30">
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
@@ -144,7 +144,7 @@ export default function WorkGroupsPage() {
           <Separator className="border-gray-700" />
 
           {/* Search and Filters */}
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-black border-gray-700 w-full">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -158,21 +158,21 @@ export default function WorkGroupsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
                 <div className="relative">
                   <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
                     placeholder="Search workgroups..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                    className="pl-10 bg-black border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
 
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-gray-800 border-gray-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="bg-black border-gray-600 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
@@ -196,9 +196,9 @@ export default function WorkGroupsPage() {
                 <p className="text-gray-400 font-medium">Loading workgroups...</p>
               </div>
             ) : !workGroups || workGroups.length === 0 ? (
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="bg-black border-gray-700 w-full">
                 <CardContent className="p-12 text-center">
-                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-6">
                     <BuildingIcon className="w-8 h-8 text-gray-500" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2 tracking-wide">No Workgroups Found</h3>
@@ -212,11 +212,11 @@ export default function WorkGroupsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
                 {filteredWorkGroups.map((wg) => (
                   <Card 
                     key={wg.id} 
-                    className="bg-gray-900 border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg cursor-pointer group"
+                    className="bg-black border-gray-700 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg cursor-pointer group"
                     onClick={() => setSelected(wg)}
                   >
                     <CardHeader>
