@@ -231,7 +231,7 @@ export default function HelpSupportPage() {
                 <h3 className="text-lg font-semibold text-slate-100 border-b border-slate-600 pb-2">For New Users</h3>
                 <ol className="list-decimal list-inside space-y-2 text-slate-300">
                   <li>Complete your profile in the Edit Profile section</li>
-                  <li>Explore the Collaborators section to see community members</li>
+                  <li>Explore the Contributors section to see community members</li>
                   <li>Review active proposals in the Proposals section</li>
                   <li>Participate by voting on proposals that interest you</li>
                   <li>Join community discussions on Discord</li>

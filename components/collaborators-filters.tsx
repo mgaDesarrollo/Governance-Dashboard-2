@@ -88,7 +88,7 @@ export function CollaboratorsFilters({
   }
 
   const addSkill = (skill: string) => {
-    if (skill && filters.skills.indexOf(skill) === -1) {
+    if (skill && !filters.skills.includes(skill)) {
       updateFilters({ skills: [...filters.skills, skill] })
     }
     setSkillInput("")
@@ -114,7 +114,7 @@ export function CollaboratorsFilters({
   const activeFiltersCount = getActiveFiltersCount()
 
   return (
-    <Card className="bg-black border-gray-700">
+    <Card className="bg-gray-900 border-gray-700">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export function CollaboratorsFilters({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400">
-              {filteredCount} of {totalCount} collaborators
+              {filteredCount} of {totalCount} contributors
             </span>
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
               <CollapsibleTrigger asChild>
@@ -154,7 +154,7 @@ export function CollaboratorsFilters({
                     placeholder="Nombre, skills, país..."
                     value={filters.search}
                     onChange={(e) => updateFilters({ search: e.target.value })}
-                    className="pl-7 py-1 bg-black border-gray-600 text-xs text-slate-100 placeholder-slate-400 h-7"
+                    className="pl-7 py-1 bg-gray-800 border-gray-600 text-xs text-slate-100 placeholder-slate-400 h-7"
                   />
                 </div>
               </div>
@@ -165,10 +165,10 @@ export function CollaboratorsFilters({
                   value={filters.status}
                   onValueChange={(value) => updateFilters({ status: value as UserAvailabilityStatus | "ALL" })}
                 >
-                  <SelectTrigger className="bg-black border-gray-600 text-xs text-slate-100 h-7">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-xs text-slate-100 h-7">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-gray-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     {statusOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="text-slate-100 text-xs">
                         <div className="flex items-center gap-1">
@@ -187,10 +187,10 @@ export function CollaboratorsFilters({
                   value={filters.onlineStatus}
                   onValueChange={(value) => updateFilters({ onlineStatus: value as any })}
                 >
-                  <SelectTrigger className="bg-black border-gray-600 text-xs text-slate-100 h-7">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-xs text-slate-100 h-7">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-gray-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     {onlineStatusOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="text-slate-100 text-xs">
                         {option.label}
@@ -209,10 +209,10 @@ export function CollaboratorsFilters({
                   value={filters.country || "ALL_COUNTRIES"}
                   onValueChange={(value) => updateFilters({ country: value === "ALL_COUNTRIES" ? "" : value })}
                 >
-                  <SelectTrigger className="bg-black border-gray-600 text-xs text-slate-100 h-7">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-xs text-slate-100 h-7">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-gray-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     <SelectItem value="ALL_COUNTRIES" className="text-slate-100 text-xs">
                       Todos
                     </SelectItem>
@@ -234,10 +234,10 @@ export function CollaboratorsFilters({
                   value={filters.workgroup || "ALL_WORKGROUPS"}
                   onValueChange={(value) => updateFilters({ workgroup: value === "ALL_WORKGROUPS" ? "" : value })}
                 >
-                  <SelectTrigger className="bg-black border-gray-600 text-slate-100">
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-slate-100">
                     <SelectValue placeholder="All workgroups" />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-gray-600">
+                  <SelectContent className="bg-gray-800 border-gray-600">
                     <SelectItem value="ALL_WORKGROUPS" className="text-slate-100">
                       All workgroups
                     </SelectItem>
@@ -270,7 +270,7 @@ export function CollaboratorsFilters({
                       addSkill(skillInput.trim())
                     }
                   }}
-                  className="bg-black border-gray-600 text-slate-100 placeholder-slate-400"
+                  className="bg-gray-800 border-gray-600 text-slate-100 placeholder-slate-400"
                 />
                 <Button
                   onClick={() => addSkill(skillInput.trim())}
