@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { formatDistanceToNow, isPast, format } from "date-fns"
+import { formatDistanceToNow, isPast, format, endOfDay } from "date-fns"
 import { enUS } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -344,7 +344,8 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
 
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN"
   const isAuthor = proposal?.author?.id === session?.user?.id
-  const isExpired = proposal ? isPast(new Date(proposal.expiresAt)) : false
+  // Consider the proposal active until the end of the expiration date
+  const isExpired = proposal ? isPast(endOfDay(new Date(proposal.expiresAt))) : false
   const canVote = proposal?.status === "IN_REVIEW" && !isExpired
   const canEdit = isAuthor && proposal?.status === "IN_REVIEW" && !isExpired
 

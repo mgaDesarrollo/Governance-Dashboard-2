@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -13,11 +14,19 @@ import type { UserRole, UserAvailabilityStatus } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RecentActivity } from "@/components/recent-activity"
-import { QuickActions } from "@/components/dashboard/quick-actions"
 import { DashboardMetrics } from "@/components/dashboard-metrics"
 import { DashboardCalendar } from "@/components/dashboard-calendar"
+import {
+  FileTextIcon,
+  BellIcon,
+  BarChart3Icon,
+  UserIcon,
+  CheckCircleIcon,
+  ArrowRightIcon,
+} from "lucide-react"
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { data: session } = useSession()
   const [appUser, setAppUser] = useState({
     name: "User",
@@ -196,8 +205,159 @@ export default function DashboardPage() {
       {/* Quick Actions and Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Columna Izquierda - Quick Actions */}
-        <div className="bg-black rounded-lg overflow-hidden">
-          <QuickActions userRole={userRole} />
+        <div className="bg-black rounded-lg overflow-hidden border border-amber-600/40">
+          <div className="p-4 border-b border-amber-600/30 bg-gradient-to-r from-amber-500/10 to-transparent flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-white">Quick Actions</h3>
+              <p className="text-sm text-slate-400">Accesos rápidos a tareas frecuentes</p>
+            </div>
+          </div>
+
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Active Proposals */}
+            <div
+              onClick={() => router.push("/dashboard/proposals")}
+              className="bg-blue-500 rounded-lg overflow-hidden cursor-pointer border border-blue-700/40 hover:shadow-lg hover:shadow-blue-500/20 transition"
+            >
+              <div className="flex items-start gap-2 p-3">
+                <div className="p-2 bg-white rounded-md">
+                  <FileTextIcon className="h-5 w-5 text-black" />
+                </div>
+                <div className="flex-1 p-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-black">Active Proposals</h4>
+                  </div>
+                  <p className="text-sm text-black/80">Browse ongoing proposals</p>
+                </div>
+              </div>
+              <div className="bg-black/30 p-2">
+                <div className="flex items-center gap-1 text-xs text-white">
+                  <span>Go to</span>
+                  <ArrowRightIcon className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Quarterly Reports */}
+            <div
+              onClick={() => router.push("/dashboard/proposals")}
+              className="bg-indigo-500 rounded-lg overflow-hidden cursor-pointer border border-indigo-700/40 hover:shadow-lg hover:shadow-indigo-500/20 transition"
+            >
+              <div className="flex items-start gap-2 p-3">
+                <div className="p-2 bg-white rounded-md">
+                  <FileTextIcon className="h-5 w-5 text-black" />
+                </div>
+                <div className="flex-1 p-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-black">Quarterly Reports</h4>
+                  </div>
+                  <p className="text-sm text-black/80">Review quarterly report proposals</p>
+                </div>
+              </div>
+              <div className="bg-black/30 p-2">
+                <div className="flex items-center gap-1 text-xs text-white">
+                  <span>Go to</span>
+                  <ArrowRightIcon className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Notifications */}
+            <div
+              onClick={() => router.push("/dashboard/notifications")}
+              className="bg-yellow-500 rounded-lg overflow-hidden cursor-pointer border border-yellow-700/40 hover:shadow-lg hover:shadow-yellow-500/20 transition"
+            >
+              <div className="flex items-start gap-2 p-3">
+                <div className="p-2 bg-white rounded-md">
+                  <BellIcon className="h-5 w-5 text-black" />
+                </div>
+                <div className="flex-1 p-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-black">Notifications</h4>
+                  </div>
+                  <p className="text-sm text-black/80">Latest updates and alerts</p>
+                </div>
+              </div>
+              <div className="bg-black/30 p-2">
+                <div className="flex items-center gap-1 text-xs text-white">
+                  <span>Go to</span>
+                  <ArrowRightIcon className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Analytics */}
+            <div
+              onClick={() => router.push("/dashboard/analytics")}
+              className="bg-sky-500 rounded-lg overflow-hidden cursor-pointer border border-sky-700/40 hover:shadow-lg hover:shadow-sky-500/20 transition"
+            >
+              <div className="flex items-start gap-2 p-3">
+                <div className="p-2 bg-white rounded-md">
+                  <BarChart3Icon className="h-5 w-5 text-black" />
+                </div>
+                <div className="flex-1 p-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-black">Analytics</h4>
+                  </div>
+                  <p className="text-sm text-black/80">Governance analytics dashboard</p>
+                </div>
+              </div>
+              <div className="bg-black/30 p-2">
+                <div className="flex items-center gap-1 text-xs text-white">
+                  <span>Go to</span>
+                  <ArrowRightIcon className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Update your profile */}
+            <div
+              onClick={() => router.push("/dashboard/profile/edit")}
+              className="bg-green-500 rounded-lg overflow-hidden cursor-pointer border border-green-700/40 hover:shadow-lg hover:shadow-green-500/20 transition"
+            >
+              <div className="flex items-start gap-2 p-3">
+                <div className="p-2 bg-white rounded-md">
+                  <UserIcon className="h-5 w-5 text-black" />
+                </div>
+                <div className="flex-1 p-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-black">Update your profile</h4>
+                  </div>
+                  <p className="text-sm text-black/80">Edit your profile information</p>
+                </div>
+              </div>
+              <div className="bg-black/30 p-2">
+                <div className="flex items-center gap-1 text-xs text-white">
+                  <span>Go to</span>
+                  <ArrowRightIcon className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+
+            {/* Consent Process Result */}
+            <div
+              onClick={() => router.push("/dashboard/consensus")}
+              className="bg-purple-500 rounded-lg overflow-hidden cursor-pointer border border-purple-700/40 hover:shadow-lg hover:shadow-purple-500/20 transition"
+            >
+              <div className="flex items-start gap-2 p-3">
+                <div className="p-2 bg-white rounded-md">
+                  <CheckCircleIcon className="h-5 w-5 text-black" />
+                </div>
+                <div className="flex-1 p-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-black">Consent Process Result</h4>
+                  </div>
+                  <p className="text-sm text-black/80">View consensus process results</p>
+                </div>
+              </div>
+              <div className="bg-black/30 p-2">
+                <div className="flex items-center gap-1 text-xs text-white">
+                  <span>Go to</span>
+                  <ArrowRightIcon className="h-3 w-3" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Columna Derecha - Reorganizada */}

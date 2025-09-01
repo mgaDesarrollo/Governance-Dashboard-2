@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { prisma } from "@/lib/prisma"
 import type { VoteType as PrismaVoteType } from "@prisma/client"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { endOfDay } from "date-fns"
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -42,7 +43,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       )
     }
 
-    if (new Date(proposal.expiresAt) < new Date()) {
+  // Treat proposal as active until the end of the expiration date
+  if (endOfDay(new Date(proposal.expiresAt)) < new Date()) {
       // Instead of just returning an error, update the proposal status to EXPIRED
       await prisma.proposal.update({
         where: { id: proposalId },
