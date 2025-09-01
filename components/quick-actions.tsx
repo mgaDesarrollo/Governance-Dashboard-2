@@ -14,7 +14,8 @@ import {
   ArrowRightIcon,
   VoteIcon,
   ClockIcon,
-  SettingsIcon
+  SettingsIcon,
+  CheckCircleIcon
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { UserRole } from "@/lib/types"
@@ -32,94 +33,87 @@ export function QuickActions({ userRole }: QuickActionsProps) {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        // Fetch pending proposals count
         const proposalsRes = await fetch("/api/proposals?status=pending")
         const proposals = await proposalsRes.json()
         setPendingCount(proposals.length || 0)
 
-        // Fetch quarterly reports in voting
         const reportsRes = await fetch("/api/reports?consensusStatus=IN_CONSENSUS")
         const reports = await reportsRes.json()
         setVotingCount(reports.length || 0)
 
-        // Mock notification count
         setNotificationCount(Math.floor(Math.random() * 10) + 3)
-      } catch (error) {
-        console.error("Error fetching counts:", error)
-        // Fallback to mock counts
+      } catch {
         setPendingCount(3)
         setVotingCount(2)
         setNotificationCount(5)
       }
     }
-
     fetchCounts()
   }, [])
 
-  // Colores más vibrantes para las acciones rápidas
+  // Define quick actions in desired order
   const actions = [
     {
-      id: "notifications",
-      title: "Review Notifications",
-      description: "Check your latest updates and alerts",
-      icon: <BellIcon className="h-5 w-5" />,
-      href: "/dashboard/notifications",
-      color: "bg-gradient-to-br from-yellow-600/20 to-yellow-800/30 hover:from-yellow-600/30 hover:to-yellow-800/40 border-yellow-500/50 text-yellow-300",
-      iconColor: "text-yellow-400",
-      adminOnly: false,
-      badge: notificationCount > 0 ? `${notificationCount} New` : undefined,
-    },
-    {
       id: "pending-proposals",
-      title: "View Pending Proposals",
-      description: "Review proposals awaiting your vote",
-      icon: <FileTextIcon className="h-5 w-5" />,
+      title: "Active Proposals",
+      description: "View active proposals",
+      icon: <FileTextIcon className="h-5 w-5" />,  
       href: "/dashboard/proposals?filter=pending",
-      color: "bg-gradient-to-br from-blue-600/20 to-blue-800/30 hover:from-blue-600/30 hover:to-blue-800/40 border-blue-500/50 text-blue-300",
+      color: "bg-gradient-to-br from-blue-600/20 to-blue-800/30 border-blue-500/50 text-blue-300",
       iconColor: "text-blue-400",
       adminOnly: false,
       badge: pendingCount > 0 ? `${pendingCount} Pending` : undefined,
     },
     {
       id: "voting-reports",
-      title: "Quarterly Reports in Voting",
-      description: "View reports currently being voted on",
-      icon: <VoteIcon className="h-5 w-5" />,
+      title: "Quarterly Reports",
+      description: "View quarterly reports",
+      icon: <VoteIcon className="h-5 w-5" />,  
       href: "/dashboard/consensus",
-      color: "bg-gradient-to-br from-purple-600/20 to-purple-800/30 hover:from-purple-600/30 hover:to-purple-800/40 border-purple-500/50 text-purple-300",
+      color: "bg-gradient-to-br from-purple-600/20 to-purple-800/30 border-purple-500/50 text-purple-300",
       iconColor: "text-purple-400",
       adminOnly: false,
       badge: votingCount > 0 ? `${votingCount} Active` : undefined,
     },
     {
+      id: "notifications",
+      title: "Notifications",
+      description: "View notifications",
+      icon: <BellIcon className="h-5 w-5" />,  
+      href: "/dashboard/notifications",
+      color: "bg-gradient-to-br from-yellow-600/20 to-yellow-800/30 border-yellow-500/50 text-yellow-300",
+      iconColor: "text-yellow-400",
+      adminOnly: false,
+      badge: notificationCount > 0 ? `${notificationCount} New` : undefined,
+    },
+    {
+      id: "analytics",
+      title: "Analytics",
+      description: "View analytics",
+      icon: <BarChart3Icon className="h-5 w-5" />,  
+      href: "/dashboard/analytics",
+      color: "bg-gradient-to-br from-indigo-600/20 to-indigo-800/30 border-indigo-500/50 text-indigo-300",
+      iconColor: "text-indigo-400",
+      adminOnly: false,
+    },
+    {
       id: "update-profile",
-      title: "Update Profile",
-      description: "Edit your profile information and preferences",
-      icon: <UserIcon className="h-5 w-5" />,
+      title: "Update Your Profile",
+      description: "Edit your profile",
+      icon: <UserIcon className="h-5 w-5" />,  
       href: "/dashboard/profile",
-      color: "bg-gradient-to-br from-green-600/20 to-green-800/30 hover:from-green-600/30 hover:to-green-800/40 border-green-500/50 text-green-300",
+      color: "bg-gradient-to-br from-green-600/20 to-green-800/30 border-green-500/50 text-green-300",
       iconColor: "text-green-400",
       adminOnly: false,
     },
     {
-      id: "create-proposal",
-      title: "Create New Proposal",
-      description: "Start a new governance proposal",
-      icon: <PlusIcon className="h-5 w-5" />,
-      href: "/dashboard/proposals/create",
-      color: "bg-gradient-to-br from-orange-600/20 to-orange-800/30 hover:from-orange-600/30 hover:to-orange-800/40 border-orange-500/50 text-orange-300",
-      iconColor: "text-orange-400",
-      adminOnly: true,
-      badge: "Admin",
-    },
-    {
-      id: "analytics",
-      title: "View Analytics",
-      description: "Complete governance analytics and insights",
-      icon: <BarChart3Icon className="h-5 w-5" />,
-      href: "/dashboard/analytics",
-      color: "bg-gradient-to-br from-indigo-600/20 to-indigo-800/30 hover:from-indigo-600/30 hover:to-indigo-800/40 border-indigo-500/50 text-indigo-300",
-      iconColor: "text-indigo-400",
+      id: "consent-process",
+      title: "Consent Process Result",
+      description: "View consensus process results",
+      icon: <CheckCircleIcon className="h-5 w-5" />,  
+      href: "/dashboard/consensus",
+      color: "bg-gradient-to-br from-teal-600/20 to-teal-800/30 border-teal-500/50 text-teal-300",
+      iconColor: "text-teal-400",
       adminOnly: false,
     },
   ]

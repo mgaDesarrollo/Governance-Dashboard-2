@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { format, formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
+import { CreateProposalDialog } from "@/components/create-proposal-dialog"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -291,13 +292,7 @@ export default function ProposalsPage() {
           </div>
 
           {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN") && (
-            <Button
-              onClick={() => router.push("/dashboard/proposals/create")}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create Proposal
-            </Button>
+            <CreateProposalDialog />
           )}
         </div>
 

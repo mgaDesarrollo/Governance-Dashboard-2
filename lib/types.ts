@@ -72,6 +72,8 @@ export interface Proposal {
   
   // Nuevos campos
   proposalType?: string
+  quarter?: string | null  // Trimestre para informes trimestrales
+  links?: string[]         // Array de URLs relevantes
   budgetItems?: any // JSON de items presupuestarios
   workGroupIds?: string[]
   workgroup?: {

@@ -81,17 +81,13 @@ export async function POST(request: Request) {
 
     let body;
     const contentType = request.headers.get('content-type') || '';
-    console.log("[API/Proposals] Content-Type:", contentType);
-    
     if (contentType.includes('multipart/form-data')) {
       // No se soporta parseo de archivos en edge runtime, solo metadatos
       return NextResponse.json({ error: "File upload not supported yet. Adjunta solo metadatos." }, { status: 400 });
     } else {
       body = await request.json();
-      console.log("[API/Proposals] Body recibido:", JSON.stringify(body, null, 2));
     }
-    
-    const { title, description, expiresAt, attachment, proposalType, quarter, budgetItems, workGroupIds } = body;
+  const { title, description, expiresAt, attachment, proposalType, budgetItems, workGroupIds, quarter, links } = body;
 
     // Validaciones mejoradas
     const errors = [];
@@ -99,25 +95,11 @@ export async function POST(request: Request) {
     if (!description || description.length < 10) errors.push("La descripción es obligatoria y debe tener al menos 10 caracteres.");
     if (!expiresAt) errors.push("La fecha de expiración es obligatoria.");
     if (!proposalType) errors.push("El tipo de propuesta es obligatorio.");
-    if (proposalType === "QUARTERLY_REPORT" && !quarter) errors.push("El trimestre es obligatorio para reportes trimestrales.");
     // Puedes agregar más validaciones aquí
 
     if (errors.length > 0) {
-      console.log("[API/Proposals] Errores de validación:", errors);
       return NextResponse.json({ error: errors.join(' ') }, { status: 400 });
     }
-
-    console.log("[API/Proposals] Datos a guardar:", {
-      title,
-      description,
-      expiresAt: new Date(expiresAt),
-      authorId: session.user.id,
-      attachment: attachment || null,
-      proposalType: proposalType || "COMMUNITY_PROPOSAL",
-      quarter: quarter || null,
-      budgetItems: budgetItems || null,
-      workGroupIds: workGroupIds || [],
-    });
 
     // Guardar la propuesta con los nuevos campos
     const proposal = await prisma.proposal.create({
@@ -128,17 +110,16 @@ export async function POST(request: Request) {
         authorId: session.user.id,
         attachment: attachment || null,
         proposalType: proposalType || "COMMUNITY_PROPOSAL",
-        quarter: quarter || null,
         budgetItems: budgetItems || null,
         workGroupIds: workGroupIds || [],
+        quarter: quarter || null,
+        links: Array.isArray(links) ? links : links ? [links] : [], // Siempre guarda como array Json
       },
     });
 
-    console.log("[API/Proposals] Propuesta creada exitosamente:", proposal);
     return NextResponse.json(proposal, { status: 201 });
   } catch (error) {
     console.error("Error creating proposal:", error)
-    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace available');
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }

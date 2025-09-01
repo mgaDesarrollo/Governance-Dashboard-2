@@ -230,6 +230,10 @@ export const authOptions: NextAuthOptions = {
        if (token.dbUserId && token.role) {
          console.log(`[NextAuth JWT] Token has role: ${token.role} for user: ${token.dbUserId}`)
        }
+        // Propagate accessToken from OAuth provider
+        if (account && account.access_token) {
+          token.accessToken = account.access_token;
+        }
       
       return token
     },
@@ -267,6 +271,10 @@ export const authOptions: NextAuthOptions = {
         if (token.status) {
           session.user.status = token.status as UserAvailabilityStatus
         }
+          // Propagate accessToken to session
+          if (token.accessToken) {
+            session.accessToken = token.accessToken;
+          }
       }
       
       console.log(`[NextAuth Session] Session created with role: ${(session.user as any)?.role}`)

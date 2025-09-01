@@ -10,6 +10,7 @@ declare module "next-auth" {
       status: string
       image?: string
     }
+    accessToken?: string;
   }
 
   interface User {

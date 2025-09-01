@@ -88,6 +88,9 @@ CREATE TABLE "public"."Proposal" (
     "proposalType" TEXT NOT NULL DEFAULT 'COMMUNITY_PROPOSAL',
     "budgetItems" JSONB,
     "workGroupIds" TEXT[],
+    "consensusDate" TIMESTAMP(3),
+    "quarter" TEXT,
+    "links" JSONB,
 
     CONSTRAINT "Proposal_pkey" PRIMARY KEY ("id")
 );
@@ -112,6 +115,7 @@ CREATE TABLE "public"."Comment" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL,
     "proposalId" TEXT NOT NULL,
+    "parentId" TEXT,
 
     CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
 );
@@ -251,6 +255,9 @@ CREATE INDEX "Comment_userId_idx" ON "public"."Comment"("userId");
 CREATE INDEX "Comment_proposalId_idx" ON "public"."Comment"("proposalId");
 
 -- CreateIndex
+CREATE INDEX "Comment_parentId_idx" ON "public"."Comment"("parentId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Comment_userId_proposalId_key" ON "public"."Comment"("userId", "proposalId");
 
 -- CreateIndex
@@ -300,6 +307,9 @@ ALTER TABLE "public"."Comment" ADD CONSTRAINT "Comment_proposalId_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "public"."Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Comment" ADD CONSTRAINT "Comment_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "public"."Comment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."WorkGroupMember" ADD CONSTRAINT "WorkGroupMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

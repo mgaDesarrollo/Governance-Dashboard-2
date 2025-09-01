@@ -18,12 +18,17 @@ export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Cliente para operaciones del lado del servidor (con service role)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+// Initialize Supabase Admin client only on server side to avoid multiple client instances
+import type { SupabaseClient } from '@supabase/supabase-js';
+export let supabaseAdmin: SupabaseClient | null = null;
+if (typeof window === 'undefined') {
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
 
 // Función helper para obtener el cliente apropiado según el contexto
 export function getSupabaseClient(isServerSide: boolean = false) {

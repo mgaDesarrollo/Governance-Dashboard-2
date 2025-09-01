@@ -1,54 +1,72 @@
-import { supabaseClient, supabaseAdmin, STORAGE_CONFIG } from './supabase-config';
+import { createClient } from '@supabase/supabase-js';
+
+// Verificar y obtener las variables de entorno de Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+// Inicializar el cliente de Supabase
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 export class StorageService {
-  private bucketName = STORAGE_CONFIG.bucketName;
+  private bucketName = 'proposal-attachments';
   private userId?: string;
-  private isServerSide: boolean;
 
   constructor(userId?: string) {
     this.userId = userId;
-    this.isServerSide = typeof window === 'undefined';
     this.initializeBucket();
   }
 
   private async initializeBucket() {
     try {
-      // Usar el cliente admin para operaciones del servidor
-      const client = this.isServerSide ? supabaseAdmin : supabaseClient;
-      
       // Verificar si el bucket existe
-      const { data: buckets } = await client.storage.listBuckets();
+      const { data: buckets } = await supabase.storage.listBuckets();
       const bucketExists = buckets?.some(b => b.name === this.bucketName);
 
       if (!bucketExists) {
         // Crear el bucket si no existe
-        const { error: createError } = await client.storage.createBucket(this.bucketName, {
+        const { error: createError } = await supabase.storage.createBucket(this.bucketName, {
           public: false,
-          allowedMimeTypes: STORAGE_CONFIG.allowedMimeTypes.all
+          allowedMimeTypes: this.allowedTypes.all
         });
 
         if (createError) throw createError;
       }
 
-      console.log('Bucket initialization completed');
+  // The policies are now managed through migrations, no need to create them here
+  console.log('Bucket initialization completed');
     } catch (error) {
       console.error('Error initializing bucket:', error);
     }
   }
+  
+  private allowedTypes = {
+    'image': ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+    'document': ['application/pdf'],
+    'all': ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf']
+  };
 
   /**
    * Valida el tipo de archivo
    */
   private validateFileType(file: File, type: 'image' | 'document' | 'all' = 'all'): void {
-    if (STORAGE_CONFIG.allowedMimeTypes[type].indexOf(file.type) === -1) {
-      throw new Error(`Invalid file type. Allowed types: ${STORAGE_CONFIG.allowedMimeTypes[type].join(', ')}`);
+    if (!this.allowedTypes[type].includes(file.type)) {
+      throw new Error(`Invalid file type. Allowed types: ${this.allowedTypes[type].join(', ')}`);
     }
   }
 
   /**
    * Valida el tamaño del archivo
    */
-  private validateFileSize(file: File, maxSize: number = STORAGE_CONFIG.maxFileSize): void {
+  private validateFileSize(file: File, maxSize: number = 5 * 1024 * 1024): void {
     if (file.size > maxSize) {
       throw new Error(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`);
     }
@@ -66,12 +84,8 @@ export class StorageService {
       let userId = this.userId;
 
       if (!userId) {
-        if (this.isServerSide) {
-          throw new Error('User ID is required for server-side operations');
-        }
-        
         // Check for client-side authentication if userId wasn't provided in constructor
-        const { data: { user: currentUser }, error: sessionError } = await supabaseClient.auth.getUser();
+        const { data: { user: currentUser }, error: sessionError } = await supabase.auth.getUser();
         
         if (sessionError) {
           console.error('Authentication error:', sessionError);
@@ -93,11 +107,10 @@ export class StorageService {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        userId,
-        isServerSide: this.isServerSide
+        userId
       });
 
-      const { type = 'all', maxSize = STORAGE_CONFIG.maxFileSize, folder = '' } = options;
+      const { type = 'all', maxSize = 5 * 1024 * 1024, folder = '' } = options;
       
       // Validaciones
       this.validateFileType(file, type);
@@ -111,22 +124,25 @@ export class StorageService {
       
       // Asegurar que la ruta del archivo incluya el ID del usuario
       const filePath = folder ? `${userId}/${folder}/${fileName}` : `${userId}/${fileName}`;
-
-      // Usar el cliente apropiado según el contexto
-      const client = this.isServerSide ? supabaseAdmin : supabaseClient;
+      
+      // LOGS DE DEPURACIÓN
+      console.log('Depuración Supabase Storage:');
+      console.log('userId:', userId);
+      console.log('filePath:', filePath);
+      console.log('bucketName:', this.bucketName);
+      console.log('fileName:', fileName);
+      console.log('fileType:', file.type);
+      console.log('fileSize:', file.size);
 
       // Subir el archivo
-      const { data, error } = await client.storage
+      const { data, error } = await supabase.storage
         .from(this.bucketName)
         .upload(filePath, file);
 
-      if (error) {
-        console.error('Supabase upload error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       // Obtener la URL pública
-      const { data: { publicUrl } } = client.storage
+      const { data: { publicUrl } } = supabase.storage
         .from(this.bucketName)
         .getPublicUrl(filePath);
 
@@ -139,10 +155,14 @@ export class StorageService {
         error,
         message: error.message,
         supabaseError: error.error,
-        statusCode: error.statusCode,
-        isServerSide: this.isServerSide
+        statusCode: error.statusCode
       });
       
+      // Verificar las credenciales de Supabase
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Missing Supabase credentials');
+      }
+
       // Propagar el mensaje de error específico
       if (error.message) {
         throw new Error(`Upload failed: ${error.message}`);
@@ -157,9 +177,7 @@ export class StorageService {
    */
   async deleteFile(filePath: string): Promise<void> {
     try {
-      const client = this.isServerSide ? supabaseAdmin : supabaseClient;
-      
-      const { error } = await client.storage
+      const { error } = await supabase.storage
         .from(this.bucketName)
         .remove([filePath]);
 
@@ -175,9 +193,7 @@ export class StorageService {
    */
   async getSignedUrl(filePath: string, expiresIn: number = 3600): Promise<string> {
     try {
-      const client = this.isServerSide ? supabaseAdmin : supabaseClient;
-      
-      const { data, error } = await client.storage
+      const { data, error } = await supabase.storage
         .from(this.bucketName)
         .createSignedUrl(filePath, expiresIn);
 

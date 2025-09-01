@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { supabaseClient } from "@/lib/supabase-config"
 
 interface User {
   id: string
@@ -66,6 +67,19 @@ export function useSessionWithRefresh() {
     }
   }, [session, status])
 
+  useEffect(() => {
+    const syncSupabase = async () => {
+      if (status === "authenticated" && session?.accessToken) {
+        // Autenticar en Supabase con el token de Discord
+        await supabaseClient.auth.signInWithIdToken({
+          provider: "discord",
+          token: session.accessToken,
+        });
+      }
+    };
+    syncSupabase();
+  }, [status, session?.accessToken]);
+
   return {
     user,
     loading,
@@ -73,4 +87,4 @@ export function useSessionWithRefresh() {
     checkAdminPermissions,
     signOut: () => signOut({ callbackUrl: "/" })
   }
-} 
+}

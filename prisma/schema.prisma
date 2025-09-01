@@ -85,10 +85,11 @@ model Proposal {
   
   // Nuevos campos
   proposalType  String         @default("COMMUNITY_PROPOSAL")
-  quarter       String?        // Trimestre para reportes trimestrales (Q1, Q2, Q3, Q4)
   budgetItems   Json?          // Array de items presupuestarios
   workGroupIds  String[]       // Array de IDs de workgroups asociados
   consensusDate DateTime?      // Fecha cuando se alcanzó consenso
+  quarter       String?        // Trimestre para Quarterly Report (Q1, Q2, Q3, Q4)
+  links         Json?          // Array de links relevantes
 
   @@index([authorId])
   @@index([workgroupId])
@@ -123,10 +124,6 @@ model Comment {
   // Relaciones para respuestas
   parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies    Comment[] @relation("CommentReplies")
-  
-  // Campos para likes y dislikes
-  likes      String[]  @default([])  // Array de IDs de usuarios que dieron like
-  dislikes   String[]  @default([])  // Array de IDs de usuarios que dieron dislike
 
   @@unique([userId, proposalId])
   @@index([userId])

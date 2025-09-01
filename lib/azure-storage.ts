@@ -1,4 +1,4 @@
-import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+import { BlobServiceClient, ContainerClient, BlobSASPermissions } from '@azure/storage-blob';
 
 // Configuración
 const containerName = 'proposal-attachments';
@@ -73,7 +73,7 @@ export class AzureStorageService {
       expiresOn.setMinutes(startsOn.getMinutes() + expiryMinutes);
 
       const sasUrl = await blockBlobClient.generateSasUrl({
-        permissions: { read: true },
+        permissions: BlobSASPermissions.parse("r"),
         startsOn,
         expiresOn,
       });

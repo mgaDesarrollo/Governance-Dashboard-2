@@ -65,7 +65,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Obtener información de los workgroups asociados si existen
-    let associatedWorkGroups = []
+  let associatedWorkGroups: { id: string; name: string; type: string; status: string }[] = []
     if (proposal.workGroupIds && proposal.workGroupIds.length > 0) {
       associatedWorkGroups = await prisma.workGroup.findMany({
         where: {
@@ -144,7 +144,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         return NextResponse.json({ error: "Cannot edit proposal that is not in review" }, { status: 400 })
       }
 
-      const { title, description, expiresAt, attachment, proposalType, budgetItems, workGroupIds } = body
+  const { title, description, expiresAt, attachment, proposalType, budgetItems, workGroupIds, quarter, links } = body
 
       const updatedProposal = await prisma.proposal.update({
         where: { id: proposalId },
@@ -154,8 +154,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           expiresAt: expiresAt ? new Date(expiresAt) : undefined,
           attachment: attachment || undefined,
           proposalType: proposalType || undefined,
+          quarter: quarter || undefined,
           budgetItems: budgetItems || undefined,
           workGroupIds: workGroupIds || undefined,
+          links: links || undefined,
           updatedAt: new Date(),
         },
       })
