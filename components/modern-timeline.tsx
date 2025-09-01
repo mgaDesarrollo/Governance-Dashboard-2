@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { CalendarIcon, CheckCircleIcon, TargetIcon, VoteIcon } from 'lucide-react';
 
 interface TimelineEvent {
@@ -19,7 +19,7 @@ interface ModernTimelineProps {
 const ModernTimeline: React.FC<ModernTimelineProps> = ({ events }) => {
   return (
     <div className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 rounded-lg border border-gray-600 p-8 shadow-lg">
-      <h3 className="text-xl font-bold text-white mb-6">Progreso de la Propuesta</h3>
+      <h3 className="text-xl font-bold text-white mb-6">Proposal Progress</h3>
       <div className="relative">
         {events.map((event, index) => (
           <div key={event.id} className="relative flex items-start gap-6 mb-10 last:mb-0">
@@ -30,7 +30,7 @@ const ModernTimeline: React.FC<ModernTimelineProps> = ({ events }) => {
               <h4 className="text-lg text-white font-semibold mb-1">{event.title}</h4>
               <p className="text-gray-400 text-sm mb-2">{event.description}</p>
               <p className="text-gray-500 text-xs">
-                {format(new Date(event.date), 'MMM dd, yyyy · h:mm a', { locale: es })} • {formatDistanceToNow(new Date(event.date), { addSuffix: true, locale: es })}
+                {format(new Date(event.date), 'MMM dd, yyyy · h:mm a', { locale: enUS })} • {formatDistanceToNow(new Date(event.date), { addSuffix: true, locale: enUS })}
               </p>
             </div>
             {index < events.length - 1 && (

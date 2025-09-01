@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { formatDistanceToNow, isPast } from "date-fns"
+import { enUS } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -429,19 +430,19 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-slate-400">Created</label>
                     <p className="text-slate-200 text-sm lg:text-base">
-                      {formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(proposal.createdAt), { addSuffix: true, locale: enUS })}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-slate-400">Updated</label>
                     <p className="text-slate-200 text-sm lg:text-base">
-                      {formatDistanceToNow(new Date(proposal.updatedAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(proposal.updatedAt), { addSuffix: true, locale: enUS })}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-slate-400">Expired</label>
                     <p className="text-slate-200 text-sm lg:text-base">
-                      {formatDistanceToNow(new Date(proposal.expiresAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(proposal.expiresAt), { addSuffix: true, locale: enUS })}
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -620,12 +621,12 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                         {proposal.attachment.split('/').pop() || 'Attachment'}
                       </p>
                       <p className="text-slate-400 text-xs lg:text-sm">
-                        {proposal.attachment.includes('.pdf') ? 'Documento PDF' :
-                         proposal.attachment.includes('.doc') || proposal.attachment.includes('.docx') ? 'Documento Word' :
-                         proposal.attachment.includes('.xls') || proposal.attachment.includes('.xlsx') ? 'Hoja de cálculo Excel' :
-                         proposal.attachment.includes('.ppt') || proposal.attachment.includes('.pptx') ? 'Presentación PowerPoint' :
-                         proposal.attachment.includes('.zip') || proposal.attachment.includes('.rar') ? 'Archivo comprimido' :
-                         'Archivo adjunto'}
+                        {proposal.attachment.includes('.pdf') ? 'PDF document' :
+                         proposal.attachment.includes('.doc') || proposal.attachment.includes('.docx') ? 'Word document' :
+                         proposal.attachment.includes('.xls') || proposal.attachment.includes('.xlsx') ? 'Excel spreadsheet' :
+                         proposal.attachment.includes('.ppt') || proposal.attachment.includes('.pptx') ? 'PowerPoint presentation' :
+                         proposal.attachment.includes('.zip') || proposal.attachment.includes('.rar') ? 'Compressed archive' :
+                         'Attachment'}
                       </p>
                     </div>
                     <Button
@@ -709,7 +710,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                           <div className="flex-1">
                             <p className="font-medium text-slate-200">{comment.user.name}</p>
                             <p className="text-xs text-slate-400">
-                              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: enUS })}
                             </p>
                           </div>
                           <Button
@@ -791,7 +792,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                                   <div>
                                     <p className="font-medium text-slate-200 text-sm">{reply.user.name}</p>
                                     <p className="text-xs text-slate-400">
-                                      {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
+                                      {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true, locale: enUS })}
                                     </p>
                                   </div>
                                 </div>
