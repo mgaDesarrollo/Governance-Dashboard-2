@@ -47,6 +47,8 @@ export interface ProposalVote {
   id: string
   type: VoteTypeEnum
   user: ProposalAuthor
+  createdAt: string
+  comment?: string | null
 }
 
 export interface Proposal {

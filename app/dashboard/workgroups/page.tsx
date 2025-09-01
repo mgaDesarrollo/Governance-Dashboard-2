@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { LoadingSkeleton } from "@/components/ui/loading-skeleton"
+import { LoadingSkeleton, SimpleLoading } from "@/components/ui/loading-skeleton"
 
 // Tipo extendido para aceptar 'members'
 type WorkGroupWithMembers = WorkGroup & { members?: any[] };
@@ -163,8 +163,8 @@ export default function WorkGroupsPage() {
           <div className="w-full">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
-                <p className="text-gray-400 font-medium">Loading workgroups...</p>
+                <SimpleLoading size="md" colorHex="#5865F2" />
+                <p className="text-gray-400 font-medium mt-3">Loading workgroups...</p>
               </div>
             ) : !workGroups || workGroups.length === 0 ? (
               <Card className="bg-black border-gray-700 w-full">

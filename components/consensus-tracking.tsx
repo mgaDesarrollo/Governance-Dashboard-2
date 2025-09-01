@@ -78,7 +78,7 @@ export default function ConsensusTracking({
       return
     }
 
-    await onVote(voteType, voteComment.trim() || undefined)
+  await onVote(voteType, voteComment.trim() || undefined)
     setVoteType(null)
     setVoteComment('')
   }

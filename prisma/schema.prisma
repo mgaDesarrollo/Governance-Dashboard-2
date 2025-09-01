@@ -102,6 +102,8 @@ model Vote {
   updatedAt  DateTime @updatedAt
   userId     String
   proposalId String
+  // Optional comment associated with the vote
+  comment    String?
   proposal   Proposal @relation(fields: [proposalId], references: [id])
   user       User     @relation(fields: [userId], references: [id])
 

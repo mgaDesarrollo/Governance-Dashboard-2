@@ -3,18 +3,25 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 interface LoadingSkeletonProps {
   type?: "page" | "card" | "list" | "spinner"
   className?: string
+  colorHex?: string // optional brand color for spinner accents
 }
 
-export function LoadingSkeleton({ type = "spinner", className = "" }: LoadingSkeletonProps) {
+export function LoadingSkeleton({ type = "spinner", className = "", colorHex = "#5865F2" }: LoadingSkeletonProps) {
   if (type === "spinner") {
     return (
       <div className={`flex items-center justify-center min-h-[200px] ${className}`}>
         <div className="relative">
           {/* Spinner principal */}
-          <div className="w-12 h-12 border-4 border-slate-700 border-t-purple-500 rounded-full animate-spin"></div>
+          <div
+            className="w-12 h-12 border-4 border-slate-700 rounded-full animate-spin"
+            style={{ borderTopColor: colorHex }}
+          ></div>
           
           {/* Punto central */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-purple-500 rounded-full"></div>
+          <div
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+            style={{ backgroundColor: colorHex }}
+          ></div>
         </div>
       </div>
     )
@@ -79,7 +86,7 @@ export function LoadingSkeleton({ type = "spinner", className = "" }: LoadingSke
 }
 
 // Componente de loading simple para usar en cualquier lugar
-export function SimpleLoading({ size = "md", className = "" }: { size?: "sm" | "md" | "lg", className?: string }) {
+export function SimpleLoading({ size = "md", className = "", colorHex = "#5865F2" }: { size?: "sm" | "md" | "lg", className?: string, colorHex?: string }) {
   const sizeClasses = {
     sm: "w-6 h-6 border-2",
     md: "w-8 h-8 border-3",
@@ -88,16 +95,22 @@ export function SimpleLoading({ size = "md", className = "" }: { size?: "sm" | "
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <div className={`${sizeClasses[size]} border-slate-700 border-t-purple-500 rounded-full animate-spin`}></div>
+      <div
+        className={`${sizeClasses[size]} border-slate-700 rounded-full animate-spin`}
+        style={{ borderTopColor: colorHex }}
+      ></div>
     </div>
   )
 }
 
 // Componente de loading con texto
-export function LoadingWithText({ text = "Loading...", className = "" }: { text?: string, className?: string }) {
+export function LoadingWithText({ text = "Loading...", className = "", colorHex = "#5865F2" }: { text?: string, className?: string, colorHex?: string }) {
   return (
     <div className={`flex flex-col items-center justify-center space-y-4 ${className}`}>
-      <div className="w-8 h-8 border-3 border-slate-700 border-t-purple-500 rounded-full animate-spin"></div>
+      <div
+        className="w-8 h-8 border-3 border-slate-700 rounded-full animate-spin"
+        style={{ borderTopColor: colorHex }}
+      ></div>
       <p className="text-slate-400 text-sm font-medium">{text}</p>
     </div>
   )

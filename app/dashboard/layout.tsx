@@ -45,8 +45,8 @@ const getMenuItems = (userRole: string) => {
       icon: FileTextIcon
     },
     {
-      title: "Collaborators",
-      url: "/dashboard/collaborators",
+      title: "Contributors",
+      url: "/dashboard/contributors",
       icon: UsersIcon
     },
     {

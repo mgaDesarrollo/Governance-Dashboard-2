@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { prisma } from "@/lib/prisma"
+import type { VoteType as PrismaVoteType } from "@prisma/client"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -11,12 +12,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const proposalId = params.id
-    const { voteType } = await request.json()
+  const proposalId = params.id
+  const body = (await request.json()) as { voteType: PrismaVoteType | string; comment?: string }
+  const { voteType, comment } = body
 
-    if (!["POSITIVE", "NEGATIVE", "ABSTAIN"].includes(voteType)) {
+  if (!["POSITIVE", "NEGATIVE", "ABSTAIN"].includes(voteType as string)) {
       return NextResponse.json({ error: "Invalid vote type" }, { status: 400 })
     }
+  const voteTypeEnum = voteType as PrismaVoteType
 
     // Check if proposal exists and is not expired
     const proposal = await prisma.proposal.findUnique({
@@ -61,6 +64,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Start a transaction to update vote counts
     const result = await prisma.$transaction(async (tx) => {
+  const newComment = typeof comment === "string" && comment.trim().length > 0 ? comment.trim() : undefined
       // If user has already voted, update their vote
       if (existingVote) {
         // Decrement the previous vote count
@@ -82,37 +86,69 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         }
 
         // Update the vote
+        const updateData = {
+          type: voteTypeEnum,
+          ...(newComment !== undefined ? { comment: newComment } : {}),
+        }
         await tx.vote.update({
           where: { id: existingVote.id },
-          data: { type: voteType },
+          data: updateData,
         })
       } else {
         // Create a new vote
+        const createData = {
+          type: voteTypeEnum,
+          userId: session.user.id,
+          proposalId,
+          ...(newComment !== undefined ? { comment: newComment } : {}),
+        }
         await tx.vote.create({
-          data: {
-            type: voteType,
-            userId: session.user.id,
-            proposalId,
-          },
+          data: createData,
         })
       }
 
       // Increment the new vote count
-      if (voteType === "POSITIVE") {
+  if (voteTypeEnum === "POSITIVE") {
         await tx.proposal.update({
           where: { id: proposalId },
           data: { positiveVotes: { increment: 1 } },
         })
-      } else if (voteType === "NEGATIVE") {
+  } else if (voteTypeEnum === "NEGATIVE") {
         await tx.proposal.update({
           where: { id: proposalId },
           data: { negativeVotes: { increment: 1 } },
         })
-      } else if (voteType === "ABSTAIN") {
+  } else if (voteTypeEnum === "ABSTAIN") {
         await tx.proposal.update({
           where: { id: proposalId },
           data: { abstainVotes: { increment: 1 } },
         })
+      }
+
+      // If the request includes a comment, also upsert user's main comment for this proposal (back-compat + visibility)
+      if (typeof comment === "string" && comment.trim().length > 0) {
+        const existingMain = await tx.comment.findUnique({
+          where: {
+            userId_proposalId: {
+              userId: session.user.id,
+              proposalId,
+            },
+          },
+        })
+        if (existingMain) {
+          await tx.comment.update({
+            where: { id: existingMain.id },
+            data: { content: comment.trim() },
+          })
+        } else {
+          await tx.comment.create({
+            data: {
+              content: comment.trim(),
+              userId: session.user.id,
+              proposalId,
+            },
+          })
+        }
       }
 
       // Return the updated proposal
@@ -120,7 +156,16 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         where: { id: proposalId },
         include: {
           votes: {
-            where: { userId: session.user.id },
+            include: {
+              user: { select: { id: true, name: true, image: true } },
+            },
+            orderBy: { createdAt: "desc" },
+          },
+          comments: {
+            include: {
+              user: { select: { id: true, name: true, image: true } },
+            },
+            orderBy: { createdAt: "desc" },
           },
         },
       })
@@ -128,7 +173,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json({
       proposal: result,
-      userVote: voteType,
+      userVote: voteTypeEnum,
     })
   } catch (error) {
     console.error("Error voting on proposal:", error)

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeftIcon, AlertCircleIcon, RefreshCwIcon } from "lucide-react"
 import Link from "next/link"
+import { SimpleLoading } from "@/components/ui/loading-skeleton"
 
 // Custom Discord Icon Component - Fixed import issue
 const DiscordIcon = ({ className }: { className?: string }) => (
@@ -92,6 +93,11 @@ export default function SignInPage() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {isLoading && (
+            <div className="flex justify-center">
+              <SimpleLoading size="md" colorHex="#5865F2" />
+            </div>
+          )}
           {error && (
             <Alert variant="destructive">
               <AlertCircleIcon className="h-4 w-4" />

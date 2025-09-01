@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { formatDistanceToNow, isPast } from "date-fns"
+import { formatDistanceToNow, isPast, format } from "date-fns"
 import { enUS } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -129,7 +129,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
   const operativeBudget = proposal.budgetItems?.filter((item: any) => item.type === 'Operative')
     .reduce((sum: number, item: any) => sum + (item.total || 0), 0) || 0;
 
-  const handleVote = async (voteType: VoteTypeEnum) => {
+  const handleVote = async (voteType: VoteTypeEnum, voteComment?: string) => {
     if (!proposal || isSubmittingVote) return
 
     try {
@@ -141,7 +141,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ voteType }),
+        body: JSON.stringify({ voteType, comment: voteComment }),
       })
 
       if (!response.ok) {
@@ -150,6 +150,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
       }
 
       const data = await response.json()
+      // Update quick counters immediately
       setProposal((prev) => {
         if (!prev) return null
         return {
@@ -158,8 +159,12 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
           negativeVotes: data.proposal.negativeVotes,
           abstainVotes: data.proposal.abstainVotes,
           userVote: data.userVote,
+          // Ensure comments reflect any upsert done in the vote API
+          comments: data.proposal?.comments ?? prev.comments,
         }
       })
+      // Optionally refresh full proposal to ensure votes/comments are fully in sync
+      fetchProposal()
     } catch (err: any) {
       setError(err.message || "An error occurred while submitting your vote")
     } finally {
@@ -483,15 +488,24 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
               </CardContent>
             </Card>
 
-            {/* Description (HTML enriquecido) */}
+            {/* Description (linkify plain text; preserve HTML if present) */}
             <Card className="bg-transparent border-slate-700">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg lg:text-xl text-white">Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-invert max-w-none">
-                  <div className="text-slate-200 text-sm lg:text-base leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: proposal.description || "" }} />
-                </div>
+                { /<[^>]+>/.test(proposal.description || "") ? (
+                  <div className="prose prose-invert max-w-none">
+                    <div
+                      className="text-slate-200 text-sm lg:text-base leading-relaxed whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ __html: proposal.description || "" }}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-slate-200 text-sm lg:text-base leading-relaxed whitespace-pre-wrap break-words">
+                    {renderTextWithLinks(proposal.description || "")}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -812,6 +826,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                 )}
               </CardContent>
             </Card>
+
           </div>
 
           {/* Right Column - Sidebar */}
@@ -853,6 +868,59 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
                   isSubmittingComment={isSubmittingComment}
                   canVote={canVote}
                 />
+
+                {/* All Vote Comments under Consensus */}
+                <div className="mt-6">
+                  <h4 className="text-slate-200 font-semibold mb-3">All Vote Comments</h4>
+                  {proposal.votes && proposal.votes.length > 0 ? (
+                    <div className="space-y-3">
+                      {proposal.votes
+                        .slice()
+                        .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                        .map((vote) => {
+                          const userComment = (proposal.comments || []).find((c: any) => c.user?.id === vote.user?.id && !c.parentId)
+                          const commentText = (typeof vote.comment === 'string' && vote.comment.trim().length > 0)
+                            ? vote.comment.trim()
+                            : (userComment?.content?.trim() || '')
+                          const voteLabel = vote.type === "POSITIVE" ? "Positive" : vote.type === "NEGATIVE" ? "Negative" : "Abstain"
+                          const voteColor = vote.type === "POSITIVE" ? "text-green-400 border-green-500/30 bg-green-900/20" : vote.type === "NEGATIVE" ? "text-red-400 border-red-500/30 bg-red-900/20" : "text-yellow-400 border-yellow-500/30 bg-yellow-900/20"
+                          const Icon = vote.type === "POSITIVE" ? ThumbsUpIcon : vote.type === "NEGATIVE" ? ThumbsDownIcon : HandIcon
+                          return (
+                            <div key={vote.id} className="p-3 bg-slate-800/30 rounded-lg border border-slate-600">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="h-8 w-8 rounded-full bg-slate-600 flex items-center justify-center flex-shrink-0">
+                                    {vote.user?.image ? (
+                                      <img src={vote.user.image} alt={vote.user.name} className="h-8 w-8 rounded-full" />
+                                    ) : (
+                                      <UserIcon className="h-4 w-4 text-slate-300" />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-slate-200 font-medium truncate">{vote.user?.name || "Unknown"}</p>
+                                    <div className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${voteColor}`}>
+                                      <Icon className="h-3 w-3" />
+                                      {voteLabel}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-xs text-slate-400 flex-shrink-0">
+                                  {vote.createdAt ? format(new Date(vote.createdAt), "MMM d, yyyy · h:mm a", { locale: enUS }) : ""}
+                                </div>
+                              </div>
+                              <div className="mt-2 text-sm text-slate-300 whitespace-pre-line break-words">
+                                {commentText.length > 0
+                                  ? renderTextWithLinks(commentText)
+                                  : <span className="text-slate-500">No comment</span>}
+                              </div>
+                            </div>
+                          )
+                        })}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400">No votes yet</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
