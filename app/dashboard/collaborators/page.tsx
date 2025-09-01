@@ -127,9 +127,12 @@ export default function CollaboratorsPage() {
   const [filters, setFilters] = useState<CollaboratorFilters>({
     search: "",
     status: "ALL",
+    onlineStatus: "ALL",
     country: "",
     workgroup: "",
     skills: [],
+    hasCV: null,
+    hasSocialLinks: null,
   })
 
   // Estados para filtros
@@ -158,19 +161,33 @@ export default function CollaboratorsPage() {
       setIsLoading(true)
       const response = await fetch("/api/public-profiles")
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json() as PublicProfileUser[]
         const usersWithMockStatus = generateMockOnlineStatus(data)
         setUsers(usersWithMockStatus)
 
-        // Extraer datos para filtros
-        const countries = [...new Set(data.map((u: PublicProfileUser) => u.country).filter(Boolean))]
-        const workgroups = data
-          .flatMap((u: PublicProfileUser) => u.workgroups || [])
-          .filter((wg, index, arr) => arr.findIndex((w) => w.id === wg.id) === index)
-        const skills = [...new Set(data.flatMap((u: PublicProfileUser) => u.skills?.split(",").map((s) => s.trim()) || []))]
+        // Extract filter data with proper typing
+        const countries: string[] = Array.from(
+          new Set(
+            data.map((u) => u.country).filter((c): c is string => Boolean(c))
+          )
+        )
+        const workgroupsData: { id: string; name: string }[] = Array.from(
+          new Set(
+            data.flatMap((u) => u.workgroups || [])
+          ) as { id: string; name: string }[]
+        )
+        // Ensure uniqueness by id
+        const uniqueWorkgroups = workgroupsData.filter(
+          (wg, index, arr) => arr.findIndex((w) => w.id === wg.id) === index
+        )
+        const skills: string[] = Array.from(
+          new Set(
+            data.flatMap((u) => u.skills?.split(",").map((s) => s.trim()) || [])
+          )
+        )
 
         setAvailableCountries(countries)
-        setAvailableWorkgroups(workgroups)
+        setAvailableWorkgroups(uniqueWorkgroups)
         setAvailableSkills(skills)
       } else {
         console.error("Failed to fetch users")
@@ -224,16 +241,7 @@ export default function CollaboratorsPage() {
     setIsProfileDialogOpen(true)
   }
 
-  if (isLoading || sessionStatus === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-center">
-          <Loader2Icon className="h-12 w-12 text-purple-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading collaborators...</p>
-        </div>
-      </div>
-    )
-  }
+  // Data and auth loading handled by loading.tsx
 
   // Ordenar usuarios: online primero, luego por última vez visto
   const sortedUsers = [...filteredUsers].sort((a, b) => {
@@ -271,7 +279,7 @@ export default function CollaboratorsPage() {
             filters={filters}
             onFiltersChange={setFilters}
             availableCountries={availableCountries}
-            availableWorkgroups={availableWorkgroups}
+            availableWorkgroups={availableWorkgroups.map(wg => wg.name)}
             availableSkills={availableSkills}
             totalCount={users.length}
             filteredCount={filteredUsers.length}

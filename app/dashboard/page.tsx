@@ -80,7 +80,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Welcome Section */}
         <div className="lg:col-span-2">
-          <Card className="bg-gradient-to-br from-black to-black/80 border-2 border-purple-600 relative overflow-hidden">
+            <Card className="bg-gradient-to-br from-gray-900 to-gray-800/60 border border-purple-500/50 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent" />
             <CardContent className="p-6 relative">
               <div className="flex items-center gap-4 mb-4">
@@ -186,7 +186,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Dashboard Metrics */}
-      <div className="bg-gray-900 border-2 border-blue-500 rounded-lg p-6 relative overflow-hidden">
+  <div className="bg-gray-800 border border-blue-500/50 rounded-lg p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/5 to-pink-500/10 opacity-20"></div>
         <div className="relative">
           <DashboardMetrics />

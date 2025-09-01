@@ -2,12 +2,12 @@
 
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { 
-  FileTextIcon, 
-  PlusIcon, 
-  BellIcon, 
-  UserIcon, 
-  BarChart3Icon, 
+import {
+  FileTextIcon,
+  PlusIcon,
+  BellIcon,
+  UserIcon,
+  BarChart3Icon,
   VoteIcon,
   ArrowRightIcon,
   ZapIcon,
@@ -55,38 +55,28 @@ export function QuickActions({ userRole }: QuickActionsProps) {
   const actions = [
     {
       id: "notifications",
-      title: "Notificaciones",
-      description: "Revisa tus últimas actualizaciones y alertas",
+      title: "Notifications",
+      description: "Check your latest updates and alerts",
       icon: <BellIcon className="h-5 w-5" />,
       href: "/dashboard/notifications",
       bgColor: "bg-yellow-500",
       adminOnly: false,
-      badge: notificationCount > 0 ? `${notificationCount} Nuevas` : undefined,
+      badge: notificationCount > 0 ? `${notificationCount} New` : undefined,
     },
     {
       id: "pending-proposals",
-      title: "Propuestas Pendientes",
-      description: "Revisa propuestas esperando tu voto",
+      title: "Pending Proposals",
+      description: "View proposals awaiting your vote",
       icon: <FileTextIcon className="h-5 w-5" />,
       href: "/dashboard/proposals?filter=pending",
       bgColor: "bg-blue-500",
       adminOnly: false,
-      badge: pendingCount > 0 ? `${pendingCount} Pendientes` : undefined,
-    },
-    {
-      id: "voting-reports",
-      title: "Reportes en Votación",
-      description: "Ver reportes actualmente en votación",
-      icon: <VoteIcon className="h-5 w-5" />,
-      href: "/dashboard/consensus",
-      bgColor: "bg-purple-500",
-      adminOnly: false,
-      badge: votingCount > 0 ? `${votingCount} Activos` : undefined,
+      badge: pendingCount > 0 ? `${pendingCount} Pending` : undefined,
     },
     {
       id: "update-profile",
-      title: "Actualizar Perfil",
-      description: "Edita tu información de perfil y preferencias",
+      title: "Update Profile",
+      description: "Edit your profile information and preferences",
       icon: <UserIcon className="h-5 w-5" />,
       href: "/dashboard/profile",
       bgColor: "bg-green-500",
@@ -94,8 +84,8 @@ export function QuickActions({ userRole }: QuickActionsProps) {
     },
     {
       id: "create-proposal",
-      title: "Crear Propuesta",
-      description: "Inicia una nueva propuesta de gobernanza",
+      title: "Create Proposal",
+      description: "Start a new governance proposal",
       icon: <PlusIcon className="h-5 w-5" />,
       href: "/dashboard/proposals/create",
       bgColor: "bg-orange-500",
@@ -104,8 +94,8 @@ export function QuickActions({ userRole }: QuickActionsProps) {
     },
     {
       id: "analytics",
-      title: "Ver Analíticas",
-      description: "Analíticas completas de gobernanza",
+      title: "View Analytics",
+      description: "Comprehensive governance analytics",
       icon: <BarChart3Icon className="h-5 w-5" />,
       href: "/dashboard/analytics",
       bgColor: "bg-blue-600",
@@ -124,8 +114,8 @@ export function QuickActions({ userRole }: QuickActionsProps) {
           <ZapIcon className="h-5 w-5 text-black" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-white">Acciones Rápidas</h3>
-          <p className="text-sm text-slate-400">Acceso rápido a tareas comunes</p>
+          <h3 className="text-xl font-bold text-white">Quick Actions</h3>
+          <p className="text-sm text-slate-400">Quick access to common tasks</p>
         </div>
       </div>
 
@@ -156,7 +146,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
             </div>
             <div className="bg-black p-2">
               <div className="flex items-center gap-1 text-xs text-white">
-                <span>Ir a</span>
+                <span>Go to</span>
                 <ArrowRightIcon className="h-3 w-3" />
               </div>
             </div>
@@ -168,7 +158,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
         <div className="mt-4 p-3 border border-amber-600/40 rounded-lg bg-black/50">
           <div className="flex items-center gap-2 text-sm text-amber-300">
             <SettingsIcon className="h-4 w-4 text-amber-400" />
-            <span>Algunas acciones requieren privilegios de administrador</span>
+            <span>Some actions require admin privileges</span>
           </div>
         </div>
       )}

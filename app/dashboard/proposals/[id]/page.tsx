@@ -382,7 +382,19 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
             {/* Basic Information */}
             <Card className="bg-transparent border-slate-700">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg lg:text-xl text-white">Basic Information</CardTitle>
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="text-lg lg:text-xl text-white">Basic Information</CardTitle>
+                  {canEdit && (
+                    <Button
+                      onClick={() => setIsEditDialogOpen(true)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      size="sm"
+                    >
+                      <EditIcon className="mr-2 h-4 w-4" />
+                      Edit Proposal
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

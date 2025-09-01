@@ -50,16 +50,11 @@ const getMenuItems = (userRole: string) => {
       icon: UsersIcon
     },
     {
-      title: "WorkGroups & Guilds",
+      title: "Workgroups",
       url: "/dashboard/workgroups",
       icon: BarChart3Icon
     },
 
-    {
-      title: "Consensus",
-      url: "/dashboard/consensus",
-      icon: ClockIcon
-    },
     {
       title: "Analytics",
       url: "/dashboard/analytics",

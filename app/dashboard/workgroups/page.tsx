@@ -75,67 +75,38 @@ export default function WorkGroupsPage() {
         <>
           {/* Header Section */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
-                <BuildingIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white tracking-wide">
-                  Workgroups and Guilds
-                </h1>
-                <p className="text-gray-400 font-medium">
-                  Manage and explore active workgroups and guilds in the ecosystem
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Workgroups</h1>
+              <p className="text-gray-400 font-medium">Manage and explore workgroups</p>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 w-full" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
               <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <BuildingIcon className="w-5 h-5 text-blue-400" />
-                    <div>
-                      <p className="text-sm text-gray-400 font-medium">Total Groups</p>
-                      <p className="text-2xl font-bold text-white">{stats.total}</p>
-                    </div>
-                  </div>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-gray-400 font-medium">Total Groups</p>
+                  <p className="text-2xl font-bold text-white">{stats.total}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <ActivityIcon className="w-5 h-5 text-green-400" />
-                    <div>
-                      <p className="text-sm text-gray-400 font-medium">Active Groups</p>
-                      <p className="text-2xl font-bold text-white">{stats.active}</p>
-                    </div>
-                  </div>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-gray-400 font-medium">Active Groups</p>
+                  <p className="text-2xl font-bold text-white">{stats.active}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-purple-500/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <UsersIcon className="w-5 h-5 text-purple-400" />
-                    <div>
-                      <p className="text-sm text-gray-400 font-medium">Total Members</p>
-                      <p className="text-2xl font-bold text-white">{stats.totalMembers}</p>
-                    </div>
-                  </div>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-gray-400 font-medium">Total Members</p>
+                  <p className="text-2xl font-bold text-white">{stats.totalMembers}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <TrendingUpIcon className="w-5 h-5 text-orange-400" />
-                    <div>
-                      <p className="text-sm text-gray-400 font-medium">Growth Rate</p>
-                      <p className="text-2xl font-bold text-white">+12%</p>
-                    </div>
-                  </div>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-gray-400 font-medium">Growth Rate</p>
+                  <p className="text-2xl font-bold text-white">+12%</p>
                 </CardContent>
               </Card>
             </div>
@@ -198,15 +169,11 @@ export default function WorkGroupsPage() {
             ) : !workGroups || workGroups.length === 0 ? (
               <Card className="bg-black border-gray-700 w-full">
                 <CardContent className="p-12 text-center">
-                  <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-6">
-                    <BuildingIcon className="w-8 h-8 text-gray-500" />
-                  </div>
                   <h3 className="text-xl font-bold text-white mb-2 tracking-wide">No Workgroups Found</h3>
                   <p className="text-gray-400 mb-6 max-w-md mx-auto font-medium">
-                    Get started by creating your first workgroup or guild.
+                    Get started by creating your first workgroup.
                   </p>
                   <Button className="bg-purple-600 hover:bg-purple-700 font-bold">
-                    <PlusIcon className="w-4 h-4 mr-2" />
                     Create Workgroup
                   </Button>
                 </CardContent>
@@ -221,16 +188,11 @@ export default function WorkGroupsPage() {
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
-                            <BuildingIcon className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-white text-lg tracking-wide group-hover:text-purple-300 transition-colors">
-                              {wg.name}
-                            </h3>
-                            <p className="text-sm text-gray-400 font-medium">{wg.type}</p>
-                          </div>
+                        <div>
+                          <h3 className="font-bold text-white text-lg tracking-wide group-hover:text-purple-300 transition-colors">
+                            {wg.name}
+                          </h3>
+                          <p className="text-sm text-gray-400 font-medium">{wg.type}</p>
                         </div>
                         {getStatusBadge(wg.status)}
                       </div>
@@ -239,30 +201,20 @@ export default function WorkGroupsPage() {
                     <CardContent>
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="flex items-center space-x-2">
-                            <UsersIcon className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Members</p>
-                              <p className="text-sm font-bold text-white">{wg.totalMembers}</p>
-                            </div>
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">Members</p>
+                            <p className="text-sm font-bold text-white">{wg.totalMembers}</p>
                           </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <CalendarIcon className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Created</p>
-                              <p className="text-sm font-bold text-white">
-                                {wg.dateOfCreation ? new Date(wg.dateOfCreation).toLocaleDateString() : "-"}
-                              </p>
-                            </div>
+                          <div>
+                            <p className="text-xs text-gray-500 font-medium">Created</p>
+                            <p className="text-sm font-bold text-white">
+                              {wg.dateOfCreation ? new Date(wg.dateOfCreation).toLocaleDateString() : "-"}
+                            </p>
                           </div>
                         </div>
                         
-                        <div className="flex items-center justify-between pt-2">
-                          <span className="text-xs text-gray-500 font-medium">
-                            Click to view details
-                          </span>
-                          <ArrowRightIcon className="w-4 h-4 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                        <div className="pt-2">
+                          <span className="text-xs text-gray-500 font-medium">Click to view details</span>
                         </div>
                       </div>
                     </CardContent>

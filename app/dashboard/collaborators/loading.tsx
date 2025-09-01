@@ -1,3 +1,6 @@
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+
 export default function Loading() {
-  return null
+  // Unified page loading skeleton
+  return <LoadingSkeleton type="page" />
 }
