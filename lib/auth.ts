@@ -24,15 +24,24 @@ if (!process.env.NEXT_PUBLIC_SUPER_ADMIN_DISCORD_ID) {
 
 // Improved NEXTAUTH_URL handling
 const getNextAuthUrl = () => {
-  if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL
+  const envUrl = process.env.NEXTAUTH_URL
+  const isProd = process.env.NODE_ENV === "production"
+
+  // If NEXTAUTH_URL is set but clearly points to localhost in production, ignore it
+  if (envUrl) {
+    const isLocal = /localhost|127\.0\.0\.1/i.test(envUrl)
+    if (isProd && isLocal) {
+      // fall through to Vercel URL detection
+    } else {
+      return envUrl
+    }
   }
-  
+
   // Auto-detect for Vercel
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`
   }
-  
+
   // Default for development
   return "http://localhost:3000"
 }
@@ -70,35 +79,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-      },
-    },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-    csrfToken: {
-      name: `next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+  // Use default cookie settings; custom cookie names can cause issues behind proxies
   callbacks: {
   async signIn({ user, account, profile, email, credentials }: any) {
       console.log("[NextAuth SignIn] Attempting sign in:", { 
