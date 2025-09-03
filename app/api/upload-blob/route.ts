@@ -23,8 +23,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    console.log('Starting file upload for user:', session.user.id, 'with role:', session.user.role)
-
     const storageService = new StorageService(session.user.id)
 
     // Configurar opciones según el tipo de subida
@@ -56,12 +54,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ error: "Invalid upload type" }, { status: 400 })
     }
 
-    console.log('Upload options:', uploadOptions)
-
     // Subir archivo
     const result = await storageService.uploadFile(file, uploadOptions)
-
-    console.log('File uploaded successfully:', result.path)
 
     // Generar URL firmada para acceso inmediato
     const signedUrl = await storageService.getSignedUrl(result.path)
@@ -84,20 +78,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.error("Supabase error details:", error.error);
     }
     
-    // Verificar si es un error de RLS
-    if (error.message && error.message.includes('row-level security policy')) {
-      console.error("RLS Policy Error - This indicates the Supabase policies are not configured correctly");
-      console.error("Please run: npm run setup-supabase");
-    }
-    
     return NextResponse.json({ 
       error: error.message || "Failed to upload file",
       details: process.env.NODE_ENV === 'development' ? {
         message: error.message,
-        error: error.error,
-        suggestion: error.message.includes('row-level security policy') 
-          ? "Run 'npm run setup-supabase' to fix RLS policies" 
-          : undefined
+        error: error.error
       } : undefined
     }, { status: 500 })
   }

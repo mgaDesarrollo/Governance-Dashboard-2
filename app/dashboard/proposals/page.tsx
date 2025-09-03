@@ -30,7 +30,6 @@ import {
   XIcon,
 } from "lucide-react"
 import type { Proposal, ProposalStatusType } from "@/lib/types"
-import { SimpleLoading } from "@/components/ui/loading-skeleton"
 
 interface ProposalFilters {
   search: string
@@ -239,7 +238,7 @@ export default function ProposalsPage() {
   if (isLoading || status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
-  <SimpleLoading size="lg" colorHex="#5865F2" />
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     )
   }

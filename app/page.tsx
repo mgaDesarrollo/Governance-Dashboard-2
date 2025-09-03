@@ -4,7 +4,6 @@ import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation" // Import useSearchParams
 import { useSession, signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { SimpleLoading } from "@/components/ui/loading-skeleton"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert" // For displaying errors
 import { BotIcon, LogInIcon, AlertTriangleIcon } from "lucide-react"
@@ -26,7 +25,7 @@ export default function LoginPage() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-  <SimpleLoading size="lg" colorHex="#5865F2" />
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     )
   }
